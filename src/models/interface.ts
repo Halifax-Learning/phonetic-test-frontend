@@ -18,6 +18,7 @@ export interface TestQuestion {
     testQuestionId: string
     question: Question
     answerText: string
+    answerAudioBlobUrl: string
     answerAudioB64Encode: string
     humanEvaluation: boolean
     humanEvaluatorId: string

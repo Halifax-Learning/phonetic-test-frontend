@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import { Test } from '../models/interface'
+import { Test, TestQuestion } from '../models/interface'
 import * as testService from '../services/test'
 import { convertKeysToCamelCase } from '../utils/helper'
 
@@ -27,6 +27,16 @@ const testReducer = createSlice({
                 state.currentTestQuestionIndex += 1
             }
         },
+        updateTest(state, action: { payload: TestQuestion }) {
+            if (state.test) {
+                const updatedTestQuestions = state.test.testQuestions.map((testQuestion) =>
+                    testQuestion.testQuestionId === action.payload.testQuestionId
+                        ? action.payload
+                        : testQuestion
+                )
+                state.test.testQuestions = updatedTestQuestions
+            }
+        },
         submitTest(state) {
             state.test = null
             state.currentTestQuestionIndex = null
@@ -42,5 +52,12 @@ export const createTest = (testTypeId: number, testTakerId: string) => {
     }
 }
 
+export const submitTest = (testId: string, testQuestion: TestQuestion[]) => {
+    return async (dispatch: any) => {
+        await testService.submitTest(testId, testQuestion)
+        dispatch(testReducer.actions.submitTest())
+    }
+}
+
 export default testReducer.reducer
-export const { nextQuestion, submitTest } = testReducer.actions
+export const { nextQuestion, updateTest } = testReducer.actions
