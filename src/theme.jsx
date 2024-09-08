@@ -5,11 +5,13 @@ const theme = createTheme({
   palette: {
     primary: {
       main: '#84B46D', // Primary green
+      contrastText: '#fff',
     },
     secondary: {
       main: '#6A9FBF', // Primary blue
       light: '#4E97D5', // Tertiary blue
       dark: '#294290', // Secondary blue
+      contrastText: '#fff',
     },
     background: {
       default: '#FFFFFF', // White
