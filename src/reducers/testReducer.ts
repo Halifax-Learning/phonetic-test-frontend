@@ -37,16 +37,16 @@ const testReducer = createSlice({
                 state.test.testQuestions = updatedTestQuestions
             }
         },
-        submitTest(state) {
+        resetTest(state) {
             state.test = null
             state.currentTestQuestionIndex = null
         },
     },
 })
 
-export const createTest = (testTypeId: number, testTakerId: string) => {
+export const createTest = (assessmentId: string, testTypeId: number) => {
     return async (dispatch: any) => {
-        const data = await testService.createTest(testTypeId, testTakerId)
+        const data = await testService.createTest(assessmentId, testTypeId)
         const test = convertKeysToCamelCase(data)
         dispatch(testReducer.actions.createTest(test))
     }
@@ -55,7 +55,7 @@ export const createTest = (testTypeId: number, testTakerId: string) => {
 export const submitTest = (testId: string, testQuestion: TestQuestion[]) => {
     return async (dispatch: any) => {
         await testService.submitTest(testId, testQuestion)
-        dispatch(testReducer.actions.submitTest())
+        dispatch(testReducer.actions.resetTest())
     }
 }
 
