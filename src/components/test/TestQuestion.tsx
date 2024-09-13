@@ -46,6 +46,7 @@ const TestQuestion = () => {
         }
     }, [mediaBlobUrl])
 
+    // Get the question audio base64 encoded string
     const questionAudioB64Encode =
         test &&
         currentTestQuestionIndex !== null &&
@@ -55,6 +56,13 @@ const TestQuestion = () => {
     const questionAudioSrc = questionAudioB64Encode
         ? `data:audio/mp3;base64,${questionAudioB64Encode}`
         : null
+
+    // Get the instruction audio base64 encoded string
+    const instructionAudioB64Encode =
+        test && test.instructionAudioB64Encode ? test.instructionAudioB64Encode : null
+
+    // Create the data URI for the instruction audio file
+    const instructionAudioSrc = `data:audio/mp3;base64,${instructionAudioB64Encode}`
 
     const onStartRecording = () => {
         startRecording()
@@ -84,9 +92,17 @@ const TestQuestion = () => {
             {test && currentTestQuestionIndex !== null && (
                 <Box>
                     <Typography variant="h3">{test.testType.testTypeName}</Typography>
+                    <Typography>Instruction:</Typography>
                     <Typography style={{ marginBottom: 50 }}>{test.questionInstructionText}</Typography>
+                    {instructionAudioB64Encode && (
+                        <audio controls src={instructionAudioSrc}>
+                            Your browser does not support the audio element.
+                        </audio>
+                    )}
 
-                    <Typography variant="h4">Question {currentTestQuestionIndex + 1} </Typography>
+                    <Typography variant="h4" sx={{ marginTop: 10 }}>
+                        Question {currentTestQuestionIndex + 1}{' '}
+                    </Typography>
 
                     {questionAudioSrc ? (
                         <Box>
