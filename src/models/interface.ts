@@ -1,12 +1,12 @@
 export interface QuestionType {
     questionTypeId: number
-    name: string
-    instructionText: string
+    questionTypeName: string
+    questionInstructionText: string
     instructionAudioB64Encode: string
 }
 
 export interface Question {
-    questionId: string
+    questionId: number
     questionType: QuestionType
     questionText: string
     questionAudioB64Encode: string
@@ -20,25 +20,35 @@ export interface TestQuestion {
     answerText: string
     answerAudioBlobUrl: string
     answerAudioB64Encode: string
-    humanEvaluation: boolean
-    humanEvaluatorId: string
-    machineEvaluation: number
 }
 
 export interface TestType {
     testTypeId: number
     questionTypeId: number
-    name: string
+    testTypeName: string
     numQuestions: number
+    questionInstructionText: string
 }
 
 export interface Test {
     testId: string
     testType: TestType
-    testTakerId: string
-    instructionText: string
+    assessmentId: string
+    questionInstructionText: string
     instructionAudioB64Encode: string
     submissionTime: Date
     numCorrectAnswers: number
     testQuestions: TestQuestion[]
+}
+
+export interface AssessmentType {
+    assessmentTypeId: number
+    assessmentTypeName: string
+}
+
+export interface Assessment {
+    assessmentId: string
+    assessmentType: AssessmentType
+    testTypes: TestType[]
+    submissionTime: Date
 }

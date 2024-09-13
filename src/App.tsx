@@ -1,15 +1,30 @@
 import { Container } from '@mui/material'
 import { useSelector } from 'react-redux'
 
-import TestList from './components/TestList.js'
-import TestQuestion from './components/TestQuestion.js'
+import AssessmentFinish from './components/assessment/AssessmentFinish.js'
+import AssessmentList from './components/assessment/AssessmentList.js'
+import AssessmentWelcome from './components/assessment/AssessmentWelcome.js'
+import TestFinish from './components/test/TestFinish.js'
+import TestQuestion from './components/test/TestQuestion.js'
+import TestWelcome from './components/test/TestWelcome.js'
 
 const App = () => {
-    const currentTestQuestionIndex = useSelector(
-        (state: { test: { currentTestQuestionIndex: number } }) => state.test.currentTestQuestionIndex
-    )
+    const screenToDisplay = useSelector((state: { screenToDisplay: string }) => state.screenToDisplay)
 
-    return <Container>{currentTestQuestionIndex === null ? <TestList /> : <TestQuestion />}</Container>
+    let displayComponent = <AssessmentList />
+    if (screenToDisplay === 'AssessmentWelcome') {
+        displayComponent = <AssessmentWelcome />
+    } else if (screenToDisplay === 'TestWelcome') {
+        displayComponent = <TestWelcome />
+    } else if (screenToDisplay === 'TestQuestion') {
+        displayComponent = <TestQuestion />
+    } else if (screenToDisplay === 'TestFinish') {
+        displayComponent = <TestFinish />
+    } else if (screenToDisplay === 'AssessmentFinish') {
+        displayComponent = <AssessmentFinish />
+    }
+
+    return <Container>{displayComponent}</Container>
 }
 
 export default App

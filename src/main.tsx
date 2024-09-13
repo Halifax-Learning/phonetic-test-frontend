@@ -4,15 +4,21 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 
 import App from './App.js'
+import assessmentReducer from './reducers/assessmentReducer.js'
+import assessmentTypeReducer from './reducers/assessmentTypeReducer.js'
+import screenToDisplayReducer from './reducers/screenToDisplayReducer.js'
 import testReducer from './reducers/testReducer.js'
-import testTypeReducer from './reducers/testTypeReducer.js'
 
 const store = configureStore({
     reducer: {
-        testTypes: testTypeReducer,
+        screenToDisplay: screenToDisplayReducer,
+        assessmentTypes: assessmentTypeReducer,
+        assessment: assessmentReducer,
         test: testReducer,
     },
 })
+
+export type RootState = ReturnType<typeof store.getState>
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
