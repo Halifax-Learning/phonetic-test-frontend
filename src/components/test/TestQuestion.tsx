@@ -11,7 +11,9 @@ const TestQuestion = () => {
     const dispatch: any = useDispatch()
 
     const test = useSelector((state: RootState) => state.test.test)
-    const currentTestQuestionIndex = useSelector((state: RootState) => state.test.currentTestQuestionIndex)
+    const currentTestQuestionIndex = useSelector(
+        (state: RootState) => state.test.currentTestQuestionIndex
+    )
 
     const [isQuestionWithoutAnswer, setIsQuestionWithoutAnswer] = useState(true)
     const [isRecording, setIsRecording] = useState(false)
@@ -93,7 +95,9 @@ const TestQuestion = () => {
                 <Box>
                     <Typography variant="h3">{test.testType.testTypeName}</Typography>
                     <Typography>Instruction:</Typography>
-                    <Typography style={{ marginBottom: 50 }}>{test.questionInstructionText}</Typography>
+                    <Typography style={{ marginBottom: 50 }}>
+                        {test.questionInstructionText}
+                    </Typography>
                     {instructionAudioB64Encode && (
                         <audio controls src={instructionAudioSrc}>
                             Your browser does not support the audio element.

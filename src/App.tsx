@@ -7,9 +7,10 @@ import AssessmentWelcome from './components/assessment/AssessmentWelcome.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
+import { RootState } from './main.js'
 
 const App = () => {
-    const screenToDisplay = useSelector((state: { screenToDisplay: string }) => state.screenToDisplay)
+    const screenToDisplay = useSelector((state: RootState) => state.screenToDisplay)
 
     let displayComponent = <AssessmentList />
     if (screenToDisplay === 'AssessmentWelcome') {
