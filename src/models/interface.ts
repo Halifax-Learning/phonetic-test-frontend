@@ -1,3 +1,12 @@
+export interface User {
+    accountId: string
+    accountRole: string
+    firstName: string
+    lastName: string
+    email: string
+    currentEnrolledCourse: string
+}
+
 export interface QuestionType {
     questionTypeId: number
     questionTypeName: string
