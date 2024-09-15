@@ -10,14 +10,17 @@ import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 const AssessmentList = () => {
     const dispatch = useDispatch<any>()
     const assessmentTypes = useSelector((state: RootState) => state.assessmentTypes)
+    const user = useSelector((state: RootState) => state.user)
 
     useEffect(() => {
         dispatch(fetchAssessmentTypes())
     }, [])
 
     const startAssessment = (assessmentTypeId: number) => {
-        dispatch(createAssessment(assessmentTypeId, '1'))
-        dispatch(setScreenToDisplay('AssessmentWelcome'))
+        if (user && user.accountId) {
+            dispatch(createAssessment(assessmentTypeId, user.accountId))
+            dispatch(setScreenToDisplay('AssessmentWelcome'))
+        }
     }
 
     return (
