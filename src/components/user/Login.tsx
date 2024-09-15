@@ -1,11 +1,12 @@
 import { Box, Button, TextField, Typography } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
-import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { login } from '../../reducers/userReducer'
 
 const Register = () => {
+    const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const { handleSubmit, control } = useForm()
 
@@ -14,7 +15,7 @@ const Register = () => {
     }
 
     const switchToRegister = () => {
-        dispatch(setScreenToDisplay('Register'))
+        navigate('/register')
     }
 
     return (

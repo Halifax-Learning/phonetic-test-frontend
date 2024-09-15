@@ -9,7 +9,12 @@ const userReducer = createSlice({
     initialState: null as User | null,
     reducers: {
         setUser(_state, action) {
+            localStorage.setItem('loggedUser', JSON.stringify(action.payload))
             return action.payload
+        },
+        clearUser() {
+            localStorage.removeItem('loggedUser')
+            return null
         },
     },
 })
@@ -19,7 +24,7 @@ export const register = (user: User) => {
         const userSnakeCase = convertKeysToSnakeCase(user)
         const data = await userService.register(userSnakeCase)
         const dataCamelCase = convertKeysToCamelCase(data)
-        dispatch(userReducer.actions.setUser(dataCamelCase))
+        dispatch(setUser(dataCamelCase))
     }
 }
 
@@ -27,8 +32,9 @@ export const login = (email: string, password: string) => {
     return async (dispatch: any) => {
         const data = await userService.login(email, password)
         const dataCamelCase = convertKeysToCamelCase(data)
-        dispatch(userReducer.actions.setUser(dataCamelCase))
+        dispatch(setUser(dataCamelCase))
     }
 }
 
 export default userReducer.reducer
+export const { clearUser, setUser } = userReducer.actions
