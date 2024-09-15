@@ -1,15 +1,14 @@
 import {
     AppBar,
-    Button,
+    Box,
     Container,
-    createTheme,
     CssBaseline,
     ThemeProvider,
     Toolbar,
 } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
+import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
 
 import AssessmentFinish from './components/assessment/AssessmentFinish.js'
 import AssessmentList from './components/assessment/AssessmentList.js'
@@ -21,6 +20,7 @@ import Login from './components/user/Login.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
 import { clearUser, setUser } from './reducers/userReducer.js'
+import { StyledLink, theme } from './theme/theme.js'
 
 const AppRoutes = () => {
     const dispatch = useDispatch()
@@ -76,32 +76,51 @@ const App = () => {
     const user = useSelector((state: RootState) => state.user)
 
     return (
-        <ThemeProvider theme={createTheme({})}>
+        <ThemeProvider theme={theme}>
             <CssBaseline />
 
             <Router>
-                <AppBar>
+                <AppBar sx={{ backgroundColor: 'white', height: '120px' }}>
                     <Toolbar>
-                        {!user ? (
-                            <>
-                                <Button>
-                                    <Link to="/login">Login</Link>
-                                </Button>
-                                <Button>
-                                    <Link to="/register">Register</Link>
-                                </Button>
-                            </>
-                        ) : (
-                            <Button>
-                                <Link to="/login" onClick={() => dispatch(clearUser())}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexGrow: 1,
+                                mt: 1,
+                                mb: 1,
+                                height: '100%',
+                            }}
+                        >
+                            <img
+                                src="src\assets\HFX_LEARNING_LOGO_WEB.webp"
+                                alt="Logo"
+                                style={{ height: '90%', width: 'auto' }}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {!user ? (
+                                <>
+                                    <StyledLink to="/login">Login</StyledLink>
+                                    <StyledLink to="/register">Register</StyledLink>
+                                </>
+                            ) : (
+                                <StyledLink to="/login" onClick={() => dispatch(clearUser())}>
                                     Logout
-                                </Link>
-                            </Button>
-                        )}
+                                </StyledLink>
+                            )}{' '}
+                        </Box>
                     </Toolbar>
                 </AppBar>
 
-                <Container sx={{ marginTop: 10 }}>
+                <Container
+                    sx={{
+                        mt: '140px',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                    }}
+                >
                     <AppRoutes />
                 </Container>
             </Router>
