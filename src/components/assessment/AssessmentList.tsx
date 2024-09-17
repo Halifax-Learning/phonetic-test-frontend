@@ -1,4 +1,4 @@
-import { Box, List, ListItemButton } from '@mui/material'
+import { Box, Grid2, CardContent, Typography } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -6,6 +6,7 @@ import { RootState } from '../../main'
 import { createAssessment } from '../../reducers/assessmentReducer'
 import { fetchAssessmentTypes } from '../../reducers/assessmentTypeReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
+import { StyledClickableCard } from '../../theme/theme'
 
 const AssessmentList = () => {
     const dispatch = useDispatch<any>()
@@ -24,17 +25,22 @@ const AssessmentList = () => {
     }
 
     return (
-        <Box>
-            <List>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Grid2 container spacing={{ xs: 2, md: 3 }}>
                 {assessmentTypes.map((assessmentType) => (
-                    <ListItemButton
-                        key={assessmentType.assessmentTypeId}
-                        onClick={() => startAssessment(assessmentType.assessmentTypeId)}
-                    >
-                        {assessmentType.assessmentTypeName}
-                    </ListItemButton>
+                    <Grid2 key={assessmentType.assessmentTypeId} size={{ xs: 12, sm: 12, md: 12 }}>
+                        <StyledClickableCard
+                            onClick={() => startAssessment(assessmentType.assessmentTypeId)}
+                        >
+                            <CardContent>
+                                <Typography variant="h1" color="secondary.dark">
+                                    {assessmentType.assessmentTypeName}
+                                </Typography>
+                            </CardContent>
+                        </StyledClickableCard>
+                    </Grid2>
                 ))}
-            </List>
+            </Grid2>
         </Box>
     )
 }
