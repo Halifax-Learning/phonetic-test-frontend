@@ -1,3 +1,4 @@
+import { Card } from '@mui/material'
 import InputBase from '@mui/material/InputBase'
 import InputLabel from '@mui/material/InputLabel'
 import { alpha, createTheme, styled } from '@mui/material/styles'
@@ -102,13 +103,9 @@ export const FormInput = styled(InputBase)(({ theme }) => ({
         padding: '10px 12px',
         transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
         '&:focus': {
-            boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 0 0.2rem`,
-            borderColor: theme.palette.primary.main,
-        },
-        ...theme.applyStyles('dark', {
-            backgroundColor: '#1A2027',
-            borderColor: '#2D3843',
-        }),
+            boxShadow: `${alpha(theme.palette.secondary.main, 0.25)} 0 0 0 0.2rem`,
+            borderColor: theme.palette.secondary.main,
+        }
     },
 }))
 
@@ -125,7 +122,35 @@ export const StyledLink  = styled(Link)(({ theme }) => ({
       backgroundColor: theme.palette.text.secondary,
   },
   '&:focus': {
-      backgroundColor: theme.palette.grey[300],
+      backgroundColor: theme.palette.text.secondary,
       outline: 'none',
   },
+}));
+
+export const StyledClickableCard = styled(Card)(({ theme }) => ({
+    width: '100%', 
+    height: '100%', 
+    borderRadius: theme.shape.borderRadius, 
+    backgroundColor: theme.palette.background.default, 
+    border: '1px solid',
+    borderColor: theme.palette.text.secondary,
+    padding: theme.spacing(2), 
+    cursor: 'pointer',
+    boxShadow: 'none', 
+    transition: theme.transitions.create(['border-color', 'box-shadow', 'transform'], {
+        duration: theme.transitions.duration.standard,
+    }),
+    '&:hover': {
+        boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 8px 2px`, // Shadow effect on hover
+        borderColor: theme.palette.primary.main, // Border color change on hover
+    },
+}));
+
+export const StyledSoundCard = styled(Card)(({ theme }) => ({
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.default,
+    border: '1px solid',
+    borderColor: theme.palette.secondary.main, 
+    padding: theme.spacing(2),
+    boxShadow: theme.shadows[2],
 }));
