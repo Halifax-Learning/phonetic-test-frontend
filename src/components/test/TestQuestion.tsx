@@ -197,11 +197,11 @@ const TestQuestion = () => {
                                                 {!isRecording &&
                                                     mediaBlobUrl &&
                                                     !isQuestionWithoutAnswer && (
-                                                        <>
-                                                            <div>Your answer:</div>
-                                                            <audio controls src={mediaBlobUrl} />
-                                                        </>
-                                                    )}
+                                                    <>
+                                                        <div>Your answer:</div>
+                                                        <audio controls src={mediaBlobUrl} />
+                                                    </>
+                                                )}
                                             </Box>
                                         </Typography>
                                         <Box
@@ -255,24 +255,24 @@ const TestQuestion = () => {
                                                 </Box>
                                                 {currentTestQuestionIndex <
                                                 test.testType.numQuestions - 1 ? (
-                                                    <Button
-                                                        variant="contained"
-                                                        color="primary"
-                                                        sx={{ padding: '12px' }}
-                                                        onClick={onClickNextQuestion}
-                                                    >
-                                                        Next Question
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        variant="contained"
-                                                        color="primary"
-                                                        sx={{ padding: '12px' }}
-                                                        onClick={onSubmitTest}
-                                                    >
-                                                        Finish Section
-                                                    </Button>
-                                                )}
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            sx={{ padding: '12px' }}
+                                                            onClick={onClickNextQuestion}
+                                                        >
+                                                            Next Question
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            sx={{ padding: '12px' }}
+                                                            onClick={onSubmitTest}
+                                                        >
+                                                            Finish Section
+                                                        </Button>
+                                                    )}
                                             </Box>
                                         </Box>
                                     </Box>

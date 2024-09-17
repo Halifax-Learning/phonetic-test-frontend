@@ -1,11 +1,4 @@
-import {
-    AppBar,
-    Box,
-    Container,
-    CssBaseline,
-    ThemeProvider,
-    Toolbar,
-} from '@mui/material'
+import { AppBar, Box, Container, CssBaseline, ThemeProvider, Toolbar } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'

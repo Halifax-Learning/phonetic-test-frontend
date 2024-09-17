@@ -24,8 +24,8 @@ const Login = () => {
             <Card variant="outlined" sx={{ maxWidth: 700, padding: 2 }}>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
                     <Typography variant="body1">
-                        To start the assessment, please log in to your account. <br/>If you don't have an
-                        account, please register a new account to proceed.
+                        To start the assessment, please log in to your account. <br />
+                        If you don&apos;t have an account, please register a new account to proceed.
                     </Typography>
                     <Controller
                         name="email"

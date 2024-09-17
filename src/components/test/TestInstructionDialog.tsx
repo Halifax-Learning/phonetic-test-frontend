@@ -67,20 +67,20 @@ const InstructionContent: React.FC<InstructionContentProps> = ({
         <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
             <strong>2. Record Your Answer:</strong>
             <br />
-            • When you're ready to answer, click the "Record Now" button.
+            • When you are ready to answer, click the &quot;Record Now&quot; button.
             <br />• Speak your answer clearly.
         </Typography>
         <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
             <strong>3. Review Your Answer:</strong>
             <br />
-            • After finishing, click "Stop Recording" to end your answer.
-            <br />• You can listen to your recorded answer to ensure you're satisfied with it.
+            • After finishing, click &quot;Stop Recording&quot; to end your answer.
+            <br />• You can listen to your recorded answer to ensure you are satisfied with it.
         </Typography>
         <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
             <strong>4. Revise Your Answer (Optional):</strong>
             <br />
-            • If you'd like to change your answer, click "Record Now" again to start a new rec
-            ording.
+            • If you would like to change your answer, click &quot;Record Now&quot; again to start a
+            new rec ording.
             <br />• <em>Important:</em> If you record a new answer, your previous answer will be
             lost.
         </Typography>

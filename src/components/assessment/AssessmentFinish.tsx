@@ -2,7 +2,6 @@ import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material
 import HeaderIcon from '@mui/icons-material/DoneAll'
 import { useDispatch } from 'react-redux'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
-import test from 'node:test'
 
 const AssessmentFinish = () => {
     const dispatch = useDispatch<any>()

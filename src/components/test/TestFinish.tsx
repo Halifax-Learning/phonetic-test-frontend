@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, Grid2, List, ListItem, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { RootState } from '../../main'

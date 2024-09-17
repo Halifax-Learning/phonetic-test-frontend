@@ -105,38 +105,38 @@ export const FormInput = styled(InputBase)(({ theme }) => ({
         '&:focus': {
             boxShadow: `${alpha(theme.palette.secondary.main, 0.25)} 0 0 0 0.2rem`,
             borderColor: theme.palette.secondary.main,
-        }
+        },
     },
 }))
 
-export const StyledLink  = styled(Link)(({ theme }) => ({
-  ...theme.typography.h3,
-  color: theme.palette.secondary.dark,
-  textDecoration: 'none',
-  padding: '8px 16px',
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: 'transparent',
-  transition: 'background-color 0.3s ease, color 0.3s ease',
-  display: 'inline-block',
-  '&:hover': {
-      backgroundColor: theme.palette.text.secondary,
-  },
-  '&:focus': {
-      backgroundColor: theme.palette.text.secondary,
-      outline: 'none',
-  },
-}));
+export const StyledLink = styled(Link)(({ theme }) => ({
+    ...theme.typography.h3,
+    color: theme.palette.secondary.dark,
+    textDecoration: 'none',
+    padding: '8px 16px',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: 'transparent',
+    transition: 'background-color 0.3s ease, color 0.3s ease',
+    display: 'inline-block',
+    '&:hover': {
+        backgroundColor: theme.palette.text.secondary,
+    },
+    '&:focus': {
+        backgroundColor: theme.palette.text.secondary,
+        outline: 'none',
+    },
+}))
 
 export const StyledClickableCard = styled(Card)(({ theme }) => ({
-    width: '100%', 
-    height: '100%', 
-    borderRadius: theme.shape.borderRadius, 
-    backgroundColor: theme.palette.background.default, 
+    width: '100%',
+    height: '100%',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.default,
     border: '1px solid',
     borderColor: theme.palette.text.secondary,
-    padding: theme.spacing(2), 
+    padding: theme.spacing(2),
     cursor: 'pointer',
-    boxShadow: 'none', 
+    boxShadow: 'none',
     transition: theme.transitions.create(['border-color', 'box-shadow', 'transform'], {
         duration: theme.transitions.duration.standard,
     }),
@@ -144,13 +144,13 @@ export const StyledClickableCard = styled(Card)(({ theme }) => ({
         boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 8px 2px`, // Shadow effect on hover
         borderColor: theme.palette.primary.main, // Border color change on hover
     },
-}));
+}))
 
 export const StyledSoundCard = styled(Card)(({ theme }) => ({
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.default,
     border: '1px solid',
-    borderColor: theme.palette.secondary.main, 
+    borderColor: theme.palette.secondary.main,
     padding: theme.spacing(2),
     boxShadow: theme.shadows[2],
-}));
+}))
