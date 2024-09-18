@@ -12,7 +12,7 @@ const TestFinish = () => {
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
     const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
 
-    const testTypes = assessment ? assessment.testTypes : []
+    const testTypes = assessment?.tests.map((test) => test.testType)
 
     const onClickNextTest = () => {
         dispatch(nextTest())
@@ -32,7 +32,7 @@ const TestFinish = () => {
                         You have completed the following sections:
                     </Typography>
                     <Grid2 container spacing={{ xs: 2, md: 3 }}>
-                        {testTypes.map((testType, index) => (
+                        {testTypes?.map((testType, index) => (
                             <Grid2 key={testType.testTypeId} size={{ xs: 6, sm: 6, md: 6 }}>
                                 <Card
                                     variant="outlined"
@@ -62,7 +62,7 @@ const TestFinish = () => {
                         ))}
                         <Grid2 size={{ xs: 12, sm: 12, md: 12 }}>
                             <Box display="flex" justifyContent="right">
-                                {currentTestIndex < testTypes.length - 1 ? (
+                                {currentTestIndex < (testTypes?.length ?? 0) - 1 ? (
                                     <Button
                                         variant="contained"
                                         sx={{ padding: '12px' }}

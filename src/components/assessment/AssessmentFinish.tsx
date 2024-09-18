@@ -1,5 +1,5 @@
-import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import HeaderIcon from '@mui/icons-material/DoneAll'
+import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch } from 'react-redux'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 

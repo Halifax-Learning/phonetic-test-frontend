@@ -1,40 +1,51 @@
-import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
-import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
 import InstructionIcon from '@mui/icons-material/Info'
+import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
+import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { RootState } from '../../main'
+import {
+    nextQuestion,
+    setAnswerAudioBlobUrl,
+    submitTestQuestion,
+} from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
-import { nextQuestion, submitTest, updateTest } from '../../reducers/testReducer'
-import TestInstructionDialog from './TestInstructionDialog'
-import AudioPlayerWithIcon from './AudioPlayerWithIcon'
 import { StyledSoundCard } from '../../theme/theme'
+import AudioPlayerWithIcon from './AudioPlayerWithIcon'
+import TestInstructionDialog from './TestInstructionDialog'
 
 const TestQuestion = () => {
     const dispatch: any = useDispatch()
 
-    const test = useSelector((state: RootState) => state.test.test)
+    const assessment = useSelector((state: RootState) => state.assessment.assessment)
+    const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
     const currentTestQuestionIndex = useSelector(
-        (state: RootState) => state.test.currentTestQuestionIndex
+        (state: RootState) => state.assessment.currentTestQuestionIndex
     )
 
     const [isQuestionWithoutAnswer, setIsQuestionWithoutAnswer] = useState(true)
     const [isRecording, setIsRecording] = useState(false)
     const [recordingTime, setRecordingTime] = useState(0)
+    const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
+
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ audio: true })
-    const [open, setOpen] = useState(false)
+
+    const test = assessment?.tests[currentTestIndex!]
+
+    const instructionAudioBlobUrl = test?.testType.questionType.instructionAudioBlobUrl
+    const questionAudioBlobUrl =
+        test?.testQuestions[currentTestQuestionIndex!].question.questionAudioBlobUrl
 
     useEffect(() => {
-        // Initialize timer with a dummy interval
-        let timer: NodeJS.Timeout = setInterval(() => {}, 0)
+        let timer: NodeJS.Timeout
         if (isRecording) {
             timer = setInterval(() => {
                 setRecordingTime((time) => time + 1)
             }, 1000)
         } else {
-            clearInterval(timer)
+            clearInterval(timer!)
             setRecordingTime(0)
         }
         return () => clearInterval(timer)
@@ -43,34 +54,9 @@ const TestQuestion = () => {
     useEffect(() => {
         // whenever a new mediaBlobUrl is available, update the current test question with the new answer audio
         if (mediaBlobUrl && test && currentTestQuestionIndex !== null) {
-            const currentTestQuestion = test.testQuestions[currentTestQuestionIndex]
-
-            const updatedTestQuestion = {
-                ...currentTestQuestion,
-                answerAudioBlobUrl: mediaBlobUrl,
-            }
-
-            dispatch(updateTest(updatedTestQuestion))
+            dispatch(setAnswerAudioBlobUrl(mediaBlobUrl))
         }
     }, [mediaBlobUrl])
-
-    // Get the question audio base64 encoded string
-    const questionAudioB64Encode =
-        test &&
-        currentTestQuestionIndex !== null &&
-        test.testQuestions[currentTestQuestionIndex].question.questionAudioB64Encode
-
-    // Create the data URI for the question audio file
-    const questionAudioSrc = questionAudioB64Encode
-        ? `data:audio/mp3;base64,${questionAudioB64Encode}`
-        : null
-
-    // Get the instruction audio base64 encoded string
-    const instructionAudioB64Encode =
-        test && test.instructionAudioB64Encode ? test.instructionAudioB64Encode : null
-
-    // Create the data URI for the instruction audio file
-    const instructionAudioSrc = `data:audio/mp3;base64,${instructionAudioB64Encode}`
 
     const onStartRecording = () => {
         startRecording()
@@ -85,22 +71,21 @@ const TestQuestion = () => {
 
     const onClickNextQuestion = () => {
         setIsQuestionWithoutAnswer(true)
+        dispatch(submitTestQuestion())
         dispatch(nextQuestion())
     }
 
-    const onSubmitTest = () => {
-        if (test) {
-            dispatch(submitTest(test.testId, test.testQuestions))
-            dispatch(setScreenToDisplay('TestFinish'))
-        }
+    const onFinishTest = () => {
+        dispatch(submitTestQuestion())
+        dispatch(setScreenToDisplay('TestFinish'))
     }
 
-    const handleClickOpen = () => {
-        setOpen(true)
+    const onOnpenInstructionDialog = () => {
+        setOpenInstructionDialog(true)
     }
 
-    const handleClose = () => {
-        setOpen(false)
+    const onCloseInstructionDialog = () => {
+        setOpenInstructionDialog(false)
     }
 
     return (
@@ -134,7 +119,8 @@ const TestQuestion = () => {
                                 >
                                     <Typography variant="h1" color="secondary.dark">
                                         {test.testType.testTypeName} Section - Question{' '}
-                                        {currentTestQuestionIndex + 1}
+                                        {currentTestQuestionIndex + 1} /{' '}
+                                        {test.testType.numQuestions}
                                     </Typography>
                                 </Grid2>
                                 {/* Bottom-left: Blank */}
@@ -152,16 +138,16 @@ const TestQuestion = () => {
                                             color="text.primary"
                                             sx={{ mb: 2 }}
                                         >
-                                            {instructionAudioB64Encode && (
+                                            {instructionAudioBlobUrl && (
                                                 <AudioPlayerWithIcon
-                                                    instructionAudioSrc={instructionAudioSrc}
+                                                    instructionAudioSrc={instructionAudioBlobUrl}
                                                 />
                                             )}
-                                            {test.questionInstructionText}
+                                            {test.testType.questionType.questionInstructionText}
 
-                                            {questionAudioSrc ? (
+                                            {questionAudioBlobUrl ? (
                                                 <Box>
-                                                    <audio controls src={questionAudioSrc}>
+                                                    <audio controls src={questionAudioBlobUrl}>
                                                         Your browser does not support the audio
                                                         element.
                                                     </audio>
@@ -194,14 +180,20 @@ const TestQuestion = () => {
                                                 {isRecording && (
                                                     <div>Recording Time: {recordingTime}s</div>
                                                 )}
-                                                {!isRecording &&
+                                                {
+                                                    // prettier-ignore
+                                                    !isRecording &&
                                                     mediaBlobUrl &&
                                                     !isQuestionWithoutAnswer && (
-                                                    <>
-                                                        <div>Your answer:</div>
-                                                        <audio controls src={mediaBlobUrl} />
-                                                    </>
-                                                )}
+                                                        <>
+                                                            <div>Your answer:</div>
+                                                            <audio
+                                                                controls
+                                                                src={mediaBlobUrl}
+                                                            />
+                                                        </>
+                                                    )
+                                                }
                                             </Box>
                                         </Typography>
                                         <Box
@@ -212,7 +204,7 @@ const TestQuestion = () => {
                                         >
                                             {/* Left-aligned instruction button */}
                                             <Button
-                                                onClick={handleClickOpen}
+                                                onClick={onOnpenInstructionDialog}
                                                 sx={{ padding: '12px', minWidth: 'auto' }}
                                             >
                                                 <InstructionIcon />
@@ -220,20 +212,23 @@ const TestQuestion = () => {
 
                                             {/* Test Instruction Dialog */}
                                             <TestInstructionDialog
-                                                open={open}
-                                                onClose={handleClose}
+                                                open={openInstructionDialog}
+                                                onClose={onCloseInstructionDialog}
                                                 showAudioVersion={[
                                                     'Synthesis',
                                                     'Analysis',
                                                     'Listening',
                                                 ].includes(test.testType.testTypeName)}
-                                                customPoint1Text={test.questionInstructionText}
+                                                customPoint1Text={
+                                                    test.testType.questionType
+                                                        .questionInstructionText
+                                                }
                                             />
 
                                             {/* Right-aligned next/finish buttons */}
                                             <Box display="flex" justifyContent="right">
                                                 <Box>
-                                                    {!isRecording ? (
+                                                    {!isRecording && isQuestionWithoutAnswer && (
                                                         <Button
                                                             variant="contained"
                                                             color="primary"
@@ -242,7 +237,18 @@ const TestQuestion = () => {
                                                         >
                                                             Record Now
                                                         </Button>
-                                                    ) : (
+                                                    )}
+                                                    {!isRecording && !isQuestionWithoutAnswer && (
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            sx={{ mr: 2, padding: '12px' }}
+                                                            onClick={onStartRecording}
+                                                        >
+                                                            Record Again
+                                                        </Button>
+                                                    )}
+                                                    {isRecording && (
                                                         <Button
                                                             variant="contained"
                                                             color="primary"
@@ -253,26 +259,31 @@ const TestQuestion = () => {
                                                         </Button>
                                                     )}
                                                 </Box>
-                                                {currentTestQuestionIndex <
-                                                test.testType.numQuestions - 1 ? (
-                                                        <Button
-                                                            variant="contained"
-                                                            color="primary"
-                                                            sx={{ padding: '12px' }}
-                                                            onClick={onClickNextQuestion}
-                                                        >
-                                                            Next Question
-                                                        </Button>
-                                                    ) : (
-                                                        <Button
-                                                            variant="contained"
-                                                            color="primary"
-                                                            sx={{ padding: '12px' }}
-                                                            onClick={onSubmitTest}
-                                                        >
-                                                            Finish Section
-                                                        </Button>
-                                                    )}
+                                                {
+                                                    // prettier-ignore
+                                                    currentTestQuestionIndex <
+                                                        test.testType.numQuestions - 1 ? (
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                sx={{ padding: '12px' }}
+                                                                onClick={onClickNextQuestion}
+                                                                disabled={isRecording}
+                                                            >
+                                                                Next Question
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                sx={{ padding: '12px' }}
+                                                                onClick={onFinishTest}
+                                                                disabled={isRecording}
+                                                            >
+                                                                Finish Section
+                                                            </Button>
+                                                        )
+                                                }
                                             </Box>
                                         </Box>
                                     </Box>

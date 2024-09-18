@@ -11,43 +11,44 @@ export interface QuestionType {
     questionTypeId: number
     questionTypeName: string
     questionInstructionText: string
-    instructionAudioB64Encode: string
+    instructionAudioBlobUrl: string
 }
 
 export interface Question {
     questionId: number
     questionType: QuestionType
     questionText: string
-    questionAudioB64Encode: string
+    questionAudioBlobUrl: string
     correctAnswerText: string
-    correctAnswerAudioB64Encode: string
+    correctAnswerAudioBlobUrl: string
 }
 
 export interface TestQuestion {
     testQuestionId: string
     question: Question
+    questionOrdinal: number
+    isLastQuestion: boolean
     answerText: string
     answerAudioBlobUrl: string
-    answerAudioB64Encode: string
+    testQuestionSubmissionTime: Date
 }
 
 export interface TestType {
     testTypeId: number
-    questionTypeId: number
+    questionType: QuestionType
     testTypeName: string
     numQuestions: number
-    questionInstructionText: string
+    hasQuestionAudio: boolean
 }
 
 export interface Test {
     testId: string
     testType: TestType
     assessmentId: string
-    questionInstructionText: string
-    instructionAudioB64Encode: string
-    submissionTime: Date
-    numCorrectAnswers: number
+    testOrdinal: number
+    isLastTest: boolean
     testQuestions: TestQuestion[]
+    testSubmissionTime: Date
 }
 
 export interface AssessmentType {
@@ -58,6 +59,6 @@ export interface AssessmentType {
 export interface Assessment {
     assessmentId: string
     assessmentType: AssessmentType
-    testTypes: TestType[]
-    submissionTime: Date
+    tests: Test[]
+    assessmentSubmissionTime: Date
 }

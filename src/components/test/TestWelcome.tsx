@@ -1,10 +1,11 @@
+import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
 
+import { useEffect } from 'react'
 import { RootState } from '../../main'
+import { fetchInstructionAudio, fetchQuestionAudio } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
-import { createTest } from '../../reducers/testReducer'
 import { InstructionContent } from './TestInstructionDialog'
 
 const TestWelcome = () => {
@@ -13,15 +14,36 @@ const TestWelcome = () => {
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
     const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
 
-    const testTypes = assessment ? assessment.testTypes : []
+    useEffect(() => {
+        // Fetch instruction audio and question audios of the current test
+        const test = assessment!.tests[currentTestIndex!]
 
-    const testTypeName = currentTestIndex !== null ? testTypes[currentTestIndex].testTypeName : ''
+        const instructionAudioBlobUrl = test!.testType.questionType.instructionAudioBlobUrl
+        if (!instructionAudioBlobUrl) {
+            const questionTypeId = test!.testType.questionType.questionTypeId
+            dispatch(fetchInstructionAudio('instruction', questionTypeId!, currentTestIndex!))
+        }
+
+        const hasQuestionAudio = test!.testType.hasQuestionAudio
+        if (hasQuestionAudio) {
+            for (const [index, testQuestion] of test!.testQuestions.entries()) {
+                const questionAudioBlobUrl = testQuestion.question.questionAudioBlobUrl
+                if (!questionAudioBlobUrl) {
+                    const questionId = testQuestion.question.questionId
+                    dispatch(fetchQuestionAudio('question', questionId!, currentTestIndex!, index))
+                }
+            }
+        }
+    }, [])
+
+    const testTypes = assessment?.tests.map((test) => test.testType)
+
+    const testTypeName = testTypes?.[currentTestIndex!].testTypeName
     const questionInstructionText =
-        currentTestIndex !== null ? testTypes[currentTestIndex].questionInstructionText : ''
+        assessment?.tests[currentTestIndex!].testType.questionType.questionInstructionText
 
     const startTest = () => {
         if (assessment && currentTestIndex !== null) {
-            dispatch(createTest(assessment.assessmentId, testTypes[currentTestIndex].testTypeId))
             dispatch(setScreenToDisplay('TestQuestion'))
         }
     }
@@ -74,7 +96,7 @@ const TestWelcome = () => {
                                                 'Synthesis',
                                                 'Analysis',
                                                 'Listening',
-                                            ].includes(testTypeName)}
+                                            ].includes(testTypeName ?? '')}
                                             customPoint1Text={questionInstructionText}
                                         />
                                     </Box>
