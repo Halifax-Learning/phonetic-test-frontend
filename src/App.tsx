@@ -1,7 +1,22 @@
-import { AppBar, Box, Container, CssBaseline, ThemeProvider, Toolbar } from '@mui/material'
-import { useEffect } from 'react'
+import {
+    AppBar,
+    Box,
+    Button,
+    Container,
+    CssBaseline,
+    Menu,
+    MenuItem,
+    ThemeProvider,
+    Toolbar,
+    Typography,
+} from '@mui/material'
+import {
+    ArrowDropDown as ArrowDropDownIcon,
+    ArrowDropUp as ArrowDropUpIcon,
+} from '@mui/icons-material'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
+import { Navigate, RouteObject, BrowserRouter as Router, useRoutes, Link } from 'react-router-dom'
 
 import AssessmentFinish from './components/assessment/AssessmentFinish.js'
 import AssessmentList from './components/assessment/AssessmentList.js'
@@ -13,7 +28,9 @@ import Login from './components/user/Login.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
 import { clearUser, setUser } from './reducers/userReducer.js'
-import { StyledLink, theme } from './theme/theme.js'
+import { StyledLink, StyledUserIconButton, theme } from './theme/theme.js'
+import Home from './components/Home.js'
+import Footer from './components/Footer.js'
 
 const AppRoutes = () => {
     const dispatch = useDispatch()
@@ -43,6 +60,7 @@ const AppRoutes = () => {
     }
 
     const routes: RouteObject[] = [
+        { path: '/', element: <Home /> },
         {
             path: '/login',
             element: !user ? <Login /> : <Navigate replace to="/assessment" />,
@@ -57,7 +75,7 @@ const AppRoutes = () => {
         },
         {
             path: '*',
-            element: <Navigate replace to="/login" />,
+            element: <Navigate replace to="/" />,
         },
     ]
 
@@ -67,6 +85,22 @@ const AppRoutes = () => {
 const App = () => {
     const dispatch = useDispatch()
     const user = useSelector((state: RootState) => state.user)
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+    const isMenuOpen = Boolean(anchorEl)
+
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget)
+    }
+
+    const handleMenuClose = () => {
+        setAnchorEl(null)
+    }
+
+    const handleLogout = () => {
+        dispatch(clearUser())
+        handleMenuClose()
+    }
 
     return (
         <ThemeProvider theme={theme}>
@@ -84,6 +118,8 @@ const App = () => {
                                 mb: 1,
                                 height: '100%',
                             }}
+                            component={Link}
+                            to="/"
                         >
                             <img
                                 src="src\assets\HFX_LEARNING_LOGO_WEB.webp"
@@ -91,18 +127,85 @@ const App = () => {
                                 style={{ height: '90%', width: 'auto' }}
                             />
                         </Box>
-
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             {!user ? (
                                 <>
-                                    <StyledLink to="/login">Login</StyledLink>
-                                    <StyledLink to="/register">Register</StyledLink>
+                                    <StyledLink to="/">Home</StyledLink>
+                                    <StyledLink to="/assessment">Assessment</StyledLink>
+                                    <Button
+                                        variant="contained"
+                                        sx={{
+                                            backgroundColor: theme.palette.secondary.main,
+                                            color: 'inherit',
+                                            padding: '8px 16px',
+                                            marginLeft: '8px',
+                                        }}
+                                        component={Link}
+                                        to="/login"
+                                    >
+                                        Login
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        sx={{
+                                            backgroundColor: theme.palette.primary.main,
+                                            color: 'inherit',
+                                            padding: '8px 16px',
+                                            marginLeft: '8px',
+                                        }}
+                                        component={Link}
+                                        to="/register"
+                                    >
+                                        Register
+                                    </Button>
                                 </>
                             ) : (
-                                <StyledLink to="/login" onClick={() => dispatch(clearUser())}>
-                                    Logout
-                                </StyledLink>
-                            )}{' '}
+                                <>
+                                    <StyledLink to="/">Home</StyledLink>
+                                    <StyledLink to="/assessment">Assessment</StyledLink>
+                                    <StyledUserIconButton onClick={handleMenuOpen}>
+                                        <Typography className="userName">
+                                            {user.firstName} {user.lastName}
+                                        </Typography>
+                                        {isMenuOpen ? (
+                                            <ArrowDropUpIcon
+                                                sx={{
+                                                    fontSize: '20px',
+                                                    marginLeft: '8px',
+                                                }}
+                                            />
+                                        ) : (
+                                            <ArrowDropDownIcon
+                                                sx={{
+                                                    fontSize: '20px',
+                                                    marginLeft: '8px',
+                                                }}
+                                            />
+                                        )}
+                                    </StyledUserIconButton>
+
+                                    <Menu
+                                        anchorEl={anchorEl}
+                                        open={Boolean(anchorEl)}
+                                        onClose={handleMenuClose}
+                                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                    >
+                                        <MenuItem onClick={handleLogout}>
+                                            <Link
+                                                to="/login"
+                                                style={{
+                                                    ...theme.typography.h3,
+                                                    textDecoration: 'none',
+                                                    color: theme.palette.text.primary,
+                                                }}
+                                            >
+                                                Logout
+                                            </Link>
+                                        </MenuItem>
+                                    </Menu>
+                                </>
+                            )}
                         </Box>
                     </Toolbar>
                 </AppBar>
@@ -110,12 +213,14 @@ const App = () => {
                 <Container
                     sx={{
                         mt: '140px',
+                        mb: '40px',
                         alignItems: 'center',
-                        flexDirection: 'column',
                     }}
                 >
                     <AppRoutes />
                 </Container>
+
+                <Footer />
             </Router>
         </ThemeProvider>
     )

@@ -1,16 +1,19 @@
 import CloseIcon from '@mui/icons-material/Close'
 import { Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import React from 'react'
+import AudioPlayerWithIcon from './AudioPlayerWithIcon'
 
 interface InstructionDialogProps {
     open: boolean
     onClose: () => void
     showAudioVersion: boolean
-    customPoint1Text: string
+    instructionAudioBlobUrl?: string
+    customPoint1Text?: string
 }
 
 interface InstructionContentProps {
     showAudioVersion: boolean
+    instructionAudioBlobUrl?: string
     customPoint1Text?: string
 }
 
@@ -18,6 +21,7 @@ const InstructionDialog: React.FC<InstructionDialogProps> = ({
     open,
     onClose,
     showAudioVersion,
+    instructionAudioBlobUrl,
     customPoint1Text,
 }) => {
     return (
@@ -40,6 +44,7 @@ const InstructionDialog: React.FC<InstructionDialogProps> = ({
             <DialogContent dividers>
                 <InstructionContent
                     showAudioVersion={showAudioVersion}
+                    instructionAudioBlobUrl={instructionAudioBlobUrl}
                     customPoint1Text={customPoint1Text}
                 />
             </DialogContent>
@@ -49,6 +54,7 @@ const InstructionDialog: React.FC<InstructionDialogProps> = ({
 
 const InstructionContent: React.FC<InstructionContentProps> = ({
     showAudioVersion,
+    instructionAudioBlobUrl,
     customPoint1Text = 'I\'ll say two sounds, you tell me the word, like this: "/m/ /oo/" - "moo".',
 }) => (
     <>
@@ -62,6 +68,9 @@ const InstructionContent: React.FC<InstructionContentProps> = ({
             <br />
             For example:
             <br />
+            {instructionAudioBlobUrl && (
+                <AudioPlayerWithIcon instructionAudioSrc={instructionAudioBlobUrl} />
+            )}
             {customPoint1Text}
         </Typography>
         <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>

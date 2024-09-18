@@ -1,10 +1,12 @@
-import { Box, Button, Card, Link, Typography } from '@mui/material'
+import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 import { login } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
+import { useState } from 'react'
+import { VisibilityOff, Visibility } from '@mui/icons-material'
 
 const Login = () => {
     const navigate = useNavigate()
@@ -17,6 +19,12 @@ const Login = () => {
 
     const switchToRegister = () => {
         navigate('/register')
+    }
+
+    const [showPassword, setShowPassword] = useState(false)
+
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword)
     }
 
     return (
@@ -45,7 +53,21 @@ const Login = () => {
                         render={({ field }) => (
                             <>
                                 <FormInputLabel htmlFor="email">Password</FormInputLabel>
-                                <FormInput {...field} type="password" />
+                                <FormInput
+                                    {...field}
+                                    type={showPassword ? 'text' : 'password'}
+                                    endAdornment={
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="toggle password visibility"
+                                                onClick={handleClickShowPassword}
+                                                edge="end"
+                                            >
+                                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    }
+                                />
                             </>
                         )}
                     />
