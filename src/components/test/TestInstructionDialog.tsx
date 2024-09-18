@@ -1,6 +1,6 @@
-import React from 'react'
-import { Dialog, DialogTitle, DialogContent, IconButton, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
+import { Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
+import React from 'react'
 
 interface InstructionDialogProps {
     open: boolean

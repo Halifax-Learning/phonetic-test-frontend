@@ -7,7 +7,6 @@ import App from './App.js'
 import assessmentReducer from './reducers/assessmentReducer.js'
 import assessmentTypeReducer from './reducers/assessmentTypeReducer.js'
 import screenToDisplayReducer from './reducers/screenToDisplayReducer.js'
-import testReducer from './reducers/testReducer.js'
 import userReducer from './reducers/userReducer.js'
 
 const store = configureStore({
@@ -15,7 +14,6 @@ const store = configureStore({
         screenToDisplay: screenToDisplayReducer,
         assessmentTypes: assessmentTypeReducer,
         assessment: assessmentReducer,
-        test: testReducer,
         user: userReducer,
     },
 })
