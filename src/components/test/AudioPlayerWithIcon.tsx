@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react'
-import { IconButton } from '@mui/material'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import PauseIcon from '@mui/icons-material/Pause'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import { IconButton } from '@mui/material'
+import React, { useRef, useState } from 'react'
 
 const AudioPlayerWithIcon: React.FC<{ instructionAudioSrc: string }> = ({
     instructionAudioSrc,

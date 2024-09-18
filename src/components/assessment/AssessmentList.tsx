@@ -1,4 +1,4 @@
-import { Box, Grid2, CardContent, Typography } from '@mui/material'
+import { Box, CardContent, Grid2, Typography } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
