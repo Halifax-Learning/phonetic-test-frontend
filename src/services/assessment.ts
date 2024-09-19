@@ -7,6 +7,16 @@ export const getAssessmentTypes = async () => {
     return response.data
 }
 
+export const getAllAssessments = async () => {
+    const response = await axios.get(`${baseUrl}/assessments`)
+    return response.data
+}
+
+export const getAssessment = async (assessmentId: string) => {
+    const response = await axios.get(`${baseUrl}/assessments/${assessmentId}`)
+    return response.data
+}
+
 export const createAssessment = async (assessmentTypeId: number, testTakerId: string) => {
     const response = await axios.post(`${baseUrl}/assessments`, {
         assessment_type_id: assessmentTypeId,

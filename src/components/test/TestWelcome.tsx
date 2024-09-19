@@ -21,7 +21,7 @@ const TestWelcome = () => {
         const instructionAudioBlobUrl = test!.testType.questionType.instructionAudioBlobUrl
         if (!instructionAudioBlobUrl) {
             const questionTypeId = test!.testType.questionType.questionTypeId
-            dispatch(fetchInstructionAudio('instruction', questionTypeId!, currentTestIndex!))
+            dispatch(fetchInstructionAudio(questionTypeId!, currentTestIndex!))
         }
 
         const hasQuestionAudio = test!.testType.hasQuestionAudio
@@ -30,7 +30,7 @@ const TestWelcome = () => {
                 const questionAudioBlobUrl = testQuestion.question.questionAudioBlobUrl
                 if (!questionAudioBlobUrl) {
                     const questionId = testQuestion.question.questionId
-                    dispatch(fetchQuestionAudio('question', questionId!, currentTestIndex!, index))
+                    dispatch(fetchQuestionAudio(questionId!, currentTestIndex!, index))
                 }
             }
         }

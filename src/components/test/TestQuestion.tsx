@@ -52,7 +52,13 @@ const TestQuestion = () => {
     useEffect(() => {
         // whenever a new mediaBlobUrl is available, update the current test question with the new answer audio
         if (mediaBlobUrl && test && currentTestQuestionIndex !== null) {
-            dispatch(setAnswerAudioBlobUrl(mediaBlobUrl))
+            dispatch(
+                setAnswerAudioBlobUrl({
+                    answerAudioBlobUrl: mediaBlobUrl,
+                    testIndex: currentTestIndex!,
+                    testQuestionIndex: currentTestQuestionIndex!,
+                })
+            )
         }
     }, [mediaBlobUrl])
 

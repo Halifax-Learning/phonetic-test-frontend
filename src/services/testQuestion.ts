@@ -1,13 +1,14 @@
 import axios from 'axios'
+import { convertKeysToSnakeCase } from '../utils/helper'
 
-const baseUrl = 'http://localhost:8000/api/test_questions'
+const baseUrl = 'http://localhost:8000/api'
 
 export const updateTestQuestion = async (
     testQuestionId: string,
     answerText: string,
     answerAudioBlobUrl: string
 ) => {
-    const url = `${baseUrl}/${testQuestionId}`
+    const url = `${baseUrl}/test_questions/${testQuestionId}`
 
     // Create a FormData object to send the answer text and audio blob
     const formData = new FormData()
@@ -22,6 +23,20 @@ export const updateTestQuestion = async (
     }
 
     const response = await axios.put(url, formData)
+
+    return response.data
+}
+
+interface TeacherGradingsHttpRequestData {
+    teacherAccountId: string
+    testQuestions: { testQuestionId: string; teacherEvaluation: boolean; teacherComment: string }[]
+}
+
+export const createTeacherGradings = async (data: TeacherGradingsHttpRequestData) => {
+    const url = `${baseUrl}/teacher_grading_history`
+    const bodySnakeCase = convertKeysToSnakeCase(data)
+
+    const response = await axios.post(url, bodySnakeCase)
 
     return response.data
 }
