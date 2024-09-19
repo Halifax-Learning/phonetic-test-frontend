@@ -1,8 +1,8 @@
-import { Box, Typography, Grid2, Link } from '@mui/material'
-import XIcon from '@mui/icons-material/X'
 import InstagramIcon from '@mui/icons-material/Instagram'
-import YouTubeIcon from '@mui/icons-material/YouTube'
 import LinkedInIcon from '@mui/icons-material/LinkedIn'
+import XIcon from '@mui/icons-material/X'
+import YouTubeIcon from '@mui/icons-material/YouTube'
+import { Box, Grid2, Link, Typography } from '@mui/material'
 
 const Footer = () => {
     return (

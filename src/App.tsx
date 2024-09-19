@@ -10,7 +10,6 @@ import Footer from './components/Footer.js'
 import Header from './components/Header.js'
 import Home from './components/Home.js'
 import TeacherAssessmentList from './components/teacher/AssessmentList.js'
-import GradingScreen from './components/teacher/GradingScreen.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
@@ -34,20 +33,16 @@ const AppRoutes = () => {
 
     let displayComponent = <AssessmentTypeList />
     if (user) {
-        if (user.accountRole === 'student') {
-            if (screenToDisplay === 'AssessmentWelcome') {
-                displayComponent = <AssessmentWelcome />
-            } else if (screenToDisplay === 'TestWelcome') {
-                displayComponent = <TestWelcome />
-            } else if (screenToDisplay === 'TestQuestion') {
-                displayComponent = <TestQuestion />
-            } else if (screenToDisplay === 'TestFinish') {
-                displayComponent = <TestFinish />
-            } else if (screenToDisplay === 'AssessmentFinish') {
-                displayComponent = <AssessmentFinish />
-            }
-        } else {
-            displayComponent = <TeacherAssessmentList />
+        if (screenToDisplay === 'AssessmentWelcome') {
+            displayComponent = <AssessmentWelcome />
+        } else if (screenToDisplay === 'TestWelcome') {
+            displayComponent = <TestWelcome />
+        } else if (screenToDisplay === 'TestQuestion') {
+            displayComponent = <TestQuestion />
+        } else if (screenToDisplay === 'TestFinish') {
+            displayComponent = <TestFinish />
+        } else if (screenToDisplay === 'AssessmentFinish') {
+            displayComponent = <AssessmentFinish />
         }
     }
 
@@ -55,11 +50,11 @@ const AppRoutes = () => {
         { path: '/', element: <Home /> },
         {
             path: '/login',
-            element: !user ? <Login /> : <Navigate replace to="/assessment" />,
+            element: !user ? <Login /> : <Navigate replace to="/" />,
         },
         {
             path: '/register',
-            element: !user ? <Register /> : <Navigate replace to="/assessment" />,
+            element: !user ? <Register /> : <Navigate replace to="/" />,
         },
         {
             path: '/assessment',
@@ -71,7 +66,7 @@ const AppRoutes = () => {
                 !user || user.accountRole !== 'teacher' ? (
                     <Navigate replace to="/login" />
                 ) : (
-                    <GradingScreen />
+                    <TeacherAssessmentList />
                 ),
         },
         {
