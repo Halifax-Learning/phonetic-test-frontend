@@ -21,7 +21,7 @@ const AssessmentWelcome = () => {
                     <Typography variant="h1" color="secondary.dark">
                         Welcome to the {assessment.assessmentType.assessmentTypeName}
                     </Typography>
-                    <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
+                    <Typography variant="body1" color="text.primary" sx={{ mt: 1, mb: 2 }}>
                         This assessment consists of the following sections:
                     </Typography>
                     <Grid2 container spacing={{ xs: 2, md: 3 }}>
