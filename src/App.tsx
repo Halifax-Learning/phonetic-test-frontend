@@ -4,11 +4,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
 
 import AssessmentFinish from './components/assessment/AssessmentFinish.js'
-import AssessmentList from './components/assessment/AssessmentList.js'
+import AssessmentTypeList from './components/assessment/AssessmentTypeList.js'
 import AssessmentWelcome from './components/assessment/AssessmentWelcome.js'
 import Footer from './components/Footer.js'
 import Header from './components/Header.js'
 import Home from './components/Home.js'
+import TeacherAssessmentList from './components/teacher/AssessmentList.js'
+import GradingScreen from './components/teacher/GradingScreen.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
@@ -30,18 +32,22 @@ const AppRoutes = () => {
         }
     }, [dispatch])
 
-    let displayComponent = <AssessmentList />
+    let displayComponent = <AssessmentTypeList />
     if (user) {
-        if (screenToDisplay === 'AssessmentWelcome') {
-            displayComponent = <AssessmentWelcome />
-        } else if (screenToDisplay === 'TestWelcome') {
-            displayComponent = <TestWelcome />
-        } else if (screenToDisplay === 'TestQuestion') {
-            displayComponent = <TestQuestion />
-        } else if (screenToDisplay === 'TestFinish') {
-            displayComponent = <TestFinish />
-        } else if (screenToDisplay === 'AssessmentFinish') {
-            displayComponent = <AssessmentFinish />
+        if (user.accountRole === 'student') {
+            if (screenToDisplay === 'AssessmentWelcome') {
+                displayComponent = <AssessmentWelcome />
+            } else if (screenToDisplay === 'TestWelcome') {
+                displayComponent = <TestWelcome />
+            } else if (screenToDisplay === 'TestQuestion') {
+                displayComponent = <TestQuestion />
+            } else if (screenToDisplay === 'TestFinish') {
+                displayComponent = <TestFinish />
+            } else if (screenToDisplay === 'AssessmentFinish') {
+                displayComponent = <AssessmentFinish />
+            }
+        } else {
+            displayComponent = <TeacherAssessmentList />
         }
     }
 
@@ -58,6 +64,15 @@ const AppRoutes = () => {
         {
             path: '/assessment',
             element: !user ? <Navigate replace to="/login" /> : displayComponent,
+        },
+        {
+            path: '/grading',
+            element:
+                !user || user.accountRole !== 'teacher' ? (
+                    <Navigate replace to="/login" />
+                ) : (
+                    <GradingScreen />
+                ),
         },
         {
             path: '*',

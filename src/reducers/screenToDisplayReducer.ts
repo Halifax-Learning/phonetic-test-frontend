@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const screenToDisplayReducer = createSlice({
     name: 'screenToDisplay',
-    initialState: 'AssessmentList',
+    initialState: 'AssessmentTypeList',
     reducers: {
         setScreenToDisplay(_state, action) {
             return action.payload

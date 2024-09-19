@@ -30,6 +30,10 @@ export interface TestQuestion {
     isLastQuestion: boolean
     answerText: string
     answerAudioBlobUrl: string
+    hasAnswerAudio: boolean // if the answer in the question has audio
+    latestAutoEvaluation: number
+    latestTeacherEvaluation: boolean
+    originalTeacherEvaluation: boolean // to keep track if the teacher evaluation has been changed
     testQuestionSubmissionTime: Date
 }
 
@@ -38,7 +42,8 @@ export interface TestType {
     questionType: QuestionType
     testTypeName: string
     numQuestions: number
-    hasQuestionAudio: boolean
+    hasQuestionAudio: boolean // if the questions in the test have audio
+    hasCorrectAnswerAudio: boolean // if the correct answers of the questions in the test have audio
 }
 
 export interface Test {
@@ -47,8 +52,11 @@ export interface Test {
     assessmentId: string
     testOrdinal: number
     isLastTest: boolean
-    testQuestions: TestQuestion[]
     testSubmissionTime: Date
+    autoScore: number
+    teacherScore: number
+    testQuestions: TestQuestion[]
+    numQuestionsGraded: number
 }
 
 export interface AssessmentType {
@@ -59,6 +67,7 @@ export interface AssessmentType {
 export interface Assessment {
     assessmentId: string
     assessmentType: AssessmentType
+    testTaker: User
     tests: Test[]
     assessmentSubmissionTime: Date
 }
