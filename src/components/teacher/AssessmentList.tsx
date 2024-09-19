@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { RootState } from '../../main'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
-import { fetchAssessment } from '../../reducers/assessmentReducer'
+import { fetchAssessment, resetAssessment } from '../../reducers/assessmentReducer'
 
 const TeacherAssessmentList = () => {
     const navigate = useNavigate()
@@ -14,6 +14,7 @@ const TeacherAssessmentList = () => {
 
     useEffect(() => {
         dispatch(fetchAssessments())
+        dispatch(resetAssessment())
     }, [])
 
     const onChooseAssessment = (assessmentId: string) => {
@@ -29,6 +30,7 @@ const TeacherAssessmentList = () => {
                     <ListItemButton
                         key={assessment.assessmentId}
                         onClick={() => onChooseAssessment(assessment.assessmentId)}
+                        sx={{ color: assessment.isAllTestsGradedByTeacher ? 'green' : 'red' }}
                     >
                         {assessment.assessmentType.assessmentTypeName} --- Student:{' '}
                         {assessment.testTaker.firstName} {assessment.testTaker.lastName} {' --- '}
@@ -38,8 +40,9 @@ const TeacherAssessmentList = () => {
                                 {new Date(assessment.assessmentSubmissionTime).toLocaleString()}
                             </>
                         ) : (
-                            'In Progress'
+                            'In Progress '
                         )}
+                        - Tests Graded: {assessment.isAllTestsGradedByTeacher ? 'Yes' : 'No'}
                     </ListItemButton>
                 ))}
             </List>
