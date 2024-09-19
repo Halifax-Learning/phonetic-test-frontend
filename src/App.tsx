@@ -1,4 +1,4 @@
-import { AppBar, Box, Container, CssBaseline, ThemeProvider, Toolbar } from '@mui/material'
+import { Container, CssBaseline, ThemeProvider } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
@@ -6,14 +6,17 @@ import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react
 import AssessmentFinish from './components/assessment/AssessmentFinish.js'
 import AssessmentList from './components/assessment/AssessmentList.js'
 import AssessmentWelcome from './components/assessment/AssessmentWelcome.js'
+import Footer from './components/Footer.js'
+import Header from './components/Header.js'
+import Home from './components/Home.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
 import Login from './components/user/Login.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
-import { clearUser, setUser } from './reducers/userReducer.js'
-import { StyledLink, theme } from './theme/theme.js'
+import { setUser } from './reducers/userReducer.js'
+import { theme } from './theme/theme.js'
 
 const AppRoutes = () => {
     const dispatch = useDispatch()
@@ -43,6 +46,7 @@ const AppRoutes = () => {
     }
 
     const routes: RouteObject[] = [
+        { path: '/', element: <Home /> },
         {
             path: '/login',
             element: !user ? <Login /> : <Navigate replace to="/assessment" />,
@@ -57,7 +61,7 @@ const AppRoutes = () => {
         },
         {
             path: '*',
-            element: <Navigate replace to="/login" />,
+            element: <Navigate replace to="/" />,
         },
     ]
 
@@ -65,57 +69,24 @@ const AppRoutes = () => {
 }
 
 const App = () => {
-    const dispatch = useDispatch()
-    const user = useSelector((state: RootState) => state.user)
-
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
 
             <Router>
-                <AppBar sx={{ backgroundColor: 'white', height: '120px' }}>
-                    <Toolbar>
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                flexGrow: 1,
-                                mt: 1,
-                                mb: 1,
-                                height: '100%',
-                            }}
-                        >
-                            <img
-                                src="src\assets\HFX_LEARNING_LOGO_WEB.webp"
-                                alt="Logo"
-                                style={{ height: '90%', width: 'auto' }}
-                            />
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {!user ? (
-                                <>
-                                    <StyledLink to="/login">Login</StyledLink>
-                                    <StyledLink to="/register">Register</StyledLink>
-                                </>
-                            ) : (
-                                <StyledLink to="/login" onClick={() => dispatch(clearUser())}>
-                                    Logout
-                                </StyledLink>
-                            )}{' '}
-                        </Box>
-                    </Toolbar>
-                </AppBar>
+                <Header />
 
                 <Container
                     sx={{
                         mt: '140px',
+                        mb: '40px',
                         alignItems: 'center',
-                        flexDirection: 'column',
                     }}
                 >
                     <AppRoutes />
                 </Container>
+
+                <Footer />
             </Router>
         </ThemeProvider>
     )

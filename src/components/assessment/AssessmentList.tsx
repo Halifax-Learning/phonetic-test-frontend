@@ -25,7 +25,11 @@ const AssessmentList = () => {
     }
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ mx: 'auto', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
+                Please choose one of the assessments listed below to evaluate your English language
+                skills.
+            </Typography>
             <Grid2 container spacing={{ xs: 2, md: 3 }}>
                 {assessmentTypes.map((assessmentType) => (
                     <Grid2 key={assessmentType.assessmentTypeId} size={{ xs: 12, sm: 12, md: 12 }}>

@@ -1,6 +1,5 @@
-import InstructionIcon from '@mui/icons-material/Info'
 import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid2, LinearProgress, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,7 +12,6 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
-import AudioPlayerWithIcon from './AudioPlayerWithIcon'
 import TestInstructionDialog from './TestInstructionDialog'
 
 const TestQuestion = () => {
@@ -91,14 +89,17 @@ const TestQuestion = () => {
     return (
         <>
             {test && currentTestQuestionIndex !== null && (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Card variant="outlined" sx={{ maxWidth: 700, padding: 2 }}>
+                <Box sx={{ maxWidth: 700, mx: 'auto', p: 2 }}>
+                    <Card variant="outlined" sx={{ padding: 2, position: 'relative' }}>
+                        <Box sx={{ width: '100%', position: 'absolute', top: 0, left: 0 }}>
+                            <LinearProgress
+                                variant="determinate"
+                                value={
+                                    ((currentTestQuestionIndex + 1) / test?.testType.numQuestions) *
+                                    100
+                                }
+                            />
+                        </Box>
                         <CardContent>
                             <Grid2 container spacing={2}>
                                 {/* Top-left: Icon */}
@@ -133,49 +134,48 @@ const TestQuestion = () => {
                                 {/* Bottom-right: Content and Button */}
                                 <Grid2 size={11}>
                                     <Box>
-                                        <Typography
-                                            variant="body1"
-                                            color="text.primary"
-                                            sx={{ mb: 2 }}
-                                        >
-                                            {instructionAudioBlobUrl && (
+                                        {/* {instructionAudioBlobUrl && (
                                                 <AudioPlayerWithIcon
                                                     instructionAudioSrc={instructionAudioBlobUrl}
                                                 />
                                             )}
-                                            {test.testType.questionType.questionInstructionText}
+                                            {test.testType.questionType.questionInstructionText} */}
 
-                                            {questionAudioBlobUrl ? (
-                                                <Box>
-                                                    <audio controls src={questionAudioBlobUrl}>
-                                                        Your browser does not support the audio
-                                                        element.
-                                                    </audio>
-                                                </Box>
-                                            ) : (
-                                                <Box display="flex">
-                                                    <StyledSoundCard>
-                                                        <CardContent>
-                                                            <Typography
-                                                                variant="h1"
-                                                                sx={{
-                                                                    fontFamily: 'Inter, sans-serif',
-                                                                    fontSize: '2rem',
-                                                                    fontWeight: 700,
-                                                                    color: 'secondary.main',
-                                                                }}
-                                                            >
-                                                                {
-                                                                    test.testQuestions[
-                                                                        currentTestQuestionIndex
-                                                                    ].question.questionText
-                                                                }
-                                                            </Typography>
-                                                        </CardContent>
-                                                    </StyledSoundCard>
-                                                </Box>
-                                            )}
+                                        {questionAudioBlobUrl ? (
+                                            <Box>
+                                                <audio controls src={questionAudioBlobUrl}>
+                                                    Your browser does not support the audio element.
+                                                </audio>
+                                            </Box>
+                                        ) : (
+                                            <Box display="flex">
+                                                <StyledSoundCard>
+                                                    <CardContent>
+                                                        <Typography
+                                                            variant="h1"
+                                                            sx={{
+                                                                fontFamily: 'Inter, sans-serif',
+                                                                fontSize: '2rem',
+                                                                fontWeight: 700,
+                                                                color: 'secondary.main',
+                                                            }}
+                                                        >
+                                                            {
+                                                                test.testQuestions[
+                                                                    currentTestQuestionIndex
+                                                                ].question.questionText
+                                                            }
+                                                        </Typography>
+                                                    </CardContent>
+                                                </StyledSoundCard>
+                                            </Box>
+                                        )}
 
+                                        <Typography
+                                            variant="body1"
+                                            color="text.primary"
+                                            sx={{ mt: 2, mb: 2 }}
+                                        >
                                             <Box>
                                                 {isRecording && (
                                                     <div>Recording Time: {recordingTime}s</div>
@@ -205,9 +205,10 @@ const TestQuestion = () => {
                                             {/* Left-aligned instruction button */}
                                             <Button
                                                 onClick={onOnpenInstructionDialog}
+                                                variant="outlined"
                                                 sx={{ padding: '12px', minWidth: 'auto' }}
                                             >
-                                                <InstructionIcon />
+                                                Instruction
                                             </Button>
 
                                             {/* Test Instruction Dialog */}
@@ -219,6 +220,7 @@ const TestQuestion = () => {
                                                     'Analysis',
                                                     'Listening',
                                                 ].includes(test.testType.testTypeName)}
+                                                instructionAudioBlobUrl={instructionAudioBlobUrl}
                                                 customPoint1Text={
                                                     test.testType.questionType
                                                         .questionInstructionText

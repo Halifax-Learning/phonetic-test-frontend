@@ -1,4 +1,5 @@
 import { Card } from '@mui/material'
+import IconButton from '@mui/material/IconButton'
 import InputBase from '@mui/material/InputBase'
 import InputLabel from '@mui/material/InputLabel'
 import { alpha, createTheme, styled } from '@mui/material/styles'
@@ -88,24 +89,29 @@ export const FormInputLabel = styled(InputLabel)(({ theme }) => ({
 
 export const FormInput = styled(InputBase)(({ theme }) => ({
     width: '100%',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.default,
+    border: `1px solid ${theme.palette.text.secondary}`,
+    padding: '10px 12px',
+    transition: theme.transitions.create(['border-color', 'box-shadow']),
     'label + &': {
         marginTop: theme.spacing(0),
+    },
+    '&:focus-within': {
+        borderColor: theme.palette.secondary.main,
+        boxShadow: `${alpha(theme.palette.secondary.main, 0.25)} 0 0 0 0.2rem`,
     },
     '& .MuiInputBase-input': {
         ...theme.typography.body2,
         color: theme.palette.text.primary,
         borderRadius: theme.shape.borderRadius,
-        position: 'relative',
-        backgroundColor: theme.palette.background,
-        border: '1px solid',
-        borderColor: theme.palette.text.secondary,
-        width: '100%',
-        padding: '10px 12px',
-        transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
-        '&:focus': {
-            boxShadow: `${alpha(theme.palette.secondary.main, 0.25)} 0 0 0 0.2rem`,
-            borderColor: theme.palette.secondary.main,
-        },
+        backgroundColor: 'transparent',
+    },
+    '& .MuiInputAdornment-root': {
+        marginRight: theme.spacing(1),
+    },
+    '& .MuiIconButton-root': {
+        padding: theme.spacing(1),
     },
 }))
 
@@ -124,6 +130,26 @@ export const StyledLink = styled(Link)(({ theme }) => ({
     '&:focus': {
         backgroundColor: theme.palette.text.secondary,
         outline: 'none',
+    },
+}))
+
+export const StyledUserIconButton = styled(IconButton)(({ theme }) => ({
+    padding: '8px 16px',
+    margin: '0 8px',
+    borderRadius: theme.shape.borderRadius,
+    textDecoration: 'none',
+    backgroundColor: 'transparent',
+    color: theme.palette.primary.main,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&:hover': {
+        backgroundColor: theme.palette.text.secondary,
+        textDecoration: 'none',
+    },
+    '& .userName': {
+        ...theme.typography.h3,
+        color: theme.palette.primary.main,
     },
 }))
 
