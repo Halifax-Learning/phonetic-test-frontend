@@ -70,4 +70,5 @@ export interface Assessment {
     testTaker: User
     tests: Test[]
     assessmentSubmissionTime: Date
+    isAllTestsGradedByTeacher: boolean // if all the tests in the assessment have been graded by the teacher
 }

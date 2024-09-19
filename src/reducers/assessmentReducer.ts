@@ -144,6 +144,19 @@ const assessmentReducer = createSlice({
                 }
             }
         },
+        updateNumberOfQuestionsGraded(state) {
+            if (state.assessment) {
+                for (const test of state.assessment.tests) {
+                    test.numQuestionsGraded = test.testQuestions.filter(
+                        (testQuestion) => testQuestion.latestTeacherEvaluation !== null
+                    ).length
+                }
+
+                state.assessment.isAllTestsGradedByTeacher = state.assessment.tests.every(
+                    (test) => test.numQuestionsGraded === test.testQuestions.length
+                )
+            }
+        },
         resetAssessment(state) {
             state.assessment = null
             state.currentTestIndex = null
@@ -165,6 +178,7 @@ export const fetchAssessment = (assessmentId: string) => {
         const data = await assessmentService.getAssessment(assessmentId)
         const assessment = convertKeysToCamelCase(data)
         dispatch(assessmentReducer.actions.initializeAssessment(assessment))
+        dispatch(assessmentReducer.actions.updateNumberOfQuestionsGraded())
 
         /**
          * For each testQuestion, the value of originalTeacherEvaluation is the same as the value of
@@ -204,6 +218,8 @@ export const submitTeacherEvaluation = () => {
                 teacherAccountId: state.user.accountId,
                 testQuestions: testQuestions,
             })
+
+            dispatch(assessmentReducer.actions.updateNumberOfQuestionsGraded())
         }
 
         // reset original teacher evaluation to reflect the latest changes in database

@@ -121,6 +121,13 @@ const GradingScreen = () => {
         <>
             {selectedTest && (
                 <Box sx={{ marginLeft: -20, marginRight: -20 }}>
+                    <Typography variant="h1">Assessment</Typography>
+                    {assessment?.assessmentType.assessmentTypeName} --- Student:{' '}
+                    {assessment?.testTaker.firstName} {assessment?.testTaker.lastName} {' --- '}
+                    Submit:{' '}
+                    {assessment?.assessmentSubmissionTime
+                        ? new Date(assessment.assessmentSubmissionTime).toLocaleString()
+                        : ''}
                     <Typography variant="h1">Tests</Typography>
                     <List>
                         {assessment?.tests.map((test, index) => (
@@ -129,13 +136,17 @@ const GradingScreen = () => {
                                 onClick={() => onChooseTest(index)}
                                 sx={{
                                     backgroundColor: index === currentTestIndex ? 'lightgray' : '',
+                                    color:
+                                        test.numQuestionsGraded === test.testType.numQuestions
+                                            ? 'green'
+                                            : 'red',
                                 }}
                             >
-                                {test.testType.testTypeName}
+                                {test.testType.testTypeName} - Number of graded questions:{' '}
+                                {test.numQuestionsGraded}/{test.testType.numQuestions}
                             </ListItemButton>
                         ))}
                     </List>
-
                     <Typography variant="h1">Questions</Typography>
                     <TableContainer>
                         <Table>
@@ -205,7 +216,6 @@ const GradingScreen = () => {
                             </TableBody>
                         </Table>
                     </TableContainer>
-
                     <Button variant="contained" color="primary" onClick={onSaveGrading}>
                         Save
                     </Button>
