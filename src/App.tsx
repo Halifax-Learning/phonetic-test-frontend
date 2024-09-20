@@ -108,11 +108,19 @@ const App = () => {
                     <Header />
 
                     <Container
+                        maxWidth={false}
                         sx={{
                             mt: '140px',
                             mb: '40px',
                             flexGrow: 1,
                             alignItems: 'center',
+                            maxWidth: {
+                                xs: '100%',
+                                sm: '100%',
+                                md: '100%',
+                                lg: '100%',
+                                xl: '100%',
+                            },
                         }}
                     >
                         <AppRoutes />
