@@ -1,4 +1,5 @@
 import {
+    Box,
     Button,
     Card,
     CardContent,
@@ -14,6 +15,7 @@ import {
     Select,
     SelectChangeEvent,
     Stack,
+    TextField,
     Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
@@ -40,6 +42,7 @@ const GradingScreen = () => {
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
+    const [feedbackValues, setFeedbackValues] = useState<string[]>([])
     const [filterTestType, setFilterTestType] = useState<number | string>('')
 
     useEffect(() => {
@@ -126,8 +129,22 @@ const GradingScreen = () => {
         )
     }
 
+    const handleFeedbackChange = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        index: number
+    ) => {
+        const value = event.target.value
+
+        setFeedbackValues((prev) => {
+            const newValues = [...prev]
+            newValues[index] = value // Update feedback for the specific question
+            return newValues
+        })
+    }
+
     const onSaveGrading = () => {
         dispatch(submitTeacherEvaluation())
+        handleBackToAssessments()
     }
 
     const handleBackToAssessments = () => {
@@ -143,10 +160,16 @@ const GradingScreen = () => {
     }
 
     const columns: GridColDef[] = [
-        { field: 'questionNo', headerName: 'No.', width: 50 },
-        { field: 'questionText', headerName: 'Question Text', width: 150 },
+        { field: 'questionNo', headerClassName: 'data-grid--header', headerName: 'No.', width: 50 },
+        {
+            field: 'questionText',
+            headerClassName: 'data-grid--header',
+            headerName: 'Question Text',
+            width: 150,
+        },
         {
             field: 'questionAudio',
+            headerClassName: 'data-grid--header',
             headerName: 'Question Audio',
             width: 320,
             renderCell: (params) =>
@@ -158,6 +181,7 @@ const GradingScreen = () => {
         },
         {
             field: 'correctAnswerAudio',
+            headerClassName: 'data-grid--header',
             headerName: 'Correct Answer Audio',
             width: 320,
             renderCell: (params) =>
@@ -169,6 +193,7 @@ const GradingScreen = () => {
         },
         {
             field: 'studentAnswerAudio',
+            headerClassName: 'data-grid--header',
             headerName: 'Student Answer Audio',
             width: 320,
             renderCell: (params) =>
@@ -180,6 +205,7 @@ const GradingScreen = () => {
         },
         {
             field: 'teacherEvaluation',
+            headerClassName: 'data-grid--header',
             headerName: 'Teacher Evaluation',
             width: 240,
             renderCell: (params) => (
@@ -201,6 +227,21 @@ const GradingScreen = () => {
                 </Stack>
             ),
         },
+        {
+            field: 'teacherFeedback',
+            headerClassName: 'data-grid--header',
+            headerName: 'Teacher Feedback',
+            width: 300,
+            renderCell: (params) => (
+                <TextField
+                    variant="outlined"
+                    size="small"
+                    value={feedbackValues[params.row.index] || ''}
+                    onChange={(event) => handleFeedbackChange(event, params.row.index)}
+                    multiline
+                />
+            ),
+        },
     ]
 
     const rows =
@@ -216,91 +257,107 @@ const GradingScreen = () => {
 
     return (
         <>
-            {selectedTest && (
-                <Grid2 container spacing={2}>
-                    <Grid2 size={12}>
-                        <Card>
-                            <CardHeader title="Assessment Details" />
-                            <CardContent>
-                                <Typography
-                                    variant="h5"
-                                    sx={{ fontWeight: 'bold', color: 'primary.main' }}
+            <Box sx={{ mx: 'auto', alignItems: 'center', justifyContent: 'center' }}>
+                {selectedTest && (
+                    <Grid2 container spacing={2}>
+                        <Grid2 size={12}>
+                            <Card variant="outlined">
+                                <CardHeader
+                                    title={
+                                        <Typography variant="h1" sx={{ color: 'secondary.dark' }}>
+                                            Grade Assessments
+                                        </Typography>
+                                    }
+                                />
+                                <CardContent>
+                                    <Typography
+                                        variant="h5"
+                                        sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                                    >
+                                        Assessment: {assessment?.assessmentType.assessmentTypeName}
+                                    </Typography>
+                                    <Divider sx={{ marginY: 1 }} />
+                                    <Typography variant="subtitle1">
+                                        <PersonIcon /> Student: {assessment?.testTaker.firstName}{' '}
+                                        {assessment?.testTaker.lastName}
+                                    </Typography>
+                                    <Typography variant="subtitle1">
+                                        <AccessTimeIcon /> Submitted:{' '}
+                                        {assessment?.assessmentSubmissionTime
+                                            ? new Date(
+                                                  assessment.assessmentSubmissionTime
+                                              ).toLocaleString()
+                                            : 'Not submitted'}
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Grid2>
+                        <Grid2 size={12}>
+                            <FormControl fullWidth sx={{ mb: 2 }}>
+                                <InputLabel
+                                    id="filter-test-type-label"
+                                    sx={{ color: 'primary.main' }}
                                 >
-                                    Assessment: {assessment?.assessmentType.assessmentTypeName}
-                                </Typography>
-                                <Divider sx={{ marginY: 1 }} />
-                                <Typography variant="subtitle1">
-                                    <PersonIcon /> Student: {assessment?.testTaker.firstName}{' '}
-                                    {assessment?.testTaker.lastName}
-                                </Typography>
-                                <Typography variant="subtitle1">
-                                    <AccessTimeIcon /> Submitted:{' '}
-                                    {assessment?.assessmentSubmissionTime
-                                        ? new Date(
-                                              assessment.assessmentSubmissionTime
-                                          ).toLocaleString()
-                                        : 'Not submitted'}
-                                </Typography>
-                            </CardContent>
-                        </Card>
-                    </Grid2>
-                    <Grid2 size={12}>
-                        <FormControl fullWidth sx={{ mb: 2 }}>
-                            <InputLabel id="filter-test-type-label" sx={{ color: 'primary.main' }}>
-                                Filter by Test Type
-                            </InputLabel>
-                            <Select
-                                value={filterTestType}
-                                onChange={handleFilterChange}
-                                label="Filter by Test Type"
-                                inputProps={{
-                                    name: 'filter-test-type',
-                                    id: 'filter-test-type',
-                                }}
-                            >
-                                {assessment?.tests.map((test, index) => (
-                                    <MenuItem key={test.testId} value={index}>
-                                        {test.testType.testTypeName}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Grid2>
-                    <Grid2 size={12}>
-                        <div style={{ height: 400, width: '100%' }}>
-                            <DataGrid
-                                rows={rows || []}
-                                columns={columns}
-                                pagination
-                                pageSizeOptions={[5, 10, 20, 100]}
-                                disableRowSelectionOnClick
-                            />
-                        </div>
-                    </Grid2>
-                    <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
-                        <Grid2>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleBackToAssessments}
-                                sx={{ padding: '12px' }}
-                            >
-                                Back to Assessments
-                            </Button>
+                                    Filter by Test Type
+                                </InputLabel>
+                                <Select
+                                    value={filterTestType}
+                                    onChange={handleFilterChange}
+                                    label="Filter by Test Type"
+                                    inputProps={{
+                                        name: 'filter-test-type',
+                                        id: 'filter-test-type',
+                                    }}
+                                >
+                                    {assessment?.tests.map((test, index) => (
+                                        <MenuItem key={test.testId} value={index}>
+                                            {test.testType.testTypeName}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid2>
-                        <Grid2>
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                onClick={onSaveGrading}
-                                sx={{ padding: '12px' }}
-                            >
-                                Save
-                            </Button>
+                        <Grid2 size={12}>
+                            <div style={{ height: 400, width: '100%' }}>
+                                <DataGrid
+                                    rows={rows || []}
+                                    columns={columns}
+                                    pagination
+                                    pageSizeOptions={[5, 10, 20, 100]}
+                                    disableRowSelectionOnClick
+                                    sx={{
+                                        '& .data-grid--header': {
+                                            color: 'primary.main',
+                                        },
+                                    }}
+                                />
+                            </div>
+                        </Grid2>
+                        <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
+                            <Grid2>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleBackToAssessments}
+                                    sx={{ padding: '12px' }}
+                                >
+                                    Back
+                                </Button>
+                            </Grid2>
+                            <Grid2>
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    onClick={onSaveGrading}
+                                    sx={{ padding: '12px' }}
+                                >
+                                    Save
+                                </Button>
+                            </Grid2>
                         </Grid2>
                     </Grid2>
-                </Grid2>
-            )}
+                )}
+            </Box>
         </>
     )
 }
