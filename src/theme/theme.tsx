@@ -150,6 +150,7 @@ export const StyledUserIconButton = styled(IconButton)(({ theme }) => ({
     '& .userName': {
         ...theme.typography.h3,
         color: theme.palette.primary.main,
+        marginLeft: '8px',
     },
 }))
 

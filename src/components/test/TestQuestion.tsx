@@ -177,18 +177,13 @@ const TestQuestion = () => {
                                             </Box>
                                         )}
 
-                                        <Typography
-                                            variant="body1"
-                                            color="text.primary"
-                                            sx={{ mt: 2, mb: 2 }}
-                                        >
-                                            <Box>
-                                                {isRecording && (
-                                                    <div>Recording Time: {recordingTime}s</div>
-                                                )}
-                                                {
-                                                    // prettier-ignore
-                                                    !isRecording &&
+                                        <Box sx={{ mt: 2, mb: 2 }}>
+                                            {isRecording && (
+                                                <div>Recording Time: {recordingTime}s</div>
+                                            )}
+                                            {
+                                                // prettier-ignore
+                                                !isRecording &&
                                                     mediaBlobUrl &&
                                                     !isQuestionWithoutAnswer && (
                                                         <>
@@ -199,9 +194,8 @@ const TestQuestion = () => {
                                                             />
                                                         </>
                                                     )
-                                                }
-                                            </Box>
-                                        </Typography>
+                                            }
+                                        </Box>
                                         <Box
                                             display="flex"
                                             justifyContent="space-between"

@@ -1,4 +1,10 @@
-import React, { useState } from 'react'
+import {
+    AccountCircle as AccountCircleIcon,
+    ArrowDropDown as ArrowDropDownIcon,
+    ArrowDropUp as ArrowDropUpIcon,
+    Close as CloseIcon,
+    Menu as MenuIcon,
+} from '@mui/icons-material'
 import {
     AppBar,
     Box,
@@ -11,16 +17,12 @@ import {
     Typography,
     useMediaQuery,
 } from '@mui/material'
-import {
-    ArrowDropDown as ArrowDropDownIcon,
-    ArrowDropUp as ArrowDropUpIcon,
-    Menu as MenuIcon,
-    Close as CloseIcon,
-} from '@mui/icons-material'
-import { Link } from 'react-router-dom'
+import Divider from '@mui/material/Divider'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { clearUser } from '../reducers/userReducer'
+import { Link } from 'react-router-dom'
 import { RootState } from '../main'
+import { clearUser } from '../reducers/userReducer'
 import { StyledLink, StyledUserIconButton, theme } from '../theme/theme'
 
 const Header: React.FC = () => {
@@ -78,48 +80,55 @@ const Header: React.FC = () => {
                             <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerClose}>
                                 <Box
                                     sx={{
-                                        width: '150px',
+                                        width: '200px',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        padding: '16px',
+                                        justifyContent: 'center',
                                     }}
                                     role="presentation"
                                 >
-                                    <IconButton
-                                        aria-label="close"
-                                        onClick={handleDrawerClose}
-                                        sx={(theme) => ({
-                                            position: 'absolute',
-                                            right: 16,
-                                            top: 16,
-                                            color: theme.palette.primary.main,
-                                        })}
-                                    >
-                                        <CloseIcon />
-                                    </IconButton>
-                                    <StyledLink
+                                    <Box
                                         sx={{
-                                            width: '100%',
-                                            mt: 8,
+                                            height: '120px',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center',
                                         }}
-                                        to="/"
-                                        onClick={handleDrawerClose}
                                     >
-                                        Home
-                                    </StyledLink>
-                                    <StyledLink to="/assessment" onClick={handleDrawerClose}>
-                                        Assessment
-                                    </StyledLink>
+                                        <IconButton
+                                            aria-label="close"
+                                            onClick={handleDrawerClose}
+                                            sx={(theme) => ({
+                                                color: theme.palette.primary.main,
+                                            })}
+                                        >
+                                            <CloseIcon />
+                                        </IconButton>
+                                    </Box>
+
+                                    {['Home', 'Assessment'].map((text) => (
+                                        <StyledLink
+                                            key={text}
+                                            sx={{
+                                                width: '100%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                            to={`/${text.toLowerCase()}`}
+                                            onClick={handleDrawerClose}
+                                        >
+                                            {text}
+                                        </StyledLink>
+                                    ))}
+                                    <Box sx={{ mt: '8px', width: '100%' }}>
+                                        <Divider />
+                                    </Box>
                                     {!user ? (
                                         <>
                                             <Button
                                                 variant="contained"
                                                 sx={{
-                                                    width: '100%',
                                                     backgroundColor: theme.palette.secondary.main,
                                                     padding: '8px 16px',
                                                     margin: '8px',
@@ -136,7 +145,6 @@ const Header: React.FC = () => {
                                             <Button
                                                 variant="contained"
                                                 sx={{
-                                                    width: '100%',
                                                     backgroundColor: theme.palette.primary.main,
                                                     padding: '8px 16px',
                                                     margin: '8px',
@@ -153,23 +161,88 @@ const Header: React.FC = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <Button
-                                                variant="contained"
+                                            <Box
                                                 sx={{
-                                                    width: '100%',
-                                                    backgroundColor: theme.palette.primary.main,
-                                                    padding: '8px 16px',
-                                                    margin: '8px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
+                                                    margin: '8px',
                                                 }}
-                                                component={Link}
-                                                to="/login"
-                                                onClick={handleLogout}
                                             >
-                                                Logout
-                                            </Button>
+                                                <StyledUserIconButton
+                                                    sx={{ width: '100%' }}
+                                                    onClick={handleMenuOpen}
+                                                >
+                                                    <AccountCircleIcon />
+                                                    <Typography className="userName">
+                                                        {user.firstName} {user.lastName}
+                                                    </Typography>
+                                                    {isMenuOpen ? (
+                                                        <ArrowDropUpIcon
+                                                            sx={{
+                                                                fontSize: '20px',
+                                                                marginLeft: '8px',
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <ArrowDropDownIcon
+                                                            sx={{
+                                                                fontSize: '20px',
+                                                                marginLeft: '8px',
+                                                            }}
+                                                        />
+                                                    )}
+                                                </StyledUserIconButton>
+
+                                                <Menu
+                                                    anchorEl={anchorEl}
+                                                    open={Boolean(anchorEl)}
+                                                    onClose={handleMenuClose}
+                                                    anchorOrigin={{
+                                                        vertical: 'top',
+                                                        horizontal: 'right',
+                                                    }}
+                                                    transformOrigin={{
+                                                        vertical: 'bottom',
+                                                        horizontal: 'right',
+                                                    }}
+                                                >
+                                                    {user.accountRole === 'teacher' ? (
+                                                        <MenuItem
+                                                            onClick={() => {
+                                                                handleDrawerClose()
+                                                                handleMenuClose()
+                                                            }}
+                                                        >
+                                                            <Link
+                                                                to="/grading"
+                                                                style={{
+                                                                    ...theme.typography.h3,
+                                                                    textDecoration: 'none',
+                                                                    color: theme.palette.text
+                                                                        .primary,
+                                                                }}
+                                                            >
+                                                                Grade Assessment
+                                                            </Link>
+                                                        </MenuItem>
+                                                    ) : (
+                                                        <></>
+                                                    )}
+                                                    <MenuItem onClick={handleLogout}>
+                                                        <Link
+                                                            to="/login"
+                                                            style={{
+                                                                ...theme.typography.h3,
+                                                                textDecoration: 'none',
+                                                                color: theme.palette.text.primary,
+                                                            }}
+                                                        >
+                                                            Logout
+                                                        </Link>
+                                                    </MenuItem>
+                                                </Menu>
+                                            </Box>
                                         </>
                                     )}
                                 </Box>
@@ -211,6 +284,7 @@ const Header: React.FC = () => {
                             ) : (
                                 <>
                                     <StyledUserIconButton onClick={handleMenuOpen}>
+                                        <AccountCircleIcon />
                                         <Typography className="userName">
                                             {user.firstName} {user.lastName}
                                         </Typography>
@@ -244,6 +318,25 @@ const Header: React.FC = () => {
                                             horizontal: 'right',
                                         }}
                                     >
+                                        {user.accountRole === 'teacher' && (
+                                            <MenuItem
+                                                onClick={() => {
+                                                    handleDrawerClose()
+                                                    handleMenuClose()
+                                                }}
+                                            >
+                                                <Link
+                                                    to="/grading"
+                                                    style={{
+                                                        ...theme.typography.h3,
+                                                        textDecoration: 'none',
+                                                        color: theme.palette.text.primary,
+                                                    }}
+                                                >
+                                                    Grade Assessment
+                                                </Link>
+                                            </MenuItem>
+                                        )}
                                         <MenuItem onClick={handleLogout}>
                                             <Link
                                                 to="/login"
