@@ -17,6 +17,7 @@ import {
     Typography,
     useMediaQuery,
 } from '@mui/material'
+import Divider from '@mui/material/Divider'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
@@ -104,8 +105,10 @@ const Header: React.FC = () => {
                                             <CloseIcon />
                                         </IconButton>
                                     </Box>
+
                                     {['Home', 'Assessment'].map((text) => (
                                         <StyledLink
+                                            key={text}
                                             sx={{
                                                 width: '100%',
                                                 display: 'flex',
@@ -118,6 +121,9 @@ const Header: React.FC = () => {
                                             {text}
                                         </StyledLink>
                                     ))}
+                                    <Box sx={{ mt: '8px', width: '100%' }}>
+                                        <Divider />
+                                    </Box>
                                     {!user ? (
                                         <>
                                             <Button
@@ -313,7 +319,12 @@ const Header: React.FC = () => {
                                         }}
                                     >
                                         {user.accountRole === 'teacher' && (
-                                            <MenuItem>
+                                            <MenuItem
+                                                onClick={() => {
+                                                    handleDrawerClose()
+                                                    handleMenuClose()
+                                                }}
+                                            >
                                                 <Link
                                                     to="/grading"
                                                     style={{

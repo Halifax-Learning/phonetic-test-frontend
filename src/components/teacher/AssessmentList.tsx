@@ -1,51 +1,49 @@
-import { Box, List, ListItemButton, Typography } from '@mui/material'
-import { useEffect } from 'react'
+import { Box, CircularProgress, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 import { RootState } from '../../main'
+import { Assessment } from '../../models/interface'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
 import { fetchAssessment, resetAssessment } from '../../reducers/assessmentReducer'
+import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
+import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const assessments = useSelector((state: RootState) => state.assessmentList)
+    const assessments = useSelector((state: RootState) => state.assessmentList as Assessment[])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        dispatch(fetchAssessments())
-        dispatch(resetAssessment())
-    }, [])
+        const loadData = async () => {
+            await dispatch(fetchAssessments())
+            dispatch(resetAssessment())
+            setLoading(false)
+        }
+
+        loadData()
+    }, [dispatch])
 
     const onChooseAssessment = (assessmentId: string) => {
         dispatch(fetchAssessment(assessmentId))
-        navigate('/grading')
+        dispatch(setScreenToDisplay('GradingScreen'))
     }
 
     return (
-        <Box>
+        <Box sx={{ mx: 'auto', alignItems: 'center', justifyContent: 'center' }}>
             <Typography variant="h1">Assessments</Typography>
-            <List>
-                {assessments?.map((assessment) => (
-                    <ListItemButton
-                        key={assessment.assessmentId}
-                        onClick={() => onChooseAssessment(assessment.assessmentId)}
-                        sx={{ color: assessment.isAllTestsGradedByTeacher ? 'green' : 'red' }}
-                    >
-                        {assessment.assessmentType.assessmentTypeName} --- Student:{' '}
-                        {assessment.testTaker.firstName} {assessment.testTaker.lastName} {' --- '}
-                        {assessment.assessmentSubmissionTime ? (
-                            <>
-                                Submit:{' '}
-                                {new Date(assessment.assessmentSubmissionTime).toLocaleString()}
-                            </>
-                        ) : (
-                            'In Progress '
-                        )}
-                        - Tests Graded: {assessment.isAllTestsGradedByTeacher ? 'Yes' : 'No'}
-                    </ListItemButton>
-                ))}
-            </List>
+            {loading ? (
+                <Box display="flex" justifyContent="center" alignItems="center" height="500px">
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <AssessmentListGrid
+                    assessments={assessments}
+                    onChooseAssessment={onChooseAssessment}
+                />
+            )}
         </Box>
     )
 }

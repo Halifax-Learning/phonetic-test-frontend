@@ -1,22 +1,27 @@
 import {
-    Box,
     Button,
+    Card,
+    CardContent,
+    CardHeader,
+    Divider,
+    FormControl,
     FormControlLabel,
-    List,
-    ListItemButton,
+    Grid2,
+    InputLabel,
+    MenuItem,
     Radio,
     RadioGroup,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
+    Select,
+    SelectChangeEvent,
+    Stack,
     Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import PersonIcon from '@mui/icons-material/Person'
+import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { RootState } from '../../main'
 import {
     fetchAnswerAudio,
@@ -26,6 +31,7 @@ import {
     setTest,
     submitTeacherEvaluation,
 } from '../../reducers/assessmentReducer'
+import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 
 const GradingScreen = () => {
     const dispatch = useDispatch<any>()
@@ -34,11 +40,18 @@ const GradingScreen = () => {
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
+    const [filterTestType, setFilterTestType] = useState<number | string>('')
 
     useEffect(() => {
         // Update selected test when currentTestIndex changes
         setSelectedTest(assessment?.tests[currentTestIndex!])
     }, [assessment, currentTestIndex])
+
+    useEffect(() => {
+        if (assessment?.tests.length && filterTestType === '') {
+            setFilterTestType(0) // Only set initially if needed
+        }
+    }, [assessment])
 
     useEffect(() => {
         // Load all question audios
@@ -117,109 +130,176 @@ const GradingScreen = () => {
         dispatch(submitTeacherEvaluation())
     }
 
+    const handleBackToAssessments = () => {
+        dispatch(setScreenToDisplay('AssessmentTypeList'))
+    }
+
+    const handleFilterChange = (event: SelectChangeEvent<string | number>) => {
+        const selectedIndex = event.target.value as number // Get the selected index (number)
+
+        setFilterTestType(selectedIndex) // Update the filter state
+
+        onChooseTest(selectedIndex)
+    }
+
+    const columns: GridColDef[] = [
+        { field: 'questionNo', headerName: 'No.', width: 50 },
+        { field: 'questionText', headerName: 'Question Text', width: 150 },
+        {
+            field: 'questionAudio',
+            headerName: 'Question Audio',
+            width: 320,
+            renderCell: (params) =>
+                params.row.questionAudio ? (
+                    <audio controls src={params.row.questionAudio} />
+                ) : (
+                    'N/A'
+                ),
+        },
+        {
+            field: 'correctAnswerAudio',
+            headerName: 'Correct Answer Audio',
+            width: 320,
+            renderCell: (params) =>
+                params.row.correctAnswerAudio ? (
+                    <audio controls src={params.row.correctAnswerAudio} />
+                ) : (
+                    'N/A'
+                ),
+        },
+        {
+            field: 'studentAnswerAudio',
+            headerName: 'Student Answer Audio',
+            width: 320,
+            renderCell: (params) =>
+                params.row.studentAnswerAudio ? (
+                    <audio controls src={params.row.studentAnswerAudio} />
+                ) : (
+                    'N/A'
+                ),
+        },
+        {
+            field: 'teacherEvaluation',
+            headerName: 'Teacher Evaluation',
+            width: 240,
+            renderCell: (params) => (
+                <Stack direction="row" sx={{ flexWrap: 'wrap', width: '100%' }}>
+                    <FormControl>
+                        <RadioGroup
+                            value={selectedValues[params.row.index] || ''}
+                            onChange={(event) => handleRadioChange(event, params.row.index)}
+                            row
+                        >
+                            <FormControlLabel value="correct" control={<Radio />} label="Correct" />
+                            <FormControlLabel
+                                value="incorrect"
+                                control={<Radio />}
+                                label="Incorrect"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                </Stack>
+            ),
+        },
+    ]
+
+    const rows =
+        selectedTest?.testQuestions.map((testQuestion, index) => ({
+            id: testQuestion.testQuestionId,
+            questionNo: index + 1,
+            questionText: testQuestion.question.questionText,
+            questionAudio: testQuestion.question.questionAudioBlobUrl,
+            correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
+            studentAnswerAudio: testQuestion.answerAudioBlobUrl,
+            index,
+        })) || []
+
     return (
         <>
             {selectedTest && (
-                <Box sx={{ marginLeft: -20, marginRight: -20 }}>
-                    <Typography variant="h1">Assessment</Typography>
-                    {assessment?.assessmentType.assessmentTypeName} --- Student:{' '}
-                    {assessment?.testTaker.firstName} {assessment?.testTaker.lastName} {' --- '}
-                    Submit:{' '}
-                    {assessment?.assessmentSubmissionTime
-                        ? new Date(assessment.assessmentSubmissionTime).toLocaleString()
-                        : ''}
-                    <Typography variant="h1">Tests</Typography>
-                    <List>
-                        {assessment?.tests.map((test, index) => (
-                            <ListItemButton
-                                key={test.testId}
-                                onClick={() => onChooseTest(index)}
-                                sx={{
-                                    backgroundColor: index === currentTestIndex ? 'lightgray' : '',
-                                    color:
-                                        test.numQuestionsGraded === test.testType.numQuestions
-                                            ? 'green'
-                                            : 'red',
+                <Grid2 container spacing={2}>
+                    <Grid2 size={12}>
+                        <Card>
+                            <CardHeader title="Assessment Details" />
+                            <CardContent>
+                                <Typography
+                                    variant="h5"
+                                    sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                                >
+                                    Assessment: {assessment?.assessmentType.assessmentTypeName}
+                                </Typography>
+                                <Divider sx={{ marginY: 1 }} />
+                                <Typography variant="subtitle1">
+                                    <PersonIcon /> Student: {assessment?.testTaker.firstName}{' '}
+                                    {assessment?.testTaker.lastName}
+                                </Typography>
+                                <Typography variant="subtitle1">
+                                    <AccessTimeIcon /> Submitted:{' '}
+                                    {assessment?.assessmentSubmissionTime
+                                        ? new Date(
+                                              assessment.assessmentSubmissionTime
+                                          ).toLocaleString()
+                                        : 'Not submitted'}
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <FormControl fullWidth sx={{ mb: 2 }}>
+                            <InputLabel id="filter-test-type-label" sx={{ color: 'primary.main' }}>
+                                Filter by Test Type
+                            </InputLabel>
+                            <Select
+                                value={filterTestType}
+                                onChange={handleFilterChange}
+                                label="Filter by Test Type"
+                                inputProps={{
+                                    name: 'filter-test-type',
+                                    id: 'filter-test-type',
                                 }}
                             >
-                                {test.testType.testTypeName} - Number of graded questions:{' '}
-                                {test.numQuestionsGraded}/{test.testType.numQuestions}
-                            </ListItemButton>
-                        ))}
-                    </List>
-                    <Typography variant="h1">Questions</Typography>
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Question No.</TableCell>
-                                    <TableCell>Question Text</TableCell>
-                                    <TableCell>Question Audio</TableCell>
-                                    <TableCell>Correct Answer Audio</TableCell>
-                                    <TableCell>Student Answer Audio</TableCell>
-                                    <TableCell>Teacher Evaluation</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {selectedTest?.testQuestions.map((testQuestion, index) => (
-                                    <TableRow key={testQuestion.testQuestionId}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell>{testQuestion.question.questionText}</TableCell>
-                                        <TableCell>
-                                            {testQuestion.question.questionAudioBlobUrl && (
-                                                <audio
-                                                    controls
-                                                    src={testQuestion.question.questionAudioBlobUrl}
-                                                />
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {testQuestion.question.correctAnswerAudioBlobUrl && (
-                                                <audio
-                                                    controls
-                                                    src={
-                                                        testQuestion.question
-                                                            .correctAnswerAudioBlobUrl
-                                                    }
-                                                />
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {testQuestion.hasAnswerAudio && (
-                                                <audio
-                                                    controls
-                                                    src={testQuestion.answerAudioBlobUrl}
-                                                />
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <RadioGroup
-                                                value={selectedValues[index] || ''}
-                                                onChange={(event) =>
-                                                    handleRadioChange(event, index)
-                                                }
-                                            >
-                                                <FormControlLabel
-                                                    value="correct"
-                                                    control={<Radio />}
-                                                    label="Correct"
-                                                />
-                                                <FormControlLabel
-                                                    value="incorrect"
-                                                    control={<Radio />}
-                                                    label="Incorrect"
-                                                />
-                                            </RadioGroup>
-                                        </TableCell>
-                                    </TableRow>
+                                {assessment?.tests.map((test, index) => (
+                                    <MenuItem key={test.testId} value={index}>
+                                        {test.testType.testTypeName}
+                                    </MenuItem>
                                 ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <Button variant="contained" color="primary" onClick={onSaveGrading}>
-                        Save
-                    </Button>
-                </Box>
+                            </Select>
+                        </FormControl>
+                    </Grid2>
+                    <Grid2 size={12}>
+                        <div style={{ height: 400, width: '100%' }}>
+                            <DataGrid
+                                rows={rows || []}
+                                columns={columns}
+                                pagination
+                                pageSizeOptions={[5, 10, 20, 100]}
+                                disableRowSelectionOnClick
+                            />
+                        </div>
+                    </Grid2>
+                    <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
+                        <Grid2>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleBackToAssessments}
+                                sx={{ padding: '12px' }}
+                            >
+                                Back to Assessments
+                            </Button>
+                        </Grid2>
+                        <Grid2>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={onSaveGrading}
+                                sx={{ padding: '12px' }}
+                            >
+                                Save
+                            </Button>
+                        </Grid2>
+                    </Grid2>
+                </Grid2>
             )}
         </>
     )

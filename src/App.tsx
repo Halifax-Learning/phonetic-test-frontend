@@ -10,6 +10,7 @@ import Footer from './components/Footer.js'
 import Header from './components/Header.js'
 import Home from './components/Home.js'
 import TeacherAssessmentList from './components/teacher/AssessmentList.js'
+import GradingScreen from './components/teacher/GradingScreen.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
@@ -31,19 +32,32 @@ const AppRoutes = () => {
         }
     }, [dispatch])
 
-    let displayComponent = <AssessmentTypeList />
-    if (user) {
+    const assessmentRoutes = () => {
+        let assessmentComponent = <AssessmentTypeList />
+
         if (screenToDisplay === 'AssessmentWelcome') {
-            displayComponent = <AssessmentWelcome />
+            assessmentComponent = <AssessmentWelcome />
         } else if (screenToDisplay === 'TestWelcome') {
-            displayComponent = <TestWelcome />
+            assessmentComponent = <TestWelcome />
         } else if (screenToDisplay === 'TestQuestion') {
-            displayComponent = <TestQuestion />
+            assessmentComponent = <TestQuestion />
         } else if (screenToDisplay === 'TestFinish') {
-            displayComponent = <TestFinish />
+            assessmentComponent = <TestFinish />
         } else if (screenToDisplay === 'AssessmentFinish') {
-            displayComponent = <AssessmentFinish />
+            assessmentComponent = <AssessmentFinish />
         }
+
+        return assessmentComponent
+    }
+
+    const gradingRoutes = () => {
+        let gradingComponent = <TeacherAssessmentList />
+
+        if (screenToDisplay === 'GradingScreen') {
+            gradingComponent = <GradingScreen />
+        }
+
+        return gradingComponent
     }
 
     const routes: RouteObject[] = [
@@ -58,7 +72,7 @@ const AppRoutes = () => {
         },
         {
             path: '/assessment',
-            element: !user ? <Navigate replace to="/login" /> : displayComponent,
+            element: !user ? <Navigate replace to="/login" /> : assessmentRoutes(),
         },
         {
             path: '/grading',
@@ -66,7 +80,7 @@ const AppRoutes = () => {
                 !user || user.accountRole !== 'teacher' ? (
                     <Navigate replace to="/login" />
                 ) : (
-                    <TeacherAssessmentList />
+                    gradingRoutes()
                 ),
         },
         {
