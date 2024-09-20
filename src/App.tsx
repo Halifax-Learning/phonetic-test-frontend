@@ -1,4 +1,4 @@
-import { Container, CssBaseline, ThemeProvider } from '@mui/material'
+import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
@@ -98,19 +98,28 @@ const App = () => {
             <CssBaseline />
 
             <Router>
-                <Header />
-
-                <Container
+                <Box
                     sx={{
-                        mt: '140px',
-                        mb: '40px',
-                        alignItems: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        minHeight: '100vh',
                     }}
                 >
-                    <AppRoutes />
-                </Container>
+                    <Header />
 
-                <Footer />
+                    <Container
+                        sx={{
+                            mt: '140px',
+                            mb: '40px',
+                            flexGrow: 1,
+                            alignItems: 'center',
+                        }}
+                    >
+                        <AppRoutes />
+                    </Container>
+
+                    <Footer />
+                </Box>
             </Router>
         </ThemeProvider>
     )

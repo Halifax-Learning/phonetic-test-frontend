@@ -12,6 +12,7 @@ const Footer = () => {
                 color: 'white',
                 padding: '40px',
                 marginTop: 'auto',
+                width: '100%',
             }}
         >
             <Grid2 container spacing={4} justifyContent="center">
