@@ -79,6 +79,15 @@ export const theme = createTheme({
             fontSize: '0.75rem', // 12
         },
     },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    padding: '12px',
+                },
+            },
+        },
+    },
 })
 
 export const FormInputLabel = styled(InputLabel)(({ theme }) => ({

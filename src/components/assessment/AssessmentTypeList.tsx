@@ -78,6 +78,9 @@ const AssessmentList = () => {
 
     return (
         <Box sx={{ mx: 'auto', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="h1" color="secondary.dark" sx={{ mb: 4 }}>
+                Hi, {user?.firstName}. Are you ready to start your assessment?
+            </Typography>
             <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
                 Please choose one of the assessments listed below to evaluate your English language
                 skills.

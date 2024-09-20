@@ -30,7 +30,6 @@ const Home = () => {
                 sx={{
                     backgroundColor: theme.palette.secondary.main,
                     color: 'inherit',
-                    padding: '12px',
                 }}
             >
                 TAKE THE ASSESSMENT NOW
