@@ -28,7 +28,7 @@ import { StyledLink, StyledUserIconButton, theme } from '../theme/theme'
 const Header: React.FC = () => {
     const dispatch = useDispatch()
     const user = useSelector((state: RootState) => state.user)
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -207,39 +207,52 @@ const Header: React.FC = () => {
                                                         horizontal: 'right',
                                                     }}
                                                 >
+                                                    <MenuItem
+                                                        component={Link}
+                                                        to="/profile"
+                                                        onClick={() => {
+                                                            handleDrawerClose()
+                                                            handleMenuClose()
+                                                        }}
+                                                        style={{
+                                                            ...theme.typography.h3,
+                                                            textDecoration: 'none',
+                                                            color: theme.palette.text.primary,
+                                                        }}
+                                                    >
+                                                        Profile
+                                                    </MenuItem>
                                                     {user.accountRole === 'teacher' ? (
                                                         <MenuItem
+                                                            component={Link}
+                                                            to="/grading"
                                                             onClick={() => {
                                                                 handleDrawerClose()
                                                                 handleMenuClose()
                                                             }}
-                                                        >
-                                                            <Link
-                                                                to="/grading"
-                                                                style={{
-                                                                    ...theme.typography.h3,
-                                                                    textDecoration: 'none',
-                                                                    color: theme.palette.text
-                                                                        .primary,
-                                                                }}
-                                                            >
-                                                                Grade Assessment
-                                                            </Link>
-                                                        </MenuItem>
-                                                    ) : (
-                                                        <></>
-                                                    )}
-                                                    <MenuItem onClick={handleLogout}>
-                                                        <Link
-                                                            to="/login"
                                                             style={{
                                                                 ...theme.typography.h3,
                                                                 textDecoration: 'none',
                                                                 color: theme.palette.text.primary,
                                                             }}
                                                         >
-                                                            Logout
-                                                        </Link>
+                                                            Grade Assessment
+                                                        </MenuItem>
+                                                    ) : (
+                                                        <></>
+                                                    )}
+                                                    <Divider />
+                                                    <MenuItem
+                                                        component={Link}
+                                                        to="/login"
+                                                        onClick={handleLogout}
+                                                        style={{
+                                                            ...theme.typography.h3,
+                                                            textDecoration: 'none',
+                                                            color: theme.palette.text.primary,
+                                                        }}
+                                                    >
+                                                        Logout
                                                     </MenuItem>
                                                 </Menu>
                                             </Box>
@@ -318,36 +331,49 @@ const Header: React.FC = () => {
                                             horizontal: 'right',
                                         }}
                                     >
+                                        <MenuItem
+                                            component={Link}
+                                            to="/profile"
+                                            onClick={() => {
+                                                handleDrawerClose()
+                                                handleMenuClose()
+                                            }}
+                                            style={{
+                                                ...theme.typography.h3,
+                                                textDecoration: 'none',
+                                                color: theme.palette.text.primary,
+                                            }}
+                                        >
+                                            Profile
+                                        </MenuItem>
                                         {user.accountRole === 'teacher' && (
                                             <MenuItem
+                                                component={Link}
+                                                to="/grading"
                                                 onClick={() => {
                                                     handleDrawerClose()
                                                     handleMenuClose()
                                                 }}
-                                            >
-                                                <Link
-                                                    to="/grading"
-                                                    style={{
-                                                        ...theme.typography.h3,
-                                                        textDecoration: 'none',
-                                                        color: theme.palette.text.primary,
-                                                    }}
-                                                >
-                                                    Grade Assessment
-                                                </Link>
-                                            </MenuItem>
-                                        )}
-                                        <MenuItem onClick={handleLogout}>
-                                            <Link
-                                                to="/login"
                                                 style={{
                                                     ...theme.typography.h3,
                                                     textDecoration: 'none',
                                                     color: theme.palette.text.primary,
                                                 }}
                                             >
-                                                Logout
-                                            </Link>
+                                                Grade Assessment
+                                            </MenuItem>
+                                        )}
+                                        <MenuItem
+                                            component={Link}
+                                            to="/login"
+                                            onClick={handleLogout}
+                                            style={{
+                                                ...theme.typography.h3,
+                                                textDecoration: 'none',
+                                                color: theme.palette.text.primary,
+                                            }}
+                                        >
+                                            Logout
                                         </MenuItem>
                                     </Menu>
                                 </>
