@@ -3,10 +3,10 @@ import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
+import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { useState } from 'react'
 import { login } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
-import { useState } from 'react'
-import { VisibilityOff, Visibility } from '@mui/icons-material'
 
 const Login = () => {
     const navigate = useNavigate()
@@ -52,7 +52,7 @@ const Login = () => {
                         defaultValue=""
                         render={({ field }) => (
                             <>
-                                <FormInputLabel htmlFor="email">Password</FormInputLabel>
+                                <FormInputLabel htmlFor="password">Password</FormInputLabel>
                                 <FormInput
                                     {...field}
                                     type={showPassword ? 'text' : 'password'}

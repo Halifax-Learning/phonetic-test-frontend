@@ -15,6 +15,7 @@ import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
 import Login from './components/user/Login.js'
+import Profile from './components/user/Profile.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
 import { setUser } from './reducers/userReducer.js'
@@ -64,15 +65,19 @@ const AppRoutes = () => {
         { path: '/', element: <Home /> },
         {
             path: '/login',
-            element: !user ? <Login /> : <Navigate replace to="/" />,
+            element: !user ? <Login /> : <Navigate replace to="/profile" />,
         },
         {
             path: '/register',
-            element: !user ? <Register /> : <Navigate replace to="/" />,
+            element: !user ? <Register /> : <Navigate replace to="/profile" />,
         },
         {
             path: '/assessment',
             element: !user ? <Navigate replace to="/login" /> : assessmentRoutes(),
+        },
+        {
+            path: '/profile',
+            element: !user ? <Login /> : <Profile />,
         },
         {
             path: '/grading',
