@@ -16,8 +16,9 @@ import {
     TextField,
     Typography,
 } from '@mui/material'
-import { useEffect, useState } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
@@ -25,6 +26,7 @@ import { resetAssessment } from '../../reducers/assessmentReducer'
 import { ButtonBox } from '../../theme/theme'
 
 const Profile = () => {
+    const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const user = useSelector((state: RootState) => state.user)
     const assessments = useSelector((state: RootState) => state.assessmentList as Assessment[])
@@ -44,7 +46,7 @@ const Profile = () => {
         setIsEditing((prev) => !prev)
     }
 
-    const renderStudentOngoingAssessment = () => {
+    const StudentOngoingAssessment = () => {
         const [studentAssessments, setStudentAssessments] = useState<Assessment[]>([])
         const [loading, setLoading] = useState(true)
         const [error, setError] = useState(false)
@@ -157,9 +159,8 @@ const Profile = () => {
                 <List>
                     {studentAssessments.length > 0 ? (
                         studentAssessments.map((assessment) => (
-                            <>
+                            <Fragment key={assessment.assessmentId}>
                                 <ListItem
-                                    key={assessment.assessmentId}
                                     sx={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
@@ -192,7 +193,7 @@ const Profile = () => {
                                     <Chip label="View" color="primary" sx={{ ml: 2 }} />
                                 </ListItem>
                                 <Divider sx={{ m: 2 }} />
-                            </>
+                            </Fragment>
                         ))
                     ) : (
                         <Typography variant="body2" color="text.secondary">
@@ -205,7 +206,7 @@ const Profile = () => {
     }
 
     // Show list of assessments
-    const renderTeacherPendingGrading = () => {
+    const TeacherPendingGrading = () => {
         const [pendingCount, setPendingCount] = useState(0)
         const [loading, setLoading] = useState(true)
         const [error, setError] = useState(false)
@@ -313,7 +314,12 @@ const Profile = () => {
                     </Typography>
                 </Box>
                 <ButtonBox>
-                    <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{ mt: 2 }}
+                        onClick={() => navigate('/grading')}
+                    >
                         View Assessments
                     </Button>
                 </ButtonBox>
@@ -431,9 +437,9 @@ const Profile = () => {
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 6 }}>
                     <Card variant="outlined" sx={{ height: '100%' }}>
-                        {isStudent && renderStudentOngoingAssessment()}
+                        {isStudent && StudentOngoingAssessment()}
 
-                        {isTeacher && renderTeacherPendingGrading()}
+                        {isTeacher && TeacherPendingGrading()}
                     </Card>
                 </Grid2>
             </Grid2>

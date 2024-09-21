@@ -186,14 +186,14 @@ const TestQuestion = () => {
                                                 !isRecording &&
                                                     mediaBlobUrl &&
                                                     !isQuestionWithoutAnswer && (
-                                                        <>
-                                                            <div>Your answer:</div>
-                                                            <audio
-                                                                controls
-                                                                src={mediaBlobUrl}
-                                                            />
-                                                        </>
-                                                    )
+                                                    <>
+                                                        <div>Your answer:</div>
+                                                        <audio
+                                                            controls
+                                                            src={mediaBlobUrl}
+                                                        />
+                                                    </>
+                                                )
                                             }
                                         </Box>
                                         <Box

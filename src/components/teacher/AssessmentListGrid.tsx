@@ -62,6 +62,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                 }
                 return [
                     <GridActionsCellItem
+                        key={row.id}
                         icon={<EditIcon sx={{ color: 'primary.main' }} />}
                         label="Edit"
                         onClick={() => onChooseAssessment(row.id as string)}
