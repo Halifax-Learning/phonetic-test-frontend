@@ -35,6 +35,8 @@ export interface TestQuestion {
     latestTeacherEvaluation: boolean
     originalTeacherEvaluation: boolean // to keep track if the teacher evaluation has been changed
     testQuestionSubmissionTime: Date
+    autoGradingHistory: AutoGradingHistory[]
+    teacherGradingHistory: TeacherGradingHistory[]
 }
 
 export interface TestType {
@@ -71,4 +73,19 @@ export interface Assessment {
     tests: Test[]
     assessmentSubmissionTime: Date
     isAllTestsGradedByTeacher: boolean // if all the tests in the assessment have been graded by the teacher
+}
+
+export interface AutoGradingHistory {
+    autoGradingHistoryId: string
+    modelVersion: string
+    autoEvaluation: number
+    createdAt: Date
+}
+
+export interface TeacherGradingHistory {
+    teacherGradingHistoryId: string
+    teacher_acount: User
+    teacherEvaluation: boolean
+    teacherComment: string
+    createdAt: Date
 }
