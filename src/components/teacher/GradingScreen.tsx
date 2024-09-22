@@ -23,10 +23,11 @@ import {
     Typography,
 } from '@mui/material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../main'
-import { TeacherGradingHistory } from '../../models/interface'
+import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
 import {
     fetchAnswerAudio,
     fetchCorrectAnswerAudio,
@@ -49,11 +50,26 @@ const GradingScreen = () => {
     const [feedbackValues, setFeedbackValues] = useState<string[]>([])
     const [filterTestType, setFilterTestType] = useState<number | string>('')
     const [dialogOpen, setDialogOpen] = useState(false)
-    const [gradingHistory, setGradingHistory] = useState<TeacherGradingHistory[]>([])
+    const [gradingHistory, setGradingHistory] = useState<
+        (TeacherGradingHistory | AutoGradingHistory)[]
+    >([])
 
-    const handleShowGradingHistory = (index: number) => {
-        console.log('Show grading history for question:', index)
-        setGradingHistory(selectedTest?.testQuestions[index].teacherGradingHistory || [])
+    const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
+        console.log(
+            'Show grading history for question:',
+            index,
+            'Machine History:',
+            isMachineHistory
+        )
+
+        if (isMachineHistory) {
+            // Handle machine grading history
+            setGradingHistory(selectedTest?.testQuestions[index].autoGradingHistory || [])
+        } else {
+            // Handle teacher grading history
+            setGradingHistory(selectedTest?.testQuestions[index].teacherGradingHistory || [])
+        }
+
         setDialogOpen(true)
     }
 
@@ -223,6 +239,30 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Machine Evaluation',
             width: 150,
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
+                    <span>{params.row.machinEvaluation}</span>
+                    {params.row.machinEvaluation !== 'N/A' && ( // Only show the icon if machinEvaluation is not 'N/A'
+                        <Tooltip title="View Grading History">
+                            <IconButton
+                                size="small"
+                                onClick={() => handleShowGradingHistory(params.row.index, true)} // Pass the question ID
+                                sx={{ ml: 1 }} // Add some left margin
+                            >
+                                <HistoryIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </Box>
+            ),
         },
         {
             field: 'teacherEvaluation',
@@ -230,12 +270,20 @@ const GradingScreen = () => {
             headerName: 'Teacher Evaluation',
             width: 150,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
                     <span>{params.row.teacherEvaluation}</span>
                     <Tooltip title="View Grading History">
                         <IconButton
                             size="small"
-                            onClick={() => handleShowGradingHistory(params.row.index)} // Pass the question ID
+                            onClick={() => handleShowGradingHistory(params.row.index, false)} // Pass the question ID
                             sx={{ ml: 1 }} // Add some left margin
                         >
                             <HistoryIcon fontSize="small" />
@@ -329,7 +377,10 @@ const GradingScreen = () => {
             questionAudio: testQuestion.question.questionAudioBlobUrl,
             correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
             studentAnswerAudio: testQuestion.answerAudioBlobUrl,
-            machinEvaluation: testQuestion.latestAutoEvaluation,
+            machinEvaluation:
+                testQuestion.latestAutoEvaluation === null
+                    ? 'N/A'
+                    : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
             teacherEvaluation: testQuestion.originalTeacherEvaluation ? 'Correct' : 'Incorrect',
             index,
         })) || []
@@ -350,23 +401,40 @@ const GradingScreen = () => {
                                 />
                                 <CardContent>
                                     <Typography
-                                        variant="h5"
+                                        variant="body1"
                                         sx={{ fontWeight: 'bold', color: 'primary.main' }}
                                     >
                                         Assessment: {assessment?.assessmentType.assessmentTypeName}
                                     </Typography>
                                     <Divider sx={{ marginY: 1 }} />
-                                    <Typography variant="subtitle1">
-                                        <PersonIcon /> Student: {assessment?.testTaker.firstName}{' '}
+
+                                    <Typography
+                                        variant="subtitle1"
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            mt: 1,
+                                        }}
+                                    >
+                                        <PersonIcon sx={{ mr: 1 }} /> Student:{' '}
+                                        {assessment?.testTaker.firstName}{' '}
                                         {assessment?.testTaker.lastName}
                                     </Typography>
-                                    <Typography variant="subtitle1">
-                                        <AccessTimeIcon /> Submitted:{' '}
+                                    <Typography
+                                        variant="subtitle1"
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            mt: 1,
+                                        }}
+                                    >
+                                        <AccessTimeIcon sx={{ mr: 1 }} /> Submitted:{' '}
                                         {assessment?.assessmentSubmissionTime
-                                            ? new Date(
-                                                assessment.assessmentSubmissionTime
-                                            ).toLocaleString()
-                                            : 'Not submitted'}
+                                            ? format(
+                                                  new Date(assessment.assessmentSubmissionTime),
+                                                  'PPpp'
+                                              )
+                                            : 'In Progress'}
                                     </Typography>
                                 </CardContent>
                             </Card>
@@ -397,7 +465,7 @@ const GradingScreen = () => {
                             </FormControl>
                         </Grid2>
                         <Grid2 size={12}>
-                            <div style={{ height: 600, width: '100%' }}>
+                            <div style={{ height: 500, width: '100%' }}>
                                 <DataGrid
                                     rows={rows || []}
                                     columns={columns}

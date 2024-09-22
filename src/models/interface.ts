@@ -84,7 +84,7 @@ export interface AutoGradingHistory {
 
 export interface TeacherGradingHistory {
     teacherGradingHistoryId: string
-    teacher_acount: User
+    teacherAccount: User
     teacherEvaluation: boolean
     teacherComment: string
     createdAt: Date
