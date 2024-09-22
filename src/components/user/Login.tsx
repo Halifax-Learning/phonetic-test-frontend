@@ -1,17 +1,30 @@
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import * as yup from 'yup'
 
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { useState } from 'react'
 import { login } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
 
+const schema = yup.object().shape({
+    email: yup.string().email('Invalid email address').required('Email is required'),
+    password: yup.string().required('Password is required'),
+})
+
 const Login = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const { handleSubmit, control } = useForm()
+    const {
+        handleSubmit,
+        control,
+        formState: { errors },
+    } = useForm({
+        resolver: yupResolver(schema), // Use Yup schema for validation
+    })
     const [showPassword, setShowPassword] = useState(false)
 
     const onSubmit = (data: any) => {
@@ -42,6 +55,11 @@ const Login = () => {
                             <>
                                 <FormInputLabel htmlFor="email">Email</FormInputLabel>
                                 <FormInput {...field} id="email" type="email" />
+                                {errors.email && (
+                                    <Typography color="error" variant="caption">
+                                        {errors.email.message}
+                                    </Typography>
+                                )}
                             </>
                         )}
                     />
@@ -67,6 +85,11 @@ const Login = () => {
                                         </InputAdornment>
                                     }
                                 />
+                                {errors.password && (
+                                    <Typography color="error" variant="caption">
+                                        {errors.password.message}
+                                    </Typography>
+                                )}
                             </>
                         )}
                     />
