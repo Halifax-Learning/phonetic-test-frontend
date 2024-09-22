@@ -12,6 +12,7 @@ const Login = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const { handleSubmit, control } = useForm()
+    const [showPassword, setShowPassword] = useState(false)
 
     const onSubmit = (data: any) => {
         dispatch(login(data.email, data.password))
@@ -21,15 +22,13 @@ const Login = () => {
         navigate('/register')
     }
 
-    const [showPassword, setShowPassword] = useState(false)
-
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword)
     }
 
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Card variant="outlined" sx={{ maxWidth: 700, padding: 2 }}>
+            <Card variant="outlined" sx={{ maxWidth: 600, padding: 2 }}>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
                     <Typography variant="body1">
                         To start the assessment, please log in to your account. <br />
@@ -71,12 +70,7 @@ const Login = () => {
                             </>
                         )}
                     />
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="secondary"
-                        sx={{ width: '100%', mt: 2, padding: '12px 24px' }}
-                    >
+                    <Button type="submit" variant="contained" sx={{ width: '100%', mt: 2 }}>
                         Login
                     </Button>
                 </Box>

@@ -97,6 +97,10 @@ const TestWelcome = () => {
                                                 'Analysis',
                                                 'Listening',
                                             ].includes(testTypeName ?? '')}
+                                            instructionAudioBlobUrl={
+                                                assessment?.tests[currentTestIndex!].testType
+                                                    .questionType.instructionAudioBlobUrl
+                                            }
                                             customPoint1Text={questionInstructionText}
                                         />
                                     </Box>

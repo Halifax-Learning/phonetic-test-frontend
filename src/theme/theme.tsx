@@ -85,7 +85,7 @@ export const theme = createTheme({
         MuiButton: {
             styleOverrides: {
                 root: {
-                    padding: '8px 16px',
+                    padding: '12px',
                 },
             },
         },
