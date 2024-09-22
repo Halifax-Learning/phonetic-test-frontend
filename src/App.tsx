@@ -65,11 +65,11 @@ const AppRoutes = () => {
         { path: '/', element: <Home /> },
         {
             path: '/login',
-            element: !user ? <Login /> : <Navigate replace to="/profile" />,
+            element: !user ? <Login /> : <Navigate replace to="/" />,
         },
         {
             path: '/register',
-            element: !user ? <Register /> : <Navigate replace to="/profile" />,
+            element: !user ? <Register /> : <Navigate replace to="/" />,
         },
         {
             path: '/assessment',

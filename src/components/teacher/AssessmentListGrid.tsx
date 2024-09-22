@@ -87,8 +87,8 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
     return (
         <Box
             sx={{
-                height: 500,
                 width: '100%',
+                height: '600px',
             }}
         >
             {rows.length > 0 ? (

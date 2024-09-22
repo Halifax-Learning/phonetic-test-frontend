@@ -95,7 +95,7 @@ const TestQuestion = () => {
     return (
         <>
             {test && currentTestQuestionIndex !== null && (
-                <Box sx={{ maxWidth: 700, mx: 'auto', p: 2 }}>
+                <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
                     <Card variant="outlined" sx={{ padding: 2, position: 'relative' }}>
                         <Box sx={{ width: '100%', position: 'absolute', top: 0, left: 0 }}>
                             <LinearProgress

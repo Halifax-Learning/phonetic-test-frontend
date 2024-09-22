@@ -16,13 +16,13 @@ import {
     TextField,
     Typography,
 } from '@mui/material'
+import { format } from 'date-fns'
 import React, { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
-import { resetAssessment } from '../../reducers/assessmentReducer'
 import { ButtonBox } from '../../theme/theme'
 
 const Profile = () => {
@@ -54,7 +54,6 @@ const Profile = () => {
             try {
                 setLoading(true)
                 await dispatch(fetchAssessments())
-                dispatch(resetAssessment())
                 setError(false) // Reset error state if fetch is successful
 
                 const filteredAssessments = assessments
@@ -175,7 +174,10 @@ const Profile = () => {
                                             {assessment.assessmentType.assessmentTypeName}
                                         </Typography>
                                         <Typography variant="caption" color="text.primary">
-                                            {`Submitted: ${new Date(assessment.assessmentSubmissionTime).toLocaleDateString()} | Graded: `}
+                                            {`Submitted: ${format(
+                                                new Date(assessment.assessmentSubmissionTime),
+                                                'PPpp'
+                                            )} | Graded: `}
                                         </Typography>
                                         <Typography
                                             variant="caption"
@@ -215,7 +217,6 @@ const Profile = () => {
             try {
                 setLoading(true)
                 await dispatch(fetchAssessments())
-                dispatch(resetAssessment())
                 setError(false) // Reset error state if fetch is successful
                 const count = assessments.filter(
                     (assessment) =>

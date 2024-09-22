@@ -77,7 +77,7 @@ const AssessmentList = () => {
     }
 
     return (
-        <Box sx={{ mx: 'auto', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ mx: 'auto', maxWidth: 'md', alignItems: 'center', justifyContent: 'center' }}>
             <Typography variant="h1" color="secondary.dark" sx={{ mb: 4 }}>
                 Hi, {user?.firstName}. Are you ready to start your assessment?
             </Typography>

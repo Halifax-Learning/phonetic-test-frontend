@@ -22,6 +22,8 @@ const AssessmentWelcome = () => {
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
+                        mx: 'auto',
+                        maxWidth: 'md',
                     }}
                 >
                     <Typography variant="h1" color="secondary.dark" sx={{ mb: 4 }}>

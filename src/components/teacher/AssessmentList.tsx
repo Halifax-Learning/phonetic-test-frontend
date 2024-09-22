@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
-import { fetchAssessment, resetAssessment } from '../../reducers/assessmentReducer'
+import { fetchAssessment } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import AssessmentListGrid from './AssessmentListGrid'
 
@@ -18,7 +18,6 @@ const TeacherAssessmentList = () => {
     useEffect(() => {
         const loadData = async () => {
             await dispatch(fetchAssessments())
-            dispatch(resetAssessment())
             setLoading(false)
         }
 

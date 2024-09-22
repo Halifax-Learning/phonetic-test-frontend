@@ -22,7 +22,7 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
 import { format } from 'date-fns'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -48,7 +48,7 @@ const GradingScreen = () => {
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
     const [feedbackValues, setFeedbackValues] = useState<string[]>([])
-    const [filterTestType, setFilterTestType] = useState<number | string>('')
+    const [filterTestType, setFilterTestType] = useState<number | string>(currentTestIndex!)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [gradingHistory, setGradingHistory] = useState<
         (TeacherGradingHistory | AutoGradingHistory)[]
@@ -124,21 +124,6 @@ const GradingScreen = () => {
         }
     }, [selectedTest])
 
-    useEffect(() => {
-        // Update selected values when selectedTest changes
-        const updatedSelectedValues =
-            selectedTest?.testQuestions.map((testQuestion) => {
-                if (testQuestion.latestTeacherEvaluation === true) {
-                    return 'correct'
-                } else if (testQuestion.latestTeacherEvaluation === false) {
-                    return 'incorrect'
-                } else {
-                    return ''
-                }
-            }) || []
-        setSelectedValues(updatedSelectedValues)
-    }, [selectedTest])
-
     const onChooseTest = (index: number) => {
         dispatch(setTest(index))
     }
@@ -203,6 +188,7 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Question Audio',
             width: 150,
+            disableExport: true,
             renderCell: (params) =>
                 params.row.questionAudio ? (
                     <AudioPlayerWithIcon instructionAudioSrc={params.row.questionAudio} />
@@ -215,6 +201,7 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Correct Answer Audio',
             width: 170,
+            disableExport: true,
             renderCell: (params) =>
                 params.row.correctAnswerAudio ? (
                     <AudioPlayerWithIcon instructionAudioSrc={params.row.correctAnswerAudio} />
@@ -227,6 +214,7 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Student Answer Audio',
             width: 170,
+            disableExport: true,
             renderCell: (params) =>
                 params.row.studentAnswerAudio ? (
                     <AudioPlayerWithIcon instructionAudioSrc={params.row.studentAnswerAudio} />
@@ -312,7 +300,7 @@ const GradingScreen = () => {
                             row
                         >
                             <FormControlLabel
-                                value="correct"
+                                value="Correct"
                                 control={<Radio sx={{ p: '2px' }} />}
                                 label={
                                     <span
@@ -326,7 +314,7 @@ const GradingScreen = () => {
                                 sx={{ typography: 'body2' }}
                             />
                             <FormControlLabel
-                                value="incorrect"
+                                value="Incorrect"
                                 control={<Radio sx={{ p: '2px' }} />}
                                 label={
                                     <span
@@ -383,6 +371,8 @@ const GradingScreen = () => {
                     : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
             teacherEvaluation: testQuestion.originalTeacherEvaluation ? 'Correct' : 'Incorrect',
             index,
+            grade: selectedValues[index] || '', // Default value for grade
+            feedback: feedbackValues[index] || '', // Default value for feedback
         })) || []
 
     return (
@@ -472,7 +462,9 @@ const GradingScreen = () => {
                                     pagination
                                     pageSizeOptions={[5, 10, 20, 100]}
                                     disableRowSelectionOnClick
-                                    rowHeight={70}
+                                    slots={{
+                                        toolbar: GridToolbar,
+                                    }}
                                     sx={{
                                         '& .data-grid--header': {
                                             color: 'primary.main',

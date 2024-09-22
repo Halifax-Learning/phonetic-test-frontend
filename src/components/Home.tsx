@@ -44,7 +44,12 @@ const Home = () => {
             alignItems: 'center',
             fontSize: '1.5rem',
         },
+
+        '& h2': {
+            color: theme.palette.secondary.main,
+        },
     }))
+
     const features = [
         {
             name: 'Personalized Results',
@@ -114,11 +119,14 @@ const Home = () => {
                     </Typography>
                 )}
                 <Typography variant="h1" sx={{ color: 'inherit', mb: 2 }}>
-                    Discover Your English Strengths
+                    {user?.accountRole === 'teacher'
+                        ? 'Grade Your Students'
+                        : 'Discover Your English Strengths'}
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'inherit', mb: 4 }}>
-                    Comprehensive Skill Assessment for Students and Families to Identify Areas for
-                    Improvement
+                    {user?.accountRole === 'teacher'
+                        ? 'Evaluate and assess student performance to enhance their learning.'
+                        : 'Comprehensive Skill Assessment for Students and Families to Identify Areas for Improvement'}
                 </Typography>
                 <Button
                     component={Link}
@@ -129,7 +137,9 @@ const Home = () => {
                         color: 'inherit',
                     }}
                 >
-                    TAKE THE ASSESSMENT NOW
+                    {user?.accountRole === 'teacher'
+                        ? 'GRADE ASSESSMENTS'
+                        : 'TAKE THE ASSESSMENT NOW'}
                 </Button>
             </Box>
             <Box sx={{ mt: 8, mb: 4, width: '100%', px: 2 }}>
