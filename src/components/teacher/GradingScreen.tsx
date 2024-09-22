@@ -24,7 +24,7 @@ import {
 } from '@mui/material'
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
 import { format } from 'date-fns'
-import { useEffect, useState } from 'react'
+import { FocusEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
@@ -139,9 +139,10 @@ const GradingScreen = () => {
 
         dispatch(
             setTeacherEvaluation({
-                evaluation: value === 'correct',
+                evaluation: value === 'Correct',
                 testIndex: currentTestIndex!,
                 testQuestionIndex: index,
+                comment: feedbackValues[index],
             })
         )
     }
@@ -157,6 +158,22 @@ const GradingScreen = () => {
             newValues[index] = value // Update feedback for the specific question
             return newValues
         })
+    }
+
+    const dispatchFeedback = (
+        event: FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>,
+        index: number
+    ) => {
+        const value = event.target.value
+
+        dispatch(
+            setTeacherEvaluation({
+                evaluation: selectedValues[index] === 'Correct',
+                testIndex: currentTestIndex!,
+                testQuestionIndex: index,
+                comment: value,
+            })
+        )
     }
 
     const onSaveGrading = () => {
@@ -350,6 +367,12 @@ const GradingScreen = () => {
                         size="small"
                         value={feedbackValues[params.row.index] || ''}
                         onChange={(event) => handleFeedbackChange(event, params.row.index)}
+                        onBlur={(event) => {
+                            dispatchFeedback(event, params.row.index)
+                        }}
+                        onKeyDown={(event) => {
+                            event.stopPropagation()
+                        }}
                         fullWidth
                     />
                 </Box>

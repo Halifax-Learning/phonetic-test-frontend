@@ -123,6 +123,7 @@ const assessmentReducer = createSlice({
                     evaluation: boolean
                     testIndex: number
                     testQuestionIndex: number
+                    comment: string
                 }
             }
         ) {
@@ -132,6 +133,12 @@ const assessmentReducer = createSlice({
                     .tests[action.payload.testIndex]
                     .testQuestions[action.payload.testQuestionIndex]
                     .latestTeacherEvaluation = action.payload.evaluation
+
+                // prettier-ignore
+                state.assessment
+                    .tests[action.payload.testIndex]
+                    .testQuestions[action.payload.testQuestionIndex]
+                    .teacherComment = action.payload.comment
             }
         },
         resetOriginalTeacherEvaluation(state) {
@@ -210,6 +217,7 @@ export const submitTeacherEvaluation = () => {
                 .map((testQuestion) => ({
                     testQuestionId: testQuestion.testQuestionId,
                     teacherEvaluation: testQuestion.latestTeacherEvaluation,
+                    teacherComment: testQuestion.teacherComment,
                 }))
         )
 
