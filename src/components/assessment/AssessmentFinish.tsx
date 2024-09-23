@@ -1,12 +1,16 @@
 import HeaderIcon from '@mui/icons-material/DoneAll'
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
+import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 
 const AssessmentFinish = () => {
+    const dispatch = useDispatch()
     const navigate = useNavigate()
 
     const returnToHomeScreen = () => {
         navigate('/')
+        dispatch(setScreenToDisplay('AssessmentTypeList'))
     }
     return (
         <Box

@@ -225,7 +225,7 @@ const Header: React.FC = () => {
                                                     {user.accountRole === 'teacher' ? (
                                                         <MenuItem
                                                             component={Link}
-                                                            to="/grading"
+                                                            to="/assessments-for-grading"
                                                             onClick={() => {
                                                                 handleDrawerClose()
                                                                 handleMenuClose()
@@ -349,7 +349,7 @@ const Header: React.FC = () => {
                                         {user.accountRole === 'teacher' && (
                                             <MenuItem
                                                 component={Link}
-                                                to="/grading"
+                                                to="/assessments-for-grading"
                                                 onClick={() => {
                                                     handleDrawerClose()
                                                     handleMenuClose()

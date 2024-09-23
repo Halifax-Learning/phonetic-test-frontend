@@ -51,16 +51,6 @@ const AppRoutes = () => {
         return assessmentComponent
     }
 
-    const gradingRoutes = () => {
-        let gradingComponent = <TeacherAssessmentList />
-
-        if (screenToDisplay === 'GradingScreen') {
-            gradingComponent = <GradingScreen />
-        }
-
-        return gradingComponent
-    }
-
     const routes: RouteObject[] = [
         { path: '/', element: <Home /> },
         {
@@ -80,12 +70,21 @@ const AppRoutes = () => {
             element: !user ? <Login /> : <Profile />,
         },
         {
+            path: '/assessments-for-grading',
+            element:
+                !user || user.accountRole !== 'teacher' ? (
+                    <Navigate replace to="/login" />
+                ) : (
+                    <TeacherAssessmentList />
+                ),
+        },
+        {
             path: '/grading',
             element:
                 !user || user.accountRole !== 'teacher' ? (
                     <Navigate replace to="/login" />
                 ) : (
-                    gradingRoutes()
+                    <GradingScreen />
                 ),
         },
         {
