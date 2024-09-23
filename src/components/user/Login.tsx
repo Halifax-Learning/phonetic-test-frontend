@@ -1,17 +1,31 @@
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import * as yup from 'yup'
 
+import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { useState } from 'react'
 import { login } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
-import { useState } from 'react'
-import { VisibilityOff, Visibility } from '@mui/icons-material'
+
+const schema = yup.object().shape({
+    email: yup.string().email('Invalid email address').required('Email is required'),
+    password: yup.string().required('Password is required'),
+})
 
 const Login = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const { handleSubmit, control } = useForm()
+    const {
+        handleSubmit,
+        control,
+        formState: { errors },
+    } = useForm({
+        resolver: yupResolver(schema), // Use Yup schema for validation
+    })
+    const [showPassword, setShowPassword] = useState(false)
 
     const onSubmit = (data: any) => {
         dispatch(login(data.email, data.password))
@@ -21,15 +35,13 @@ const Login = () => {
         navigate('/register')
     }
 
-    const [showPassword, setShowPassword] = useState(false)
-
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword)
     }
 
     return (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Card variant="outlined" sx={{ maxWidth: 700, padding: 2 }}>
+            <Card variant="outlined" sx={{ maxWidth: 600, padding: 2 }}>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
                     <Typography variant="body1">
                         To start the assessment, please log in to your account. <br />
@@ -43,6 +55,11 @@ const Login = () => {
                             <>
                                 <FormInputLabel htmlFor="email">Email</FormInputLabel>
                                 <FormInput {...field} id="email" type="email" />
+                                {errors.email && (
+                                    <Typography color="error" variant="caption">
+                                        {errors.email.message}
+                                    </Typography>
+                                )}
                             </>
                         )}
                     />
@@ -52,7 +69,7 @@ const Login = () => {
                         defaultValue=""
                         render={({ field }) => (
                             <>
-                                <FormInputLabel htmlFor="email">Password</FormInputLabel>
+                                <FormInputLabel htmlFor="password">Password</FormInputLabel>
                                 <FormInput
                                     {...field}
                                     type={showPassword ? 'text' : 'password'}
@@ -68,15 +85,15 @@ const Login = () => {
                                         </InputAdornment>
                                     }
                                 />
+                                {errors.password && (
+                                    <Typography color="error" variant="caption">
+                                        {errors.password.message}
+                                    </Typography>
+                                )}
                             </>
                         )}
                     />
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="secondary"
-                        sx={{ width: '100%', mt: 2, padding: '12px 24px' }}
-                    >
+                    <Button type="submit" variant="contained" sx={{ width: '100%', mt: 2 }}>
                         Login
                     </Button>
                 </Box>

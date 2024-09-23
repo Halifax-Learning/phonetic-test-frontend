@@ -7,6 +7,7 @@ import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 const AssessmentWelcome = () => {
     const dispatch = useDispatch<any>()
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
+    const user = useSelector((state: RootState) => state.user)
 
     const testTypes = assessment?.tests.map((test) => test.testType)
 
@@ -17,16 +18,24 @@ const AssessmentWelcome = () => {
     return (
         <>
             {assessment && (
-                <Box>
-                    <Typography variant="h1" color="secondary.dark">
-                        Welcome to the {assessment.assessmentType.assessmentTypeName}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        mx: 'auto',
+                        maxWidth: 'md',
+                    }}
+                >
+                    <Typography variant="h1" color="secondary.dark" sx={{ mb: 4 }}>
+                        Hi, {user?.firstName}. Welcome to the{' '}
+                        {assessment.assessmentType.assessmentTypeName}
                     </Typography>
-                    <Typography variant="body1" color="text.primary" sx={{ mt: 1, mb: 2 }}>
+                    <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
                         This assessment consists of the following sections:
                     </Typography>
                     <Grid2 container spacing={{ xs: 2, md: 3 }}>
                         {testTypes?.map((testType, index) => (
-                            <Grid2 key={testType.testTypeId} size={{ xs: 6, sm: 6, md: 6 }}>
+                            <Grid2 key={testType.testTypeId} size={{ xs: 12, sm: 6, md: 6 }}>
                                 <Card variant="outlined" sx={{ height: '100%' }}>
                                     <CardContent>
                                         <Typography variant="body1" color="text.primary">

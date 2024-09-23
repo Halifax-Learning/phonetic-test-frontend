@@ -62,6 +62,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                 }
                 return [
                     <GridActionsCellItem
+                        key={row.id}
                         icon={<EditIcon sx={{ color: 'primary.main' }} />}
                         label="Edit"
                         onClick={() => onChooseAssessment(row.id as string)}
@@ -86,8 +87,8 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
     return (
         <Box
             sx={{
-                height: 500,
                 width: '100%',
+                height: '600px',
             }}
         >
             {rows.length > 0 ? (

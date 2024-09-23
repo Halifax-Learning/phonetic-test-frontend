@@ -1,4 +1,4 @@
-import { Card } from '@mui/material'
+import { Box, Card } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import InputBase from '@mui/material/InputBase'
 import InputLabel from '@mui/material/InputLabel'
@@ -34,12 +34,14 @@ export const theme = createTheme({
             fontFamily: 'Alatsi', // Title
             fontWeight: 400,
             fontSize: '1.875rem', // 30
+            color: '#294290', // Secondary blue
         },
         h2: {
             fontFamily: 'Alatsi',
             fontWeight: 400,
             fontSize: '1.125rem', // 18
             textTransform: 'uppercase',
+            color: '#84B46D',
         },
         h3: {
             fontFamily: 'Alatsi',
@@ -77,6 +79,15 @@ export const theme = createTheme({
             fontFamily: 'Inter',
             fontWeight: 400,
             fontSize: '0.75rem', // 12
+        },
+    },
+    components: {
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    padding: '12px',
+                },
+            },
         },
     },
 })
@@ -180,4 +191,10 @@ export const StyledSoundCard = styled(Card)(({ theme }) => ({
     borderColor: theme.palette.secondary.main,
     padding: theme.spacing(2),
     boxShadow: theme.shadows[2],
+}))
+
+export const ButtonBox = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    justifyContent: 'right',
+    marginTop: theme.spacing(2),
 }))

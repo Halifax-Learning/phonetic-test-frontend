@@ -1,4 +1,4 @@
-import { Container, CssBaseline, ThemeProvider } from '@mui/material'
+import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
@@ -15,6 +15,7 @@ import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
 import Login from './components/user/Login.js'
+import Profile from './components/user/Profile.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
 import { setUser } from './reducers/userReducer.js'
@@ -75,6 +76,10 @@ const AppRoutes = () => {
             element: !user ? <Navigate replace to="/login" /> : assessmentRoutes(),
         },
         {
+            path: '/profile',
+            element: !user ? <Login /> : <Profile />,
+        },
+        {
             path: '/grading',
             element:
                 !user || user.accountRole !== 'teacher' ? (
@@ -98,19 +103,36 @@ const App = () => {
             <CssBaseline />
 
             <Router>
-                <Header />
-
-                <Container
+                <Box
                     sx={{
-                        mt: '140px',
-                        mb: '40px',
-                        alignItems: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        minHeight: '100vh',
                     }}
                 >
-                    <AppRoutes />
-                </Container>
+                    <Header />
 
-                <Footer />
+                    <Container
+                        maxWidth={false}
+                        sx={{
+                            mt: '140px',
+                            mb: '40px',
+                            flexGrow: 1,
+                            alignItems: 'center',
+                            maxWidth: {
+                                xs: '100%',
+                                sm: '100%',
+                                md: '100%',
+                                lg: '100%',
+                                xl: '100%',
+                            },
+                        }}
+                    >
+                        <AppRoutes />
+                    </Container>
+
+                    <Footer />
+                </Box>
             </Router>
         </ThemeProvider>
     )

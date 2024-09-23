@@ -1,3 +1,6 @@
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import HistoryIcon from '@mui/icons-material/History'
+import PersonIcon from '@mui/icons-material/Person'
 import {
     Box,
     Button,
@@ -8,23 +11,23 @@ import {
     FormControl,
     FormControlLabel,
     Grid2,
+    IconButton,
     InputLabel,
     MenuItem,
     Radio,
     RadioGroup,
     Select,
     SelectChangeEvent,
-    Stack,
     TextField,
+    Tooltip,
     Typography,
 } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
+import { format } from 'date-fns'
+import { FocusEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-
-import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import PersonIcon from '@mui/icons-material/Person'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
 import { RootState } from '../../main'
+import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
 import {
     fetchAnswerAudio,
     fetchCorrectAnswerAudio,
@@ -34,6 +37,8 @@ import {
     submitTeacherEvaluation,
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
+import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
+import GradingHistoryDialog from './GradingHistoryDialog'
 
 const GradingScreen = () => {
     const dispatch = useDispatch<any>()
@@ -43,7 +48,34 @@ const GradingScreen = () => {
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
     const [feedbackValues, setFeedbackValues] = useState<string[]>([])
-    const [filterTestType, setFilterTestType] = useState<number | string>('')
+    const [filterTestType, setFilterTestType] = useState<number | string>(currentTestIndex!)
+    const [dialogOpen, setDialogOpen] = useState(false)
+    const [gradingHistory, setGradingHistory] = useState<
+        (TeacherGradingHistory | AutoGradingHistory)[]
+    >([])
+
+    const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
+        console.log(
+            'Show grading history for question:',
+            index,
+            'Machine History:',
+            isMachineHistory
+        )
+
+        if (isMachineHistory) {
+            // Handle machine grading history
+            setGradingHistory(selectedTest?.testQuestions[index].autoGradingHistory || [])
+        } else {
+            // Handle teacher grading history
+            setGradingHistory(selectedTest?.testQuestions[index].teacherGradingHistory || [])
+        }
+
+        setDialogOpen(true)
+    }
+
+    const handleCloseDialog = () => {
+        setDialogOpen(false)
+    }
 
     useEffect(() => {
         // Update selected test when currentTestIndex changes
@@ -92,21 +124,6 @@ const GradingScreen = () => {
         }
     }, [selectedTest])
 
-    useEffect(() => {
-        // Update selected values when selectedTest changes
-        const updatedSelectedValues =
-            selectedTest?.testQuestions.map((testQuestion) => {
-                if (testQuestion.latestTeacherEvaluation === true) {
-                    return 'correct'
-                } else if (testQuestion.latestTeacherEvaluation === false) {
-                    return 'incorrect'
-                } else {
-                    return ''
-                }
-            }) || []
-        setSelectedValues(updatedSelectedValues)
-    }, [selectedTest])
-
     const onChooseTest = (index: number) => {
         dispatch(setTest(index))
     }
@@ -122,9 +139,10 @@ const GradingScreen = () => {
 
         dispatch(
             setTeacherEvaluation({
-                evaluation: value === 'correct',
+                evaluation: value === 'Correct',
                 testIndex: currentTestIndex!,
                 testQuestionIndex: index,
+                comment: feedbackValues[index],
             })
         )
     }
@@ -142,9 +160,24 @@ const GradingScreen = () => {
         })
     }
 
+    const dispatchFeedback = (
+        event: FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>,
+        index: number
+    ) => {
+        const value = event.target.value
+
+        dispatch(
+            setTeacherEvaluation({
+                evaluation: selectedValues[index] === 'Correct',
+                testIndex: currentTestIndex!,
+                testQuestionIndex: index,
+                comment: value,
+            })
+        )
+    }
+
     const onSaveGrading = () => {
         dispatch(submitTeacherEvaluation())
-        handleBackToAssessments()
     }
 
     const handleBackToAssessments = () => {
@@ -171,10 +204,11 @@ const GradingScreen = () => {
             field: 'questionAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Question Audio',
-            width: 320,
+            width: 150,
+            disableExport: true,
             renderCell: (params) =>
                 params.row.questionAudio ? (
-                    <audio controls src={params.row.questionAudio} />
+                    <AudioPlayerWithIcon instructionAudioSrc={params.row.questionAudio} />
                 ) : (
                     'N/A'
                 ),
@@ -183,10 +217,11 @@ const GradingScreen = () => {
             field: 'correctAnswerAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Correct Answer Audio',
-            width: 320,
+            width: 170,
+            disableExport: true,
             renderCell: (params) =>
                 params.row.correctAnswerAudio ? (
-                    <audio controls src={params.row.correctAnswerAudio} />
+                    <AudioPlayerWithIcon instructionAudioSrc={params.row.correctAnswerAudio} />
                 ) : (
                     'N/A'
                 ),
@@ -195,51 +230,152 @@ const GradingScreen = () => {
             field: 'studentAnswerAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Student Answer Audio',
-            width: 320,
+            width: 170,
+            disableExport: true,
             renderCell: (params) =>
                 params.row.studentAnswerAudio ? (
-                    <audio controls src={params.row.studentAnswerAudio} />
+                    <AudioPlayerWithIcon instructionAudioSrc={params.row.studentAnswerAudio} />
                 ) : (
                     'N/A'
                 ),
         },
         {
+            field: 'machinEvaluation',
+            headerClassName: 'data-grid--header',
+            headerName: 'Machine Evaluation',
+            width: 150,
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
+                    <span>{params.row.machinEvaluation}</span>
+                    {params.row.machinEvaluation !== 'N/A' && ( // Only show the icon if machinEvaluation is not 'N/A'
+                        <Tooltip title="View Grading History">
+                            <IconButton
+                                size="small"
+                                onClick={() => handleShowGradingHistory(params.row.index, true)} // Pass the question ID
+                                sx={{ ml: 1 }} // Add some left margin
+                            >
+                                <HistoryIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </Box>
+            ),
+        },
+        {
             field: 'teacherEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Teacher Evaluation',
-            width: 240,
+            width: 150,
             renderCell: (params) => (
-                <Stack direction="row" sx={{ flexWrap: 'wrap', width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
+                    <span>{params.row.teacherEvaluation}</span>
+                    <Tooltip title="View Grading History">
+                        <IconButton
+                            size="small"
+                            onClick={() => handleShowGradingHistory(params.row.index, false)} // Pass the question ID
+                            sx={{ ml: 1 }} // Add some left margin
+                        >
+                            <HistoryIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ),
+        },
+        {
+            field: 'grade',
+            headerClassName: 'data-grid--header',
+            headerName: 'Grade',
+            width: 200,
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center', // Align vertically
+                        height: '100%', // Make sure it takes the full row height
+                    }}
+                >
                     <FormControl>
                         <RadioGroup
                             value={selectedValues[params.row.index] || ''}
                             onChange={(event) => handleRadioChange(event, params.row.index)}
                             row
                         >
-                            <FormControlLabel value="correct" control={<Radio />} label="Correct" />
                             <FormControlLabel
-                                value="incorrect"
-                                control={<Radio />}
-                                label="Incorrect"
+                                value="Correct"
+                                control={<Radio sx={{ p: '2px' }} />}
+                                label={
+                                    <span
+                                        style={{
+                                            fontSize: '0.875rem',
+                                        }}
+                                    >
+                                        Correct
+                                    </span>
+                                }
+                                sx={{ typography: 'body2' }}
+                            />
+                            <FormControlLabel
+                                value="Incorrect"
+                                control={<Radio sx={{ p: '2px' }} />}
+                                label={
+                                    <span
+                                        style={{
+                                            fontSize: '0.875rem',
+                                        }}
+                                    >
+                                        Incorrect
+                                    </span>
+                                }
                             />
                         </RadioGroup>
                     </FormControl>
-                </Stack>
+                </Box>
             ),
         },
         {
-            field: 'teacherFeedback',
+            field: 'feedback',
             headerClassName: 'data-grid--header',
-            headerName: 'Teacher Feedback',
-            width: 300,
+            headerName: 'Feedback',
+            minWidth: 300,
             renderCell: (params) => (
-                <TextField
-                    variant="outlined"
-                    size="small"
-                    value={feedbackValues[params.row.index] || ''}
-                    onChange={(event) => handleFeedbackChange(event, params.row.index)}
-                    multiline
-                />
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center', // Align vertically
+                        height: '100%', // Make sure it takes the full row height
+                        width: '100%', // Make sure it takes the full cell width
+                    }}
+                >
+                    <TextField
+                        variant="outlined"
+                        size="small"
+                        value={feedbackValues[params.row.index] || ''}
+                        onChange={(event) => handleFeedbackChange(event, params.row.index)}
+                        onBlur={(event) => {
+                            dispatchFeedback(event, params.row.index)
+                        }}
+                        onKeyDown={(event) => {
+                            event.stopPropagation()
+                        }}
+                        fullWidth
+                    />
+                </Box>
             ),
         },
     ]
@@ -252,7 +388,14 @@ const GradingScreen = () => {
             questionAudio: testQuestion.question.questionAudioBlobUrl,
             correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
             studentAnswerAudio: testQuestion.answerAudioBlobUrl,
+            machinEvaluation:
+                testQuestion.latestAutoEvaluation === null
+                    ? 'N/A'
+                    : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
+            teacherEvaluation: testQuestion.originalTeacherEvaluation ? 'Correct' : 'Incorrect',
             index,
+            grade: selectedValues[index] || '', // Default value for grade
+            feedback: feedbackValues[index] || '', // Default value for feedback
         })) || []
 
     return (
@@ -271,23 +414,40 @@ const GradingScreen = () => {
                                 />
                                 <CardContent>
                                     <Typography
-                                        variant="h5"
+                                        variant="body1"
                                         sx={{ fontWeight: 'bold', color: 'primary.main' }}
                                     >
                                         Assessment: {assessment?.assessmentType.assessmentTypeName}
                                     </Typography>
                                     <Divider sx={{ marginY: 1 }} />
-                                    <Typography variant="subtitle1">
-                                        <PersonIcon /> Student: {assessment?.testTaker.firstName}{' '}
+
+                                    <Typography
+                                        variant="subtitle1"
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            mt: 1,
+                                        }}
+                                    >
+                                        <PersonIcon sx={{ mr: 1 }} /> Student:{' '}
+                                        {assessment?.testTaker.firstName}{' '}
                                         {assessment?.testTaker.lastName}
                                     </Typography>
-                                    <Typography variant="subtitle1">
-                                        <AccessTimeIcon /> Submitted:{' '}
+                                    <Typography
+                                        variant="subtitle1"
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            mt: 1,
+                                        }}
+                                    >
+                                        <AccessTimeIcon sx={{ mr: 1 }} /> Submitted:{' '}
                                         {assessment?.assessmentSubmissionTime
-                                            ? new Date(
-                                                  assessment.assessmentSubmissionTime
-                                              ).toLocaleString()
-                                            : 'Not submitted'}
+                                            ? format(
+                                                  new Date(assessment.assessmentSubmissionTime),
+                                                  'PPpp'
+                                              )
+                                            : 'In Progress'}
                                     </Typography>
                                 </CardContent>
                             </Card>
@@ -318,13 +478,16 @@ const GradingScreen = () => {
                             </FormControl>
                         </Grid2>
                         <Grid2 size={12}>
-                            <div style={{ height: 400, width: '100%' }}>
+                            <div style={{ height: 500, width: '100%' }}>
                                 <DataGrid
                                     rows={rows || []}
                                     columns={columns}
                                     pagination
                                     pageSizeOptions={[5, 10, 20, 100]}
                                     disableRowSelectionOnClick
+                                    slots={{
+                                        toolbar: GridToolbar,
+                                    }}
                                     sx={{
                                         '& .data-grid--header': {
                                             color: 'primary.main',
@@ -358,6 +521,11 @@ const GradingScreen = () => {
                     </Grid2>
                 )}
             </Box>
+            <GradingHistoryDialog
+                open={dialogOpen}
+                onClose={handleCloseDialog}
+                history={gradingHistory}
+            />
         </>
     )
 }

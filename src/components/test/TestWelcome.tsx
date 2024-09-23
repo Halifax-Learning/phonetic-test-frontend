@@ -58,7 +58,7 @@ const TestWelcome = () => {
                         justifyContent: 'center',
                     }}
                 >
-                    <Card variant="outlined" sx={{ maxWidth: 700, padding: 2 }}>
+                    <Card variant="outlined" sx={{ maxWidth: 'md', padding: 2 }}>
                         <CardContent>
                             <Grid2 container spacing={2}>
                                 {/* Top-left: Icon */}
@@ -97,6 +97,10 @@ const TestWelcome = () => {
                                                 'Analysis',
                                                 'Listening',
                                             ].includes(testTypeName ?? '')}
+                                            instructionAudioBlobUrl={
+                                                assessment?.tests[currentTestIndex!].testType
+                                                    .questionType.instructionAudioBlobUrl
+                                            }
                                             customPoint1Text={questionInstructionText}
                                         />
                                     </Box>

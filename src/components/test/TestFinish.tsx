@@ -27,13 +27,18 @@ const TestFinish = () => {
     return (
         <>
             {assessment && currentTestIndex !== null && (
-                <Box>
+                <Box
+                    sx={{
+                        mx: 'auto',
+                        maxWidth: 'md',
+                    }}
+                >
                     <Typography variant="h1" color="secondary.dark" sx={{ mb: 2 }}>
                         You have completed the following sections:
                     </Typography>
                     <Grid2 container spacing={{ xs: 2, md: 3 }}>
                         {testTypes?.map((testType, index) => (
-                            <Grid2 key={testType.testTypeId} size={{ xs: 6, sm: 6, md: 6 }}>
+                            <Grid2 key={testType.testTypeId} size={{ xs: 12, sm: 12, md: 6 }}>
                                 <Card
                                     variant="outlined"
                                     sx={(theme) => ({

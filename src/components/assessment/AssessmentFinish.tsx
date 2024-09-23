@@ -1,13 +1,12 @@
 import HeaderIcon from '@mui/icons-material/DoneAll'
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
-import { useDispatch } from 'react-redux'
-import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
+import { useNavigate } from 'react-router-dom'
 
 const AssessmentFinish = () => {
-    const dispatch = useDispatch<any>()
+    const navigate = useNavigate()
 
-    const returnToAssessmentList = () => {
-        dispatch(setScreenToDisplay('AssessmentList'))
+    const returnToHomeScreen = () => {
+        navigate('/')
     }
     return (
         <Box
@@ -17,7 +16,7 @@ const AssessmentFinish = () => {
                 justifyContent: 'center',
             }}
         >
-            <Card variant="outlined" sx={{ maxWidth: 700, padding: 2 }}>
+            <Card variant="outlined" sx={{ maxWidth: 'md', padding: 2 }}>
                 <CardContent>
                     <Grid2 container spacing={2}>
                         {/* Top-left: Icon */}
@@ -54,7 +53,7 @@ const AssessmentFinish = () => {
                                 <Button
                                     variant="contained"
                                     sx={{ padding: '12px' }}
-                                    onClick={returnToAssessmentList}
+                                    onClick={returnToHomeScreen}
                                 >
                                     Return to Home Screen
                                 </Button>

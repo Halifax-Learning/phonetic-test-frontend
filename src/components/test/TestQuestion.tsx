@@ -74,6 +74,12 @@ const TestQuestion = () => {
     }
 
     const onClickNextQuestion = () => {
+        if (isQuestionWithoutAnswer) {
+            const confirmProceed = window.confirm(
+                'You have not recorded an answer for this question. \nAre you sure you want to proceed to the next question?'
+            )
+            if (!confirmProceed) return
+        }
         setIsQuestionWithoutAnswer(true)
         dispatch(submitTestQuestion())
         dispatch(nextQuestion())
@@ -95,7 +101,7 @@ const TestQuestion = () => {
     return (
         <>
             {test && currentTestQuestionIndex !== null && (
-                <Box sx={{ maxWidth: 700, mx: 'auto', p: 2 }}>
+                <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
                     <Card variant="outlined" sx={{ padding: 2, position: 'relative' }}>
                         <Box sx={{ width: '100%', position: 'absolute', top: 0, left: 0 }}>
                             <LinearProgress
@@ -146,7 +152,6 @@ const TestQuestion = () => {
                                                 />
                                             )}
                                             {test.testType.questionType.questionInstructionText} */}
-
                                         {questionAudioBlobUrl ? (
                                             <Box>
                                                 <audio controls src={questionAudioBlobUrl}>
@@ -176,7 +181,6 @@ const TestQuestion = () => {
                                                 </StyledSoundCard>
                                             </Box>
                                         )}
-
                                         <Box sx={{ mt: 2, mb: 2 }}>
                                             {isRecording && (
                                                 <div>Recording Time: {recordingTime}s</div>
@@ -186,31 +190,30 @@ const TestQuestion = () => {
                                                 !isRecording &&
                                                     mediaBlobUrl &&
                                                     !isQuestionWithoutAnswer && (
-                                                        <>
-                                                            <div>Your answer:</div>
-                                                            <audio
-                                                                controls
-                                                                src={mediaBlobUrl}
-                                                            />
-                                                        </>
-                                                    )
+                                                    <>
+                                                        <div>Your answer:</div>
+                                                        <audio
+                                                            controls
+                                                            src={mediaBlobUrl}
+                                                        />
+                                                    </>
+                                                )
                                             }
                                         </Box>
                                         <Box
                                             display="flex"
                                             justifyContent="space-between"
-                                            alignItems="center"
+                                            alignItems="start"
                                             sx={{ mt: 3 }}
                                         >
                                             {/* Left-aligned instruction button */}
                                             <Button
                                                 onClick={onOnpenInstructionDialog}
                                                 variant="outlined"
-                                                sx={{ padding: '12px', minWidth: 'auto' }}
+                                                sx={{ minWidth: 'auto' }}
                                             >
                                                 Instruction
                                             </Button>
-
                                             {/* Test Instruction Dialog */}
                                             <TestInstructionDialog
                                                 open={openInstructionDialog}
@@ -226,35 +229,57 @@ const TestQuestion = () => {
                                                         .questionInstructionText
                                                 }
                                             />
-
                                             {/* Right-aligned next/finish buttons */}
-                                            <Box display="flex" justifyContent="right">
+                                            <Box
+                                                display="flex"
+                                                alignItems="start"
+                                                justifyContent="right"
+                                            >
                                                 <Box>
                                                     {!isRecording && isQuestionWithoutAnswer && (
                                                         <Button
                                                             variant="contained"
                                                             color="primary"
-                                                            sx={{ mr: 2, padding: '12px' }}
+                                                            sx={{ mr: 2 }}
                                                             onClick={onStartRecording}
                                                         >
                                                             Record Now
                                                         </Button>
                                                     )}
                                                     {!isRecording && !isQuestionWithoutAnswer && (
-                                                        <Button
-                                                            variant="contained"
-                                                            color="primary"
-                                                            sx={{ mr: 2, padding: '12px' }}
-                                                            onClick={onStartRecording}
+                                                        <Box
+                                                            display="flex"
+                                                            flexDirection="column"
+                                                            alignItems="end"
                                                         >
-                                                            Record Again
-                                                        </Button>
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                sx={{ mr: 2 }}
+                                                                onClick={onStartRecording}
+                                                            >
+                                                                Record Again
+                                                            </Button>
+                                                            <Typography
+                                                                variant="body2"
+                                                                color="warning"
+                                                                sx={{
+                                                                    mt: 1,
+                                                                    mr: 2,
+                                                                    maxWidth: '200px',
+                                                                    textAlign: 'end',
+                                                                }}
+                                                            >
+                                                                Note: If you record a new answer,
+                                                                your current answer will be lost.
+                                                            </Typography>
+                                                        </Box>
                                                     )}
                                                     {isRecording && (
                                                         <Button
                                                             variant="contained"
                                                             color="primary"
-                                                            sx={{ mr: 2, padding: '12px' }}
+                                                            sx={{ mr: 2 }}
                                                             onClick={onStopRecording}
                                                         >
                                                             Stop Recording
@@ -268,7 +293,6 @@ const TestQuestion = () => {
                                                             <Button
                                                                 variant="contained"
                                                                 color="primary"
-                                                                sx={{ padding: '12px' }}
                                                                 onClick={onClickNextQuestion}
                                                                 disabled={isRecording}
                                                             >
@@ -278,7 +302,6 @@ const TestQuestion = () => {
                                                             <Button
                                                                 variant="contained"
                                                                 color="primary"
-                                                                sx={{ padding: '12px' }}
                                                                 onClick={onFinishTest}
                                                                 disabled={isRecording}
                                                             >

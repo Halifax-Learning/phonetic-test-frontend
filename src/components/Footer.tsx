@@ -12,6 +12,7 @@ const Footer = () => {
                 color: 'white',
                 padding: '40px',
                 marginTop: 'auto',
+                width: '100%',
             }}
         >
             <Grid2 container spacing={4} justifyContent="center">
@@ -32,7 +33,7 @@ const Footer = () => {
                     </Box>
                 </Grid2>
                 <Grid2 size={{ xs: 12, sm: 4, md: 3 }}>
-                    <Typography variant="h2" sx={{ mb: 2 }}>
+                    <Typography variant="h2" color="inherit" sx={{ mb: 2 }}>
                         About
                     </Typography>
                     <Typography variant="subtitle2" sx={{ mb: 2 }}>
@@ -42,7 +43,7 @@ const Footer = () => {
                     </Typography>
                 </Grid2>
                 <Grid2 size={{ xs: 12, sm: 4, md: 3 }}>
-                    <Typography variant="h2" sx={{ mb: 2 }}>
+                    <Typography variant="h2" color="inherit" sx={{ mb: 2 }}>
                         For Students
                     </Typography>
                     <Typography variant="subtitle2" sx={{ mb: 2 }}>
@@ -52,7 +53,7 @@ const Footer = () => {
                     </Typography>
                 </Grid2>
                 <Grid2 size={{ xs: 12, sm: 4, md: 3 }}>
-                    <Typography variant="h2" sx={{ mb: 2 }}>
+                    <Typography variant="h2" color="inherit" sx={{ mb: 2 }}>
                         Resources
                     </Typography>
                     <Typography variant="subtitle2" sx={{ mb: 2 }}>

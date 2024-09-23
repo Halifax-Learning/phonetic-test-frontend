@@ -25,7 +25,7 @@ const InstructionDialog: React.FC<InstructionDialogProps> = ({
     customPoint1Text,
 }) => {
     return (
-        <Dialog onClose={onClose} aria-labelledby="instruction" open={open}>
+        <Dialog onClose={onClose} aria-labelledby="instruction" open={open} maxWidth="md">
             <DialogTitle sx={{ m: 0, p: 2 }} id="instruction">
                 Instruction
                 <IconButton
@@ -89,7 +89,7 @@ const InstructionContent: React.FC<InstructionContentProps> = ({
             <strong>4. Revise Your Answer (Optional):</strong>
             <br />
             • If you would like to change your answer, click &quot;Record Now&quot; again to start a
-            new rec ording.
+            new recording.
             <br />• <em>Important:</em> If you record a new answer, your previous answer will be
             lost.
         </Typography>
