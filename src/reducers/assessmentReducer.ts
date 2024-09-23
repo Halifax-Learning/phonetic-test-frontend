@@ -165,7 +165,7 @@ const assessmentReducer = createSlice({
             if (state.assessment) {
                 for (const testQuestion of action.payload.testQuestions) {
                     const gradingHistory: TeacherGradingHistory = {
-                        teacherGradingHistoryId: '',
+                        teacherGradingHistoryId: new Date().toString(),
                         teacherAccount: action.payload.user,
                         teacherEvaluation: testQuestion.latestTeacherEvaluation,
                         teacherComment: testQuestion.latestTeacherComment,
