@@ -26,6 +26,7 @@ import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
 import { format } from 'date-fns'
 import { FocusEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
 import {
@@ -36,13 +37,14 @@ import {
     setTest,
     submitTeacherEvaluation,
 } from '../../reducers/assessmentReducer'
-import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
 
 const GradingScreen = () => {
+    const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
+    const user = useSelector((state: RootState) => state.user)
     const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
@@ -53,6 +55,7 @@ const GradingScreen = () => {
     const [gradingHistory, setGradingHistory] = useState<
         (TeacherGradingHistory | AutoGradingHistory)[]
     >([])
+    const [rows, setRows] = useState<any[]>([])
 
     const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
         console.log(
@@ -124,6 +127,53 @@ const GradingScreen = () => {
         }
     }, [selectedTest])
 
+    useEffect(() => {
+        // Update selected values when selectedTest changes
+        const updatedSelectedValues =
+            selectedTest?.testQuestions.map((testQuestion) => {
+                if (testQuestion.latestTeacherEvaluation === true) {
+                    return 'Correct'
+                } else if (testQuestion.latestTeacherEvaluation === false) {
+                    return 'Incorrect'
+                } else {
+                    return ''
+                }
+            }) || []
+        setSelectedValues(updatedSelectedValues)
+
+        // Update feedback values when selectedTest changes
+        const updatedFeedbackValues =
+            selectedTest?.testQuestions.map((testQuestion) => testQuestion.latestTeacherComment) ||
+            []
+        setFeedbackValues(updatedFeedbackValues)
+
+        // Update rows when selectedTest changes
+        const newRows =
+            selectedTest?.testQuestions.map((testQuestion, index) => ({
+                id: testQuestion.testQuestionId,
+                questionNo: index + 1,
+                questionText: testQuestion.question.questionText,
+                questionAudio: testQuestion.question.questionAudioBlobUrl,
+                correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
+                studentAnswerAudio: testQuestion.answerAudioBlobUrl,
+                machinEvaluation:
+                    testQuestion.latestAutoEvaluation === null
+                        ? 'N/A'
+                        : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
+                teacherEvaluation:
+                    testQuestion.originalTeacherEvaluation !== null
+                        ? testQuestion.originalTeacherEvaluation
+                            ? 'Correct'
+                            : 'Incorrect'
+                        : 'N/A',
+                index,
+                grade: selectedValues[index],
+                feedback: feedbackValues[index] || '',
+            })) || []
+
+        setRows(newRows)
+    }, [selectedTest])
+
     const onChooseTest = (index: number) => {
         dispatch(setTest(index))
     }
@@ -140,9 +190,9 @@ const GradingScreen = () => {
         dispatch(
             setTeacherEvaluation({
                 evaluation: value === 'Correct',
+                comment: feedbackValues[index],
                 testIndex: currentTestIndex!,
                 testQuestionIndex: index,
-                comment: feedbackValues[index],
             })
         )
     }
@@ -169,9 +219,9 @@ const GradingScreen = () => {
         dispatch(
             setTeacherEvaluation({
                 evaluation: selectedValues[index] === 'Correct',
+                comment: value,
                 testIndex: currentTestIndex!,
                 testQuestionIndex: index,
-                comment: value,
             })
         )
     }
@@ -181,7 +231,7 @@ const GradingScreen = () => {
     }
 
     const handleBackToAssessments = () => {
-        dispatch(setScreenToDisplay('AssessmentTypeList'))
+        navigate('/assessments-for-grading')
     }
 
     const handleFilterChange = (event: SelectChangeEvent<string | number>) => {
@@ -379,24 +429,6 @@ const GradingScreen = () => {
             ),
         },
     ]
-
-    const rows =
-        selectedTest?.testQuestions.map((testQuestion, index) => ({
-            id: testQuestion.testQuestionId,
-            questionNo: index + 1,
-            questionText: testQuestion.question.questionText,
-            questionAudio: testQuestion.question.questionAudioBlobUrl,
-            correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
-            studentAnswerAudio: testQuestion.answerAudioBlobUrl,
-            machinEvaluation:
-                testQuestion.latestAutoEvaluation === null
-                    ? 'N/A'
-                    : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
-            teacherEvaluation: testQuestion.originalTeacherEvaluation ? 'Correct' : 'Incorrect',
-            index,
-            grade: selectedValues[index] || '', // Default value for grade
-            feedback: feedbackValues[index] || '', // Default value for feedback
-        })) || []
 
     return (
         <>

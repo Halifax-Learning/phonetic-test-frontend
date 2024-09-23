@@ -2,14 +2,15 @@ import { Box, Card, CardHeader, CircularProgress, Typography } from '@mui/materi
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
+import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
 import { fetchAssessment } from '../../reducers/assessmentReducer'
-import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
+    const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const assessments = useSelector((state: RootState) => state.assessmentList as Assessment[])
     const [loading, setLoading] = useState(true)
@@ -27,7 +28,7 @@ const TeacherAssessmentList = () => {
     const onChooseAssessment = async (assessmentId: string) => {
         setLoadingAssessment(true) // Start loading
         await dispatch(fetchAssessment(assessmentId))
-        dispatch(setScreenToDisplay('GradingScreen'))
+        navigate('/grading')
         setLoadingAssessment(false) // End loading
     }
 

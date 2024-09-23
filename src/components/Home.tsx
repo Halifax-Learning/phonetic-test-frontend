@@ -130,7 +130,9 @@ const Home = () => {
                 </Typography>
                 <Button
                     component={Link}
-                    to="/assessment"
+                    to={
+                        user?.accountRole === 'teacher' ? '/assessments-for-grading' : '/assessment'
+                    }
                     variant="contained"
                     sx={{
                         backgroundColor: theme.palette.secondary.main,

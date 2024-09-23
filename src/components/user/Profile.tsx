@@ -319,7 +319,7 @@ const Profile = () => {
                         variant="contained"
                         color="primary"
                         sx={{ mt: 2 }}
-                        onClick={() => navigate('/grading')}
+                        onClick={() => navigate('/assessments-for-grading')}
                     >
                         View Assessments
                     </Button>

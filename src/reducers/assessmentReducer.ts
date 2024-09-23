@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import { Assessment, Test } from '../models/interface'
+import { Assessment, TeacherGradingHistory, Test, TestQuestion, User } from '../models/interface'
 import * as assessmentService from '../services/assessment'
 import * as audioService from '../services/audio'
 import * as testQuestionService from '../services/testQuestion'
@@ -121,24 +121,26 @@ const assessmentReducer = createSlice({
             action: {
                 payload: {
                     evaluation: boolean
+                    comment: string
                     testIndex: number
                     testQuestionIndex: number
-                    comment: string
                 }
             }
         ) {
             if (state.assessment) {
+                // update the latest teacher evaluation
                 // prettier-ignore
                 state.assessment
                     .tests[action.payload.testIndex]
                     .testQuestions[action.payload.testQuestionIndex]
                     .latestTeacherEvaluation = action.payload.evaluation
 
+                // update the latest teacher comment
                 // prettier-ignore
                 state.assessment
                     .tests[action.payload.testIndex]
                     .testQuestions[action.payload.testQuestionIndex]
-                    .teacherComment = action.payload.comment
+                    .latestTeacherComment = action.payload.comment
             }
         },
         resetOriginalTeacherEvaluation(state) {
@@ -147,6 +149,36 @@ const assessmentReducer = createSlice({
                     for (const testQuestion of test.testQuestions) {
                         testQuestion.originalTeacherEvaluation =
                             testQuestion.latestTeacherEvaluation
+                    }
+                }
+            }
+        },
+        updateGradingHistory(
+            state,
+            action: {
+                payload: {
+                    user: User
+                    testQuestions: TestQuestion[]
+                }
+            }
+        ) {
+            if (state.assessment) {
+                for (const testQuestion of action.payload.testQuestions) {
+                    const gradingHistory: TeacherGradingHistory = {
+                        teacherGradingHistoryId: '',
+                        teacherAccount: action.payload.user,
+                        teacherEvaluation: testQuestion.latestTeacherEvaluation,
+                        teacherComment: testQuestion.latestTeacherComment,
+                        createdAt: new Date().toISOString(),
+                    }
+
+                    for (const test of state.assessment.tests) {
+                        for (const tq of test.testQuestions) {
+                            if (tq.testQuestionId === testQuestion.testQuestionId) {
+                                tq.teacherGradingHistory.unshift(gradingHistory)
+                                break
+                            }
+                        }
                     }
                 }
             }
@@ -207,26 +239,29 @@ export const submitTeacherEvaluation = () => {
         const state = getState()
 
         // get list of test questions that have evaluation changes
-        const testQuestions = state.assessment.assessment?.tests.flatMap((test: Test) =>
-            test.testQuestions
-                .filter(
+        const testQuestions: TestQuestion[] = state.assessment.assessment?.tests.flatMap(
+            (test: Test) =>
+                test.testQuestions.filter(
                     (testQuestion) =>
                         testQuestion.latestTeacherEvaluation !==
                         testQuestion.originalTeacherEvaluation
                 )
-                .map((testQuestion) => ({
-                    testQuestionId: testQuestion.testQuestionId,
-                    teacherEvaluation: testQuestion.latestTeacherEvaluation,
-                    teacherComment: testQuestion.teacherComment,
-                }))
         )
 
         if (testQuestions.length > 0) {
+            const reqTestQuestions = testQuestions.map((testQuestion) => ({
+                testQuestionId: testQuestion.testQuestionId,
+                teacherEvaluation: testQuestion.latestTeacherEvaluation,
+                teacherComment: testQuestion.latestTeacherComment,
+            }))
             await testQuestionService.createTeacherGradings({
                 teacherAccountId: state.user.accountId,
-                testQuestions: testQuestions,
+                testQuestions: reqTestQuestions,
             })
 
+            dispatch(
+                assessmentReducer.actions.updateGradingHistory({ user: state.user, testQuestions })
+            )
             dispatch(assessmentReducer.actions.updateNumberOfQuestionsGraded())
         }
 
