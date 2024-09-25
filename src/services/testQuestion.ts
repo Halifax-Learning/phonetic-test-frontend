@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { convertKeysToSnakeCase } from '../utils/helper'
 
-const baseUrl = 'http://localhost:8000/api'
+const baseUrl = import.meta.env.VITE_API_URL
 
 export const updateTestQuestion = async (
     testQuestionId: string,

@@ -21,6 +21,7 @@ import Divider from '@mui/material/Divider'
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
+import logo from '../assets/HFX_LEARNING_LOGO_WEB.webp'
 import { RootState } from '../main'
 import { clearUser } from '../reducers/userReducer'
 import { StyledLink, StyledUserIconButton, theme } from '../theme/theme'
@@ -62,11 +63,7 @@ const Header: React.FC = () => {
                         component={Link}
                         to="/"
                     >
-                        <img
-                            src="src\assets\HFX_LEARNING_LOGO_WEB.webp"
-                            alt="Logo"
-                            style={{ height: '90%', width: 'auto' }}
-                        />
+                        <img src={logo} alt="Logo" style={{ height: '90%', width: 'auto' }} />
                     </Box>
                     {isSmallScreen ? (
                         <>

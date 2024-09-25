@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const baseUrl = 'http://localhost:8000/api'
+const baseUrl = import.meta.env.VITE_API_URL
 
 export const getAssessmentTypes = async () => {
     const response = await axios.get(`${baseUrl}/assessment_types`)
