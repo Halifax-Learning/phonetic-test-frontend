@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const baseUrl = 'http://localhost:8000/api/audio'
+const baseUrl = import.meta.env.VITE_API_URL + '/audio'
 
 /**
  * Fetches the audio file from the server and returns the URL
