@@ -18,7 +18,7 @@ import Login from './components/user/Login.js'
 import Profile from './components/user/Profile.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
-import { setUser } from './reducers/userReducer.js'
+import { retrieveUser } from './reducers/userReducer.js'
 import { theme } from './theme/theme.js'
 
 const AppRoutes = () => {
@@ -27,10 +27,7 @@ const AppRoutes = () => {
     const screenToDisplay = useSelector((state: RootState) => state.screenToDisplay)
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('loggedUser')
-        if (storedUser) {
-            dispatch(setUser(JSON.parse(storedUser)))
-        }
+        dispatch(retrieveUser())
     }, [dispatch])
 
     const assessmentRoutes = () => {

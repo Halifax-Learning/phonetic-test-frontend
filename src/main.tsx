@@ -10,7 +10,7 @@ import assessmentTypeReducer from './reducers/assessmentTypeReducer.js'
 import screenToDisplayReducer from './reducers/screenToDisplayReducer.js'
 import userReducer from './reducers/userReducer.js'
 
-const store = configureStore({
+export const store = configureStore({
     reducer: {
         screenToDisplay: screenToDisplayReducer,
         assessmentTypes: assessmentTypeReducer,

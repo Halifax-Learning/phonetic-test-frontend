@@ -1,24 +1,24 @@
-import axios from 'axios'
+import axiosInstance from './axiosInstance'
 
 const baseUrl = import.meta.env.VITE_API_URL
 
 export const getAssessmentTypes = async () => {
-    const response = await axios.get(`${baseUrl}/assessment_types`)
+    const response = await axiosInstance.get(`${baseUrl}/assessment_types`)
     return response.data
 }
 
 export const getAllAssessments = async () => {
-    const response = await axios.get(`${baseUrl}/assessments`)
+    const response = await axiosInstance.get(`${baseUrl}/assessments`)
     return response.data
 }
 
 export const getAssessment = async (assessmentId: string) => {
-    const response = await axios.get(`${baseUrl}/assessments/${assessmentId}`)
+    const response = await axiosInstance.get(`${baseUrl}/assessments/${assessmentId}`)
     return response.data
 }
 
 export const createAssessment = async (assessmentTypeId: number, testTakerId: string) => {
-    const response = await axios.post(`${baseUrl}/assessments`, {
+    const response = await axiosInstance.post(`${baseUrl}/assessments`, {
         assessment_type_id: assessmentTypeId,
         test_taker_id: testTakerId,
     })

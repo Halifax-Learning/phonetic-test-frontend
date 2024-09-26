@@ -5,6 +5,7 @@ export interface User {
     lastName: string
     email: string
     currentEnrolledCourse: string
+    token: string
 }
 
 export interface QuestionType {

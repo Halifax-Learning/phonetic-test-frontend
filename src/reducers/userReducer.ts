@@ -12,6 +12,12 @@ const userReducer = createSlice({
             localStorage.setItem('loggedUser', JSON.stringify(action.payload))
             return action.payload
         },
+        retrieveUser() {
+            const storedUser = localStorage.getItem('loggedUser')
+            if (storedUser) {
+                return JSON.parse(storedUser)
+            }
+        },
         clearUser() {
             localStorage.removeItem('loggedUser')
             return null
@@ -37,4 +43,4 @@ export const login = (email: string, password: string) => {
 }
 
 export default userReducer.reducer
-export const { clearUser, setUser } = userReducer.actions
+export const { clearUser, setUser, retrieveUser } = userReducer.actions
