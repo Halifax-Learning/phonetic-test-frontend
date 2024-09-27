@@ -204,9 +204,9 @@ const assessmentReducer = createSlice({
     },
 })
 
-export const createAssessment = (assessmentTypeId: number, testTakerId: string) => {
+export const createAssessment = (assessmentTypeId: number) => {
     return async (dispatch: any) => {
-        const data = await assessmentService.createAssessment(assessmentTypeId, testTakerId)
+        const data = await assessmentService.createAssessment(assessmentTypeId)
         const assessment = convertKeysToCamelCase(data)
         dispatch(assessmentReducer.actions.initializeAssessment(assessment))
     }

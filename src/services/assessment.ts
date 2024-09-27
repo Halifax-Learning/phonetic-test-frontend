@@ -17,10 +17,9 @@ export const getAssessment = async (assessmentId: string) => {
     return response.data
 }
 
-export const createAssessment = async (assessmentTypeId: number, testTakerId: string) => {
+export const createAssessment = async (assessmentTypeId: number) => {
     const response = await axiosInstance.post(`${baseUrl}/assessments`, {
         assessment_type_id: assessmentTypeId,
-        test_taker_id: testTakerId,
     })
     return response.data
 }

@@ -34,17 +34,15 @@ const AssessmentList = () => {
     }, [])
 
     const startAssessment = async (assessmentTypeId: number) => {
-        if (user && user.accountId) {
-            setCreatingAssessment(true) // Start loading for assessment creation
-            try {
-                await dispatch(createAssessment(assessmentTypeId, user.accountId))
-                dispatch(setScreenToDisplay('AssessmentWelcome'))
-            } catch (err) {
-                console.error('Failed to create assessment:', err)
-                // Handle error here (optional)
-            } finally {
-                setCreatingAssessment(false) // Stop loading
-            }
+        setCreatingAssessment(true) // Start loading for assessment creation
+        try {
+            await dispatch(createAssessment(assessmentTypeId))
+            dispatch(setScreenToDisplay('AssessmentWelcome'))
+        } catch (err) {
+            console.error('Failed to create assessment:', err)
+            // Handle error here (optional)
+        } finally {
+            setCreatingAssessment(false) // Stop loading
         }
     }
 
