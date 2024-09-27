@@ -31,6 +31,7 @@ import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
 import {
     fetchAudios,
+    retrieveAssessmentFromLocalStorage,
     setTeacherEvaluation,
     setTest,
     submitTeacherEvaluation,
@@ -42,7 +43,8 @@ const GradingScreen = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
-    const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
+    const currentTestIndex =
+        useSelector((state: RootState) => state.assessment.currentTestIndex) || 0
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
@@ -76,6 +78,21 @@ const GradingScreen = () => {
     const handleCloseDialog = () => {
         setDialogOpen(false)
     }
+
+    useEffect(() => {
+        // Handle when user refreshes the page
+        const reloadAssessment = async () => {
+            if (assessment === null) {
+                const assessmentId = await dispatch(retrieveAssessmentFromLocalStorage())
+
+                if (!assessmentId) {
+                    navigate('/assessments-for-grading')
+                }
+            }
+        }
+
+        reloadAssessment()
+    }, [])
 
     useEffect(() => {
         // Update selected test when currentTestIndex changes

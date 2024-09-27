@@ -18,6 +18,8 @@ const initialState: AssessmentState = {
     currentTestQuestionIndex: null,
 }
 
+const CURRENT_GRADING_ASSESSMENT_ID: string = 'currentGradingAssessmentId'
+
 const assessmentReducer = createSlice({
     name: 'assessment',
     initialState: initialState,
@@ -26,6 +28,7 @@ const assessmentReducer = createSlice({
             state.assessment = action.payload
             state.currentTestIndex = 0
             state.currentTestQuestionIndex = 0
+            localStorage.setItem(CURRENT_GRADING_ASSESSMENT_ID, action.payload.assessmentId)
         },
         setTest(state, action: { payload: number }) {
             state.currentTestIndex = action.payload
@@ -231,6 +234,7 @@ const assessmentReducer = createSlice({
             state.assessment = null
             state.currentTestIndex = null
             state.currentTestQuestionIndex = null
+            localStorage.removeItem(CURRENT_GRADING_ASSESSMENT_ID)
         },
     },
 })
@@ -262,6 +266,17 @@ export const fetchAssessment = (assessmentId: string) => {
          * making any actual changes.
          */
         dispatch(assessmentReducer.actions.resetOriginalTeacherEvaluation())
+    }
+}
+
+export const retrieveAssessmentFromLocalStorage = () => {
+    return async (dispatch: any) => {
+        const assessmentId = localStorage.getItem(CURRENT_GRADING_ASSESSMENT_ID)
+        if (assessmentId) {
+            await dispatch(fetchAssessment(assessmentId))
+            return assessmentId
+        }
+        return null
     }
 }
 

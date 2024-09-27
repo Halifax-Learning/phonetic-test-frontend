@@ -1,5 +1,5 @@
 import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
 
@@ -25,10 +25,14 @@ const AppRoutes = () => {
     const dispatch = useDispatch()
     const user = useSelector((state: RootState) => state.user)
     const screenToDisplay = useSelector((state: RootState) => state.screenToDisplay)
+    const [loadingUser, setLoadingUser] = useState(true)
 
     useEffect(() => {
         dispatch(retrieveUser())
+        setLoadingUser(false)
     }, [dispatch])
+
+    const notTeacherUser = (!user || user.accountRole !== 'teacher') && !loadingUser
 
     const assessmentRoutes = () => {
         let assessmentComponent = <AssessmentTypeList />
@@ -68,28 +72,17 @@ const AppRoutes = () => {
         },
         {
             path: '/assessments-for-grading',
-            element:
-                !user || user.accountRole !== 'teacher' ? (
-                    <Navigate replace to="/login" />
-                ) : (
-                    <TeacherAssessmentList />
-                ),
+            element: notTeacherUser ? <Navigate replace to="/login" /> : <TeacherAssessmentList />,
         },
         {
             path: '/grading',
-            element:
-                !user || user.accountRole !== 'teacher' ? (
-                    <Navigate replace to="/login" />
-                ) : (
-                    <GradingScreen />
-                ),
+            element: notTeacherUser ? <Navigate replace to="/login" /> : <GradingScreen />,
         },
         {
             path: '*',
             element: <Navigate replace to="/" />,
         },
     ]
-
     return useRoutes(routes)
 }
 
