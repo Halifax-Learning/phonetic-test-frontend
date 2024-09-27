@@ -217,17 +217,9 @@ const assessmentReducer = createSlice({
                 }
             }
         },
-        updateNumberOfQuestionsGraded(state) {
+        updateAssessmentProperties(state) {
             if (state.assessment) {
-                for (const test of state.assessment.tests) {
-                    test.numQuestionsGraded = test.testQuestions.filter(
-                        (testQuestion) => testQuestion.latestTeacherEvaluation !== null
-                    ).length
-                }
-
-                state.assessment.isAllTestsGradedByTeacher = state.assessment.tests.every(
-                    (test) => test.numQuestionsGraded === test.testQuestions.length
-                )
+                state.assessment = calculateAssessmentProperties(state.assessment)
             }
         },
         resetAssessment(state) {
@@ -238,6 +230,32 @@ const assessmentReducer = createSlice({
         },
     },
 })
+
+/**
+ * Update the assessment object after loading the assessment from the database
+ * or after adding more teacher grading histories with number of questions graded for each test,
+ * teacher score for each test, and if all the tests in the assessment have been graded by the teacher.
+ */
+const calculateAssessmentProperties = (assessment: Assessment) => {
+    for (const test of assessment.tests) {
+        test.numQuestionsGraded = test.testQuestions.filter(
+            (testQuestion) => testQuestion.latestTeacherEvaluation !== null
+        ).length
+
+        if (test.numQuestionsGraded === test.testQuestions.length) {
+            test.teacherScore = test.testQuestions.reduce(
+                (acc, testQuestion) => acc + (testQuestion.latestTeacherEvaluation ? 1 : 0),
+                0
+            )
+        }
+    }
+
+    assessment.isAllTestsGradedByTeacher = assessment.tests.every(
+        (test) => test.numQuestionsGraded === test.testQuestions.length
+    )
+
+    return assessment
+}
 
 export const createAssessment = (assessmentTypeId: number) => {
     return async (dispatch: any) => {
@@ -252,7 +270,7 @@ export const fetchAssessment = (assessmentId: string) => {
         const data = await assessmentService.getAssessment(assessmentId)
         const assessment = convertKeysToCamelCase(data)
         dispatch(assessmentReducer.actions.initializeAssessment(assessment))
-        dispatch(assessmentReducer.actions.updateNumberOfQuestionsGraded())
+        dispatch(assessmentReducer.actions.updateAssessmentProperties())
 
         /**
          * For each testQuestion, the value of originalTeacherEvaluation is the same as the value of
@@ -308,7 +326,7 @@ export const submitTeacherEvaluation = () => {
             dispatch(
                 assessmentReducer.actions.updateGradingHistory({ user: state.user, testQuestions })
             )
-            dispatch(assessmentReducer.actions.updateNumberOfQuestionsGraded())
+            dispatch(assessmentReducer.actions.updateAssessmentProperties())
         }
 
         // reset original teacher evaluation to reflect the latest changes in database
