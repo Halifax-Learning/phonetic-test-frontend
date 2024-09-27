@@ -61,6 +61,7 @@ export interface Test {
     teacherScore: number
     testQuestions: TestQuestion[]
     numQuestionsGraded: number
+    hasFetchedAudio: boolean // if all the audio files associated with the test question have been fetched
 }
 
 export interface AssessmentType {

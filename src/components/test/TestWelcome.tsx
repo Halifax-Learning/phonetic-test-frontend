@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { useEffect } from 'react'
 import { RootState } from '../../main'
-import { fetchInstructionAudio, fetchQuestionAudio } from '../../reducers/assessmentReducer'
+import { fetchAudios } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { InstructionContent } from './TestInstructionDialog'
 
@@ -17,23 +17,7 @@ const TestWelcome = () => {
     useEffect(() => {
         // Fetch instruction audio and question audios of the current test
         const test = assessment!.tests[currentTestIndex!]
-
-        const instructionAudioBlobUrl = test!.testType.questionType.instructionAudioBlobUrl
-        if (!instructionAudioBlobUrl) {
-            const questionTypeId = test!.testType.questionType.questionTypeId
-            dispatch(fetchInstructionAudio(questionTypeId!, currentTestIndex!))
-        }
-
-        const hasQuestionAudio = test!.testType.hasQuestionAudio
-        if (hasQuestionAudio) {
-            for (const [index, testQuestion] of test!.testQuestions.entries()) {
-                const questionAudioBlobUrl = testQuestion.question.questionAudioBlobUrl
-                if (!questionAudioBlobUrl) {
-                    const questionId = testQuestion.question.questionId
-                    dispatch(fetchQuestionAudio(questionId!, currentTestIndex!, index))
-                }
-            }
-        }
+        dispatch(fetchAudios(test!.testId, currentTestIndex!))
     }, [])
 
     const testTypes = assessment?.tests.map((test) => test.testType)

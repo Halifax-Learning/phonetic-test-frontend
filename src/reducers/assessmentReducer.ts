@@ -116,6 +116,37 @@ const assessmentReducer = createSlice({
                     .answerAudioBlobUrl = action.payload.answerAudioBlobUrl
             }
         },
+        setAudioBlobUrls(
+            state,
+            action: {
+                payload: {
+                    audioUrls: { [filename: string]: string }
+                    testIndex: number
+                }
+            }
+        ) {
+            const audioUrls = action.payload.audioUrls
+            const testIndex = action.payload.testIndex
+
+            if (state.assessment) {
+                const test = state.assessment.tests[testIndex]
+                const numQuestions = test.testQuestions.length
+
+                test.testType.questionType.instructionAudioBlobUrl = audioUrls['instruction.mp3']
+
+                for (let i = 0; i < numQuestions; i++) {
+                    test.testQuestions[i].question.questionAudioBlobUrl =
+                        audioUrls[`question_${i}.mp3`]
+
+                    test.testQuestions[i].question.correctAnswerAudioBlobUrl =
+                        audioUrls[`correct_answer_${i}.mp3`]
+
+                    test.testQuestions[i].answerAudioBlobUrl = audioUrls[`answer_${i}.mp3`]
+                }
+
+                test.hasFetchedAudio = true
+            }
+        },
         setTeacherEvaluation(
             state,
             action: {
@@ -270,6 +301,7 @@ export const submitTeacherEvaluation = () => {
     }
 }
 
+// NOTE: not used in the current implementation
 export const fetchInstructionAudio = (id: number | string, testIndex: number) => {
     return async (dispatch: any) => {
         const audioUrl = await audioService.getAudio('instruction', id)
@@ -282,6 +314,7 @@ export const fetchInstructionAudio = (id: number | string, testIndex: number) =>
     }
 }
 
+// NOTE: not used in the current implementation
 export const fetchQuestionAudio = (
     id: number | string,
     testIndex: number,
@@ -299,6 +332,7 @@ export const fetchQuestionAudio = (
     }
 }
 
+// NOTE: not used in the current implementation
 export const fetchCorrectAnswerAudio = (
     id: number | string,
     testIndex: number,
@@ -316,6 +350,7 @@ export const fetchCorrectAnswerAudio = (
     }
 }
 
+// NOTE: not used in the current implementation
 export const fetchAnswerAudio = (
     id: number | string,
     testIndex: number,
@@ -328,6 +363,18 @@ export const fetchAnswerAudio = (
                 answerAudioBlobUrl: audioUrl,
                 testIndex,
                 testQuestionIndex,
+            })
+        )
+    }
+}
+
+export const fetchAudios = (testId: string, testIndex: number, includeAnswer: boolean = false) => {
+    return async (dispatch: any) => {
+        const audioUrls = await audioService.getAudios(testId, includeAnswer)
+        dispatch(
+            assessmentReducer.actions.setAudioBlobUrls({
+                audioUrls,
+                testIndex,
             })
         )
     }

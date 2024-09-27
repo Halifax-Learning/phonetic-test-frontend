@@ -30,9 +30,7 @@ import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
 import {
-    fetchAnswerAudio,
-    fetchCorrectAnswerAudio,
-    fetchQuestionAudio,
+    fetchAudios,
     setTeacherEvaluation,
     setTest,
     submitTeacherEvaluation,
@@ -44,7 +42,6 @@ const GradingScreen = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
-    const user = useSelector((state: RootState) => state.user)
     const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
@@ -92,38 +89,8 @@ const GradingScreen = () => {
     }, [assessment])
 
     useEffect(() => {
-        // Load all question audios
-        const hasQuestionAudio = selectedTest?.testType.hasQuestionAudio
-        if (hasQuestionAudio) {
-            for (const [index, testQuestion] of selectedTest?.testQuestions.entries() || []) {
-                const questionAudioBlobUrl = testQuestion.question.questionAudioBlobUrl
-                if (!questionAudioBlobUrl) {
-                    const questionId = testQuestion.question.questionId
-                    dispatch(fetchQuestionAudio(questionId!, currentTestIndex!, index))
-                }
-            }
-        }
-
-        // Load all correct answer audios
-        const hasCorrectAnswerAudio = selectedTest?.testType.hasCorrectAnswerAudio
-        if (hasCorrectAnswerAudio) {
-            for (const [index, testQuestion] of selectedTest?.testQuestions.entries() || []) {
-                const correctAnswerAudioBlobUrl = testQuestion.question.correctAnswerAudioBlobUrl
-                if (!correctAnswerAudioBlobUrl) {
-                    const questionId = testQuestion.question.questionId
-                    dispatch(fetchCorrectAnswerAudio(questionId!, currentTestIndex!, index))
-                }
-            }
-        }
-
-        // Load all student answer audios
-        for (const [index, testQuestion] of selectedTest?.testQuestions.entries() || []) {
-            const hasAnswerAudio = testQuestion.hasAnswerAudio
-            const answerAudioBlobUrl = testQuestion.answerAudioBlobUrl
-            if (hasAnswerAudio && !answerAudioBlobUrl) {
-                const testQuestionId = testQuestion.testQuestionId
-                dispatch(fetchAnswerAudio(testQuestionId, currentTestIndex!, index))
-            }
+        if (selectedTest && !selectedTest.hasFetchedAudio) {
+            dispatch(fetchAudios(selectedTest.testId, currentTestIndex!, true))
         }
     }, [selectedTest])
 

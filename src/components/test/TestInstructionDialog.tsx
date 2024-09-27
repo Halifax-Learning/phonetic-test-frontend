@@ -68,9 +68,7 @@ const InstructionContent: React.FC<InstructionContentProps> = ({
             <br />
             For example:
             <br />
-            {instructionAudioBlobUrl && (
-                <AudioPlayerWithIcon instructionAudioSrc={instructionAudioBlobUrl} />
-            )}
+            <AudioPlayerWithIcon instructionAudioSrc={instructionAudioBlobUrl ?? ''} />
             {customPoint1Text}
         </Typography>
         <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
