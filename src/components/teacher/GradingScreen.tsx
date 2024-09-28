@@ -29,22 +29,22 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
+import { fetchAudios } from '../../reducers/actions'
 import {
-    fetchAudios,
     retrieveAssessmentFromLocalStorage,
+    setGradingTest,
     setTeacherEvaluation,
-    setTest,
     submitTeacherEvaluation,
-} from '../../reducers/assessmentReducer'
+} from '../../reducers/gradingAssessmentReducer'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
 
 const GradingScreen = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const assessment = useSelector((state: RootState) => state.assessment.assessment)
+    const assessment = useSelector((state: RootState) => state.gradingAssessment.assessment)
     const currentTestIndex =
-        useSelector((state: RootState) => state.assessment.currentTestIndex) || 0
+        useSelector((state: RootState) => state.gradingAssessment.currentTestIndex) || 0
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
@@ -159,7 +159,7 @@ const GradingScreen = () => {
     }, [selectedTest])
 
     const onChooseTest = (index: number) => {
-        dispatch(setTest(index))
+        dispatch(setGradingTest(index))
     }
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {

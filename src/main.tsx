@@ -7,6 +7,7 @@ import App from './App.js'
 import assessmentListReducer from './reducers/assessmentListReducer.js'
 import assessmentReducer from './reducers/assessmentReducer.js'
 import assessmentTypeReducer from './reducers/assessmentTypeReducer.js'
+import gradingAssessmentReducer from './reducers/gradingAssessmentReducer.js'
 import screenToDisplayReducer from './reducers/screenToDisplayReducer.js'
 import userReducer from './reducers/userReducer.js'
 
@@ -16,6 +17,7 @@ export const store = configureStore({
         assessmentTypes: assessmentTypeReducer,
         assessmentList: assessmentListReducer,
         assessment: assessmentReducer,
+        gradingAssessment: gradingAssessmentReducer,
         user: userReducer,
     },
 })

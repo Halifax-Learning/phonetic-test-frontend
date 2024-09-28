@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 
 import { useEffect } from 'react'
 import { RootState } from '../../main'
-import { fetchAudios } from '../../reducers/assessmentReducer'
+import { fetchAudios } from '../../reducers/actions'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { InstructionContent } from './TestInstructionDialog'
 

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
 import { fetchAssessments } from '../../reducers/assessmentListReducer'
-import { fetchAssessment } from '../../reducers/assessmentReducer'
+import { fetchAssessment } from '../../reducers/gradingAssessmentReducer'
 import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
