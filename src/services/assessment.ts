@@ -17,6 +17,11 @@ export const getAssessment = async (assessmentId: string) => {
     return response.data
 }
 
+export const getInProgressAssessment = async () => {
+    const response = await axiosInstance.get(`${baseUrl}/in_progress_assessment`)
+    return response.data
+}
+
 export const createAssessment = async (assessmentTypeId: number) => {
     const response = await axiosInstance.post(`${baseUrl}/assessments`, {
         assessment_type_id: assessmentTypeId,

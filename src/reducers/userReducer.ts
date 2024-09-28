@@ -4,6 +4,7 @@ import { User } from '../models/interface'
 import * as userService from '../services/user'
 import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../utils/helper'
 import { resetAssessment } from './assessmentReducer'
+import { resetGradingAssessment } from './gradingAssessmentReducer'
 
 const LOGGED_IN_USER = 'loggedInUser'
 
@@ -49,6 +50,7 @@ export const logout = () => {
     return async (dispatch: any) => {
         dispatch(userReducer.actions.clearUser())
         dispatch(resetAssessment())
+        dispatch(resetGradingAssessment())
     }
 }
 

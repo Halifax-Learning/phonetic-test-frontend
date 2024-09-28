@@ -5,27 +5,41 @@ import * as assessmentService from '../services/assessment'
 import * as testQuestionService from '../services/testQuestion'
 import { convertKeysToCamelCase } from '../utils/helper'
 import { handleSetAudioBlobUrls, setAudioBlobUrls } from './actions'
+import { setScreenToDisplay } from './screenToDisplayReducer'
 
 interface AssessmentState {
     assessment: Assessment | null
     currentTestIndex: number | null
     currentTestQuestionIndex: number | null
+    isInProgress: boolean | null
 }
 
 const initialState: AssessmentState = {
     assessment: null,
     currentTestIndex: null,
     currentTestQuestionIndex: null,
+    isInProgress: null,
 }
 
 export const assessmentReducer = createSlice({
     name: 'assessment',
     initialState: initialState,
     reducers: {
-        initializeAssessment(state, action: { payload: Assessment }) {
-            state.assessment = action.payload
-            state.currentTestIndex = 0
-            state.currentTestQuestionIndex = 0
+        initializeAssessment(
+            state,
+            action: {
+                payload: {
+                    assessment?: Assessment
+                    currentTestIndex?: number
+                    currentTestQuestionIndex?: number
+                    isInProgress?: boolean
+                }
+            }
+        ) {
+            state.assessment = action.payload.assessment ?? null
+            state.currentTestIndex = action.payload.currentTestIndex ?? 0
+            state.currentTestQuestionIndex = action.payload.currentTestQuestionIndex ?? 0
+            state.isInProgress = action.payload.isInProgress ?? true
         },
         nextTest(state) {
             if (state.currentTestIndex !== null) {
@@ -60,6 +74,7 @@ export const assessmentReducer = createSlice({
             state.assessment = null
             state.currentTestIndex = null
             state.currentTestQuestionIndex = null
+            state.isInProgress = false
         },
     },
     extraReducers: (builder) => {
@@ -71,7 +86,47 @@ export const createAssessment = (assessmentTypeId: number) => {
     return async (dispatch: any) => {
         const data = await assessmentService.createAssessment(assessmentTypeId)
         const assessment = convertKeysToCamelCase(data)
-        dispatch(assessmentReducer.actions.initializeAssessment(assessment))
+        dispatch(assessmentReducer.actions.initializeAssessment({ assessment }))
+    }
+}
+
+export const fetchInProgressAssessment = () => {
+    return async (dispatch: any) => {
+        const data = await assessmentService.getInProgressAssessment()
+        if (!data) {
+            dispatch(assessmentReducer.actions.initializeAssessment({ isInProgress: false }))
+        } else {
+            const assessment = convertKeysToCamelCase(data)
+
+            // Find the first test question in the assessment that has not been answered
+            let currentTestIndex = 0
+            let currentTestQuestionIndex = 0
+            let found = false
+            for (let i = 0; i < assessment.tests.length; i++) {
+                if (assessment.tests[i].testSubmissionTime) {
+                    continue
+                }
+                for (let j = 0; j < assessment.tests[i].testQuestions.length; j++) {
+                    if (!assessment.tests[i].testQuestions[j].testQuestionSubmissionTime) {
+                        currentTestIndex = i
+                        currentTestQuestionIndex = j
+                        found = true
+                        break
+                    }
+                }
+                if (found) {
+                    break
+                }
+            }
+
+            dispatch(
+                assessmentReducer.actions.initializeAssessment({
+                    assessment,
+                    currentTestIndex,
+                    currentTestQuestionIndex,
+                })
+            )
+        }
     }
 }
 

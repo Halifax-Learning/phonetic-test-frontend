@@ -34,6 +34,8 @@ const AppRoutes = () => {
 
     const notTeacherUser = (!user || user.accountRole !== 'teacher') && !loadingUser
 
+    const notLoggedIn = !user && !loadingUser
+
     const assessmentRoutes = () => {
         let assessmentComponent = <AssessmentTypeList />
 
@@ -64,7 +66,7 @@ const AppRoutes = () => {
         },
         {
             path: '/assessment',
-            element: !user ? <Navigate replace to="/login" /> : assessmentRoutes(),
+            element: notLoggedIn ? <Navigate replace to="/login" /> : assessmentRoutes(),
         },
         {
             path: '/profile',
