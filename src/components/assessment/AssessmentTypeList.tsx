@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../main'
 import { createAssessment, fetchInProgressAssessment } from '../../reducers/assessmentReducer'
 import { fetchAssessmentTypes } from '../../reducers/assessmentTypeReducer'
+import { setGradingAssessmentList } from '../../reducers/gradingAssessmentListReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledClickableCard } from '../../theme/theme'
 
@@ -45,6 +46,7 @@ const AssessmentList = () => {
         try {
             await dispatch(createAssessment(assessmentTypeId))
             dispatch(setScreenToDisplay('AssessmentWelcome'))
+            dispatch(setGradingAssessmentList(null))
         } catch (err) {
             console.error('Failed to create assessment:', err)
             // Handle error here (optional)

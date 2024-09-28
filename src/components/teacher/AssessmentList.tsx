@@ -5,20 +5,24 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
-import { fetchAssessments } from '../../reducers/assessmentListReducer'
+import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
 import { fetchAssessment } from '../../reducers/gradingAssessmentReducer'
 import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const assessments = useSelector((state: RootState) => state.assessmentList as Assessment[])
+    const assessments = useSelector(
+        (state: RootState) => state.gradingAssessmentList as Assessment[]
+    )
     const [loading, setLoading] = useState(true)
     const [loadingAssessment, setLoadingAssessment] = useState(false)
 
     useEffect(() => {
         const loadData = async () => {
-            await dispatch(fetchAssessments())
+            if (!assessments) {
+                await dispatch(fetchGradingAssessments())
+            }
             setLoading(false)
         }
 

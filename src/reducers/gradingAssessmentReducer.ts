@@ -5,6 +5,7 @@ import * as assessmentService from '../services/assessment'
 import * as testQuestionService from '../services/testQuestion'
 import { convertKeysToCamelCase } from '../utils/helper'
 import { handleSetAudioBlobUrls, setAudioBlobUrls } from './actions'
+import { updateGradingAssessmentInList } from './gradingAssessmentListReducer'
 
 interface AssessmentState {
     assessment: Assessment | null
@@ -204,6 +205,12 @@ export const submitTeacherEvaluation = () => {
                 })
             )
             dispatch(gradingAssessmentReducer.actions.updateAssessmentProperties())
+            const updatedState = getState()
+            dispatch(
+                updateGradingAssessmentInList(
+                    updatedState.gradingAssessment.assessment as Assessment
+                )
+            )
         }
 
         // reset original teacher evaluation to reflect the latest changes in database

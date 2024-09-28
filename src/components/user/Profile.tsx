@@ -22,14 +22,16 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
-import { fetchAssessments } from '../../reducers/assessmentListReducer'
+import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
 import { ButtonBox } from '../../theme/theme'
 
 const Profile = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const user = useSelector((state: RootState) => state.user)
-    const assessments = useSelector((state: RootState) => state.assessmentList as Assessment[])
+    const assessments = useSelector(
+        (state: RootState) => state.gradingAssessmentList as Assessment[]
+    )
 
     const isTeacher = user?.accountRole === 'teacher'
     const isStudent = user?.accountRole === 'student'
@@ -53,7 +55,7 @@ const Profile = () => {
         const loadData = async () => {
             try {
                 setLoading(true)
-                await dispatch(fetchAssessments())
+                await dispatch(fetchGradingAssessments())
                 setError(false) // Reset error state if fetch is successful
 
                 const filteredAssessments = assessments
@@ -216,7 +218,7 @@ const Profile = () => {
         const loadData = async () => {
             try {
                 setLoading(true)
-                await dispatch(fetchAssessments())
+                await dispatch(fetchGradingAssessments())
                 setError(false) // Reset error state if fetch is successful
                 const count = assessments.filter(
                     (assessment) =>

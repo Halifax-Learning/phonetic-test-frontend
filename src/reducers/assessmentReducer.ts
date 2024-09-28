@@ -5,7 +5,6 @@ import * as assessmentService from '../services/assessment'
 import * as testQuestionService from '../services/testQuestion'
 import { convertKeysToCamelCase } from '../utils/helper'
 import { handleSetAudioBlobUrls, setAudioBlobUrls } from './actions'
-import { setScreenToDisplay } from './screenToDisplayReducer'
 
 interface AssessmentState {
     assessment: Assessment | null
