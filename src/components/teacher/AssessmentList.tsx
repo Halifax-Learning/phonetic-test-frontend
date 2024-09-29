@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { Assessment } from '../../models/interface'
 import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
-import { fetchAssessment } from '../../reducers/gradingAssessmentReducer'
+import { fetchGradingAssessment } from '../../reducers/gradingAssessmentReducer'
 import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
@@ -31,7 +31,7 @@ const TeacherAssessmentList = () => {
 
     const onChooseAssessment = async (assessmentId: string) => {
         setLoadingAssessment(true) // Start loading
-        await dispatch(fetchAssessment(assessmentId))
+        await dispatch(fetchGradingAssessment(assessmentId))
         navigate('/grading')
         setLoadingAssessment(false) // End loading
     }

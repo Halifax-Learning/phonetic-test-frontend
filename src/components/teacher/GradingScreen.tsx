@@ -31,7 +31,7 @@ import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
 import { fetchAudios } from '../../reducers/actions'
 import {
-    retrieveAssessmentFromLocalStorage,
+    retrieveGradingAssessmentFromLocalStorage,
     setGradingTest,
     setTeacherEvaluation,
     submitTeacherEvaluation,
@@ -83,7 +83,7 @@ const GradingScreen = () => {
         // Handle when user refreshes the page
         const reloadAssessment = async () => {
             if (assessment === null) {
-                const assessmentId = await dispatch(retrieveAssessmentFromLocalStorage())
+                const assessmentId = await dispatch(retrieveGradingAssessmentFromLocalStorage())
 
                 if (!assessmentId) {
                     navigate('/assessments-for-grading')

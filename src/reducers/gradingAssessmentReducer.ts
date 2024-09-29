@@ -140,7 +140,7 @@ const calculateAssessmentProperties = (assessment: Assessment) => {
     return assessment
 }
 
-export const fetchAssessment = (assessmentId: string) => {
+export const fetchGradingAssessment = (assessmentId: string) => {
     return async (dispatch: any) => {
         const data = await assessmentService.getAssessment(assessmentId)
         const assessment = convertKeysToCamelCase(data)
@@ -162,11 +162,11 @@ export const fetchAssessment = (assessmentId: string) => {
     }
 }
 
-export const retrieveAssessmentFromLocalStorage = () => {
+export const retrieveGradingAssessmentFromLocalStorage = () => {
     return async (dispatch: any) => {
         const assessmentId = localStorage.getItem(CURRENT_GRADING_ASSESSMENT_ID)
         if (assessmentId) {
-            await dispatch(fetchAssessment(assessmentId))
+            await dispatch(fetchGradingAssessment(assessmentId))
             return assessmentId
         }
         return null
