@@ -21,15 +21,16 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
-import { Assessment } from '../../models/interface'
-import { fetchAssessments } from '../../reducers/assessmentListReducer'
+import { fetchAssessments } from '../../reducers/assessementListReducer'
+import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
 import { ButtonBox } from '../../theme/theme'
 
 const Profile = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const user = useSelector((state: RootState) => state.user)
-    const assessments = useSelector((state: RootState) => state.assessmentList as Assessment[])
+    const assessments = useSelector((state: RootState) => state.assessmentList)
+    const gradingAssessments = useSelector((state: RootState) => state.gradingAssessmentList)
 
     const isTeacher = user?.accountRole === 'teacher'
     const isStudent = user?.accountRole === 'student'
@@ -47,38 +48,27 @@ const Profile = () => {
     }
 
     const StudentOngoingAssessment = () => {
-        const [studentAssessments, setStudentAssessments] = useState<Assessment[]>([])
         const [loading, setLoading] = useState(true)
         const [error, setError] = useState(false)
+
         const loadData = async () => {
             try {
                 setLoading(true)
-                await dispatch(fetchAssessments())
+                if (!assessments) {
+                    await dispatch(fetchAssessments())
+                }
                 setError(false) // Reset error state if fetch is successful
-
-                const filteredAssessments = assessments
-                    .filter(
-                        (assessment) =>
-                            assessment.testTaker.accountId === user?.accountId && // Show assessments done by the student
-                            assessment.assessmentSubmissionTime !== null
-                    )
-                    .sort(
-                        (a, b) =>
-                            new Date(b.assessmentSubmissionTime).getTime() -
-                            new Date(a.assessmentSubmissionTime).getTime() // Sort by submission time (latest first)
-                    )
-                    .slice(0, 3) // Get the latest 3 assessments
-
-                setStudentAssessments(filteredAssessments)
             } catch (err) {
+                console.error(err)
                 setError(true) // Set error state if fetching fails
             } finally {
                 setLoading(false)
             }
         }
+
         useEffect(() => {
             loadData()
-        }, [dispatch])
+        }, [dispatch, assessments])
 
         if (loading) {
             return (
@@ -151,13 +141,13 @@ const Profile = () => {
                 <Box display="flex" alignItems="center" color="primary.main">
                     <AssignmentIcon sx={{ fontSize: 40, mr: 1 }} />
                     <Typography variant="h2" component="div">
-                        Your Latest 3 Assessments
+                        Your Latest Assessments
                     </Typography>
                 </Box>
                 <Divider sx={{ my: 2 }} />
                 <List>
-                    {studentAssessments.length > 0 ? (
-                        studentAssessments.map((assessment) => (
+                    {assessments ? (
+                        assessments.map((assessment) => (
                             <Fragment key={assessment.assessmentId}>
                                 <ListItem
                                     sx={{
@@ -216,23 +206,34 @@ const Profile = () => {
         const loadData = async () => {
             try {
                 setLoading(true)
-                await dispatch(fetchAssessments())
+                if (!gradingAssessments) {
+                    await dispatch(fetchGradingAssessments())
+                }
                 setError(false) // Reset error state if fetch is successful
-                const count = assessments.filter(
-                    (assessment) =>
-                        assessment.assessmentSubmissionTime !== null && // Check that the assessment is submitted
-                        !assessment.isAllTestsGradedByTeacher // Check that the assessment is not fully graded
-                ).length
-                setPendingCount(count)
             } catch (err) {
+                /*
+                 * The error does not come fromt the fetching operation itself.
+                 * The problem is that it takes some time for the redux store to update the state
+                 * with the fetched data, and in those split seconds, the data is still null and
+                 * so the filter function throws an error.
+                 */
+                console.error(err)
                 setError(true) // Set error state if fetching fails
             } finally {
                 setLoading(false)
             }
         }
+
         useEffect(() => {
             loadData()
-        }, [dispatch])
+            const count =
+                gradingAssessments?.filter(
+                    (assessment) =>
+                        assessment.assessmentSubmissionTime !== null && // Check that the assessment is submitted
+                        !assessment.isAllTestsGradedByTeacher // Check that the assessment is not fully graded
+                ).length ?? 0
+            setPendingCount(count)
+        }, [dispatch, gradingAssessments])
 
         if (loading) {
             return (

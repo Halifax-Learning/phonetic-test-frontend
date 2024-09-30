@@ -1,4 +1,5 @@
 import axios from 'axios'
+import axiosInstance from './axiosInstance'
 import { convertKeysToSnakeCase } from '../utils/helper'
 
 const baseUrl = import.meta.env.VITE_API_URL
@@ -22,7 +23,7 @@ export const updateTestQuestion = async (
         formData.append('answer_audio', res.data)
     }
 
-    const response = await axios.put(url, formData)
+    const response = await axiosInstance.put(url, formData)
 
     return response.data
 }
@@ -36,7 +37,7 @@ export const createTeacherGradings = async (data: TeacherGradingsHttpRequestData
     const url = `${baseUrl}/teacher_grading_history`
     const bodySnakeCase = convertKeysToSnakeCase(data)
 
-    const response = await axios.post(url, bodySnakeCase)
+    const response = await axiosInstance.post(url, bodySnakeCase)
 
     return response.data
 }

@@ -1,5 +1,5 @@
 import { Box, Container, CssBaseline, ThemeProvider } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, RouteObject, BrowserRouter as Router, useRoutes } from 'react-router-dom'
 
@@ -18,20 +18,23 @@ import Login from './components/user/Login.js'
 import Profile from './components/user/Profile.js'
 import Register from './components/user/Register.js'
 import { RootState } from './main.js'
-import { setUser } from './reducers/userReducer.js'
+import { retrieveUser } from './reducers/userReducer.js'
 import { theme } from './theme/theme.js'
 
 const AppRoutes = () => {
     const dispatch = useDispatch()
     const user = useSelector((state: RootState) => state.user)
     const screenToDisplay = useSelector((state: RootState) => state.screenToDisplay)
+    const [loadingUser, setLoadingUser] = useState(true)
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('loggedUser')
-        if (storedUser) {
-            dispatch(setUser(JSON.parse(storedUser)))
-        }
+        dispatch(retrieveUser())
+        setLoadingUser(false)
     }, [dispatch])
+
+    const notTeacherUser = (!user || user.accountRole !== 'teacher') && !loadingUser
+
+    const notLoggedIn = !user && !loadingUser
 
     const assessmentRoutes = () => {
         let assessmentComponent = <AssessmentTypeList />
@@ -63,7 +66,7 @@ const AppRoutes = () => {
         },
         {
             path: '/assessment',
-            element: !user ? <Navigate replace to="/login" /> : assessmentRoutes(),
+            element: notLoggedIn ? <Navigate replace to="/login" /> : assessmentRoutes(),
         },
         {
             path: '/profile',
@@ -71,28 +74,17 @@ const AppRoutes = () => {
         },
         {
             path: '/assessments-for-grading',
-            element:
-                !user || user.accountRole !== 'teacher' ? (
-                    <Navigate replace to="/login" />
-                ) : (
-                    <TeacherAssessmentList />
-                ),
+            element: notTeacherUser ? <Navigate replace to="/login" /> : <TeacherAssessmentList />,
         },
         {
             path: '/grading',
-            element:
-                !user || user.accountRole !== 'teacher' ? (
-                    <Navigate replace to="/login" />
-                ) : (
-                    <GradingScreen />
-                ),
+            element: notTeacherUser ? <Navigate replace to="/login" /> : <GradingScreen />,
         },
         {
             path: '*',
             element: <Navigate replace to="/" />,
         },
     ]
-
     return useRoutes(routes)
 }
 

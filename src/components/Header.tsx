@@ -23,11 +23,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import logo from '../assets/HFX_LEARNING_LOGO_WEB.webp'
 import { RootState } from '../main'
-import { clearUser } from '../reducers/userReducer'
+import { logout } from '../reducers/userReducer'
 import { StyledLink, StyledUserIconButton, theme } from '../theme/theme'
 
 const Header: React.FC = () => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch<any>()
     const user = useSelector((state: RootState) => state.user)
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -42,7 +42,7 @@ const Header: React.FC = () => {
     const handleMenuClose = () => setAnchorEl(null)
 
     const handleLogout = () => {
-        dispatch(clearUser())
+        dispatch(logout())
         handleMenuClose()
         handleDrawerClose()
     }

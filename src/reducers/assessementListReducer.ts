@@ -8,7 +8,7 @@ const assessmentListReducer = createSlice({
     name: 'assessmentList',
     initialState: null as Assessment[] | null,
     reducers: {
-        setAssessmentList(_state, action: { payload: Assessment[] }) {
+        setAssessmentList(_state, action: { payload: Assessment[] | null }) {
             return action.payload
         },
     },
@@ -23,3 +23,4 @@ export const fetchAssessments = () => {
 }
 
 export default assessmentListReducer.reducer
+export const { setAssessmentList } = assessmentListReducer.actions

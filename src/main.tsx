@@ -4,18 +4,22 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 
 import App from './App.js'
-import assessmentListReducer from './reducers/assessmentListReducer.js'
+import assessementListReducer from './reducers/assessementListReducer.js'
 import assessmentReducer from './reducers/assessmentReducer.js'
 import assessmentTypeReducer from './reducers/assessmentTypeReducer.js'
+import gradingAssessmentListReducer from './reducers/gradingAssessmentListReducer.js'
+import gradingAssessmentReducer from './reducers/gradingAssessmentReducer.js'
 import screenToDisplayReducer from './reducers/screenToDisplayReducer.js'
 import userReducer from './reducers/userReducer.js'
 
-const store = configureStore({
+export const store = configureStore({
     reducer: {
         screenToDisplay: screenToDisplayReducer,
         assessmentTypes: assessmentTypeReducer,
-        assessmentList: assessmentListReducer,
         assessment: assessmentReducer,
+        assessmentList: assessementListReducer,
+        gradingAssessment: gradingAssessmentReducer,
+        gradingAssessmentList: gradingAssessmentListReducer,
         user: userReducer,
     },
 })

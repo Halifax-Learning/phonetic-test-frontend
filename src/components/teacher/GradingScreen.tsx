@@ -29,23 +29,22 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
 import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
+import { fetchAudios } from '../../reducers/actions'
 import {
-    fetchAnswerAudio,
-    fetchCorrectAnswerAudio,
-    fetchQuestionAudio,
+    retrieveGradingAssessmentFromLocalStorage,
+    setGradingTest,
     setTeacherEvaluation,
-    setTest,
     submitTeacherEvaluation,
-} from '../../reducers/assessmentReducer'
+} from '../../reducers/gradingAssessmentReducer'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
 
 const GradingScreen = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const assessment = useSelector((state: RootState) => state.assessment.assessment)
-    const user = useSelector((state: RootState) => state.user)
-    const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
+    const assessment = useSelector((state: RootState) => state.gradingAssessment.assessment)
+    const currentTestIndex =
+        useSelector((state: RootState) => state.gradingAssessment.currentTestIndex) || 0
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
@@ -81,6 +80,21 @@ const GradingScreen = () => {
     }
 
     useEffect(() => {
+        // Handle when user refreshes the page
+        const reloadAssessment = async () => {
+            if (assessment === null) {
+                const assessmentId = await dispatch(retrieveGradingAssessmentFromLocalStorage())
+
+                if (!assessmentId) {
+                    navigate('/assessments-for-grading')
+                }
+            }
+        }
+
+        reloadAssessment()
+    }, [])
+
+    useEffect(() => {
         // Update selected test when currentTestIndex changes
         setSelectedTest(assessment?.tests[currentTestIndex!])
     }, [assessment, currentTestIndex])
@@ -92,38 +106,8 @@ const GradingScreen = () => {
     }, [assessment])
 
     useEffect(() => {
-        // Load all question audios
-        const hasQuestionAudio = selectedTest?.testType.hasQuestionAudio
-        if (hasQuestionAudio) {
-            for (const [index, testQuestion] of selectedTest?.testQuestions.entries() || []) {
-                const questionAudioBlobUrl = testQuestion.question.questionAudioBlobUrl
-                if (!questionAudioBlobUrl) {
-                    const questionId = testQuestion.question.questionId
-                    dispatch(fetchQuestionAudio(questionId!, currentTestIndex!, index))
-                }
-            }
-        }
-
-        // Load all correct answer audios
-        const hasCorrectAnswerAudio = selectedTest?.testType.hasCorrectAnswerAudio
-        if (hasCorrectAnswerAudio) {
-            for (const [index, testQuestion] of selectedTest?.testQuestions.entries() || []) {
-                const correctAnswerAudioBlobUrl = testQuestion.question.correctAnswerAudioBlobUrl
-                if (!correctAnswerAudioBlobUrl) {
-                    const questionId = testQuestion.question.questionId
-                    dispatch(fetchCorrectAnswerAudio(questionId!, currentTestIndex!, index))
-                }
-            }
-        }
-
-        // Load all student answer audios
-        for (const [index, testQuestion] of selectedTest?.testQuestions.entries() || []) {
-            const hasAnswerAudio = testQuestion.hasAnswerAudio
-            const answerAudioBlobUrl = testQuestion.answerAudioBlobUrl
-            if (hasAnswerAudio && !answerAudioBlobUrl) {
-                const testQuestionId = testQuestion.testQuestionId
-                dispatch(fetchAnswerAudio(testQuestionId, currentTestIndex!, index))
-            }
+        if (selectedTest && !selectedTest.hasFetchedAudio) {
+            dispatch(fetchAudios(selectedTest.testId, currentTestIndex!, true))
         }
     }, [selectedTest])
 
@@ -175,7 +159,7 @@ const GradingScreen = () => {
     }, [selectedTest])
 
     const onChooseTest = (index: number) => {
-        dispatch(setTest(index))
+        dispatch(setGradingTest(index))
     }
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
