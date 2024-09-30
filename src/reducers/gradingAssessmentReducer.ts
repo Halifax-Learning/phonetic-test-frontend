@@ -4,7 +4,7 @@ import { Assessment, TeacherGradingHistory, Test, TestQuestion, User } from '../
 import * as assessmentService from '../services/assessment'
 import * as testQuestionService from '../services/testQuestion'
 import { convertKeysToCamelCase } from '../utils/helper'
-import { handleSetAudioBlobUrls, setAudioBlobUrls } from './actions'
+import { handleSetAudioBlobUrls, setAudioBlobUrlsGrading } from './actions'
 import { updateGradingAssessmentInList } from './gradingAssessmentListReducer'
 
 interface AssessmentState {
@@ -110,7 +110,7 @@ const gradingAssessmentReducer = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(setAudioBlobUrls, handleSetAudioBlobUrls)
+        builder.addCase(setAudioBlobUrlsGrading, handleSetAudioBlobUrls)
     },
 })
 

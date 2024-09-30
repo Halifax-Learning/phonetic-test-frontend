@@ -4,7 +4,7 @@ import { Assessment } from '../models/interface'
 import * as assessmentService from '../services/assessment'
 import * as testQuestionService from '../services/testQuestion'
 import { convertKeysToCamelCase } from '../utils/helper'
-import { handleSetAudioBlobUrls, setAudioBlobUrls } from './actions'
+import { handleSetAudioBlobUrls, setAudioBlobUrlsRegular } from './actions'
 
 interface AssessmentState {
     assessment: Assessment | null
@@ -77,7 +77,7 @@ export const assessmentReducer = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(setAudioBlobUrls, handleSetAudioBlobUrls)
+        builder.addCase(setAudioBlobUrlsRegular, handleSetAudioBlobUrls)
     },
 })
 
