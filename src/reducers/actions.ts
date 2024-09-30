@@ -52,3 +52,10 @@ export const fetchAudios = (testId: string, testIndex: number, includeAnswer: bo
         )
     }
 }
+
+// action creator
+export const resetRootState = () => {
+    return {
+        type: 'RESET_ROOT_STATE',
+    }
+}
