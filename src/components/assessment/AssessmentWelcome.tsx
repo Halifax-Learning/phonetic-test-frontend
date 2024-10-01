@@ -61,7 +61,7 @@ const AssessmentWelcome = () => {
                             <Box display="flex" justifyContent="right">
                                 <Button
                                     variant="contained"
-                                    sx={{ padding: '12px' }}
+                                    sx={{ fontSize: '1rem' }}
                                     onClick={onClickNext}
                                 >
                                     Next
