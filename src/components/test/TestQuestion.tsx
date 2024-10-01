@@ -152,7 +152,7 @@ const TestQuestion = () => {
                                                 />
                                             )}
                                             {test.testType.questionType.questionInstructionText} */}
-                                        {questionAudioBlobUrl ? (
+                                        {test.testType.hasQuestionAudio ? (
                                             <Box>
                                                 <audio controls src={questionAudioBlobUrl}>
                                                     Your browser does not support the audio element.
