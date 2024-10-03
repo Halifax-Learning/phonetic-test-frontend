@@ -92,3 +92,21 @@ export interface TeacherGradingHistory {
     teacherComment: string
     createdAt: string
 }
+
+export interface ExportTestQuestion {
+    testQuestionId: string
+    question: Question
+    questionOrdinal: number
+    isLastQuestion: boolean
+    answerText: string
+    answerAudioBlobUrl: string
+    hasAnswerAudio: boolean
+    latestAutoEvaluation: number
+    latestTeacherEvaluation: boolean
+    originalTeacherEvaluation: boolean
+    latestTeacherComment: string
+    testQuestionSubmissionTime: Date
+    autoGradingHistory: AutoGradingHistory[]
+    teacherGradingHistory: TeacherGradingHistory[]
+    questionTypeName: string
+}
