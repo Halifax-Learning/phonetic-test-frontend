@@ -3,8 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { User } from '../models/interface'
 import * as userService from '../services/user'
 import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../utils/helper'
-import { resetAssessment } from './assessmentReducer'
-import { resetGradingAssessment } from './gradingAssessmentReducer'
+import { resetRootState } from './actions'
 
 const LOGGED_IN_USER = 'loggedInUser'
 
@@ -48,9 +47,7 @@ export const login = (email: string, password: string) => {
 
 export const logout = () => {
     return async (dispatch: any) => {
-        dispatch(userReducer.actions.clearUser())
-        dispatch(resetAssessment())
-        dispatch(resetGradingAssessment())
+        dispatch(resetRootState())
     }
 }
 
