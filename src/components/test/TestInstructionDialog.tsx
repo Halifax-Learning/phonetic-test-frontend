@@ -1,5 +1,6 @@
 import CloseIcon from '@mui/icons-material/Close'
-import { Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
+import HelpIcon from '@mui/icons-material/Help'
+import { Box, Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'
 import React from 'react'
 import AudioPlayerWithIcon from './AudioPlayerWithIcon'
 
@@ -26,22 +27,57 @@ const InstructionDialog: React.FC<InstructionDialogProps> = ({
 }) => {
     return (
         <Dialog onClose={onClose} aria-labelledby="instruction" open={open} maxWidth="md">
-            <DialogTitle sx={{ m: 0, p: 2 }} id="instruction">
-                Instruction
-                <IconButton
-                    aria-label="close"
-                    onClick={onClose}
-                    sx={(theme) => ({
-                        position: 'absolute',
-                        right: 8,
-                        top: 8,
-                        color: theme.palette.primary.main,
-                    })}
+            <DialogTitle
+                sx={{
+                    m: 0,
+                    p: 2,
+                    backgroundColor: '#e8ddcc',
+                }}
+                id="instruction"
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        zIndex: 1,
+                    }}
                 >
-                    <CloseIcon />
-                </IconButton>
+                    <HelpIcon sx={{ mr: 1 }} />
+                    Instruction
+                    <IconButton
+                        aria-label="close"
+                        onClick={onClose}
+                        sx={(theme) => ({
+                            position: 'absolute',
+                            right: 10,
+                            top: 10,
+                            color: theme.palette.primary.main,
+                        })}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
             </DialogTitle>
-            <DialogContent dividers>
+            <DialogContent
+                dividers
+                sx={{
+                    backgroundColor: '#fff8ed',
+                }}
+            >
+                {/* Background layer */}
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        width: 'calc(100% - 2rem)',
+                        height: 'calc(100% - 2rem)',
+                        background: '#fff8ed', // Light brown to dark brown
+                        zIndex: -1,
+                        top: '1rem',
+                        left: '1rem',
+                        opacity: 1, // 20% opacity
+                        borderRadius: '8px',
+                    }}
+                />
                 <InstructionContent
                     showAudioVersion={showAudioVersion}
                     instructionAudioBlobUrl={instructionAudioBlobUrl}
@@ -86,8 +122,8 @@ const InstructionContent: React.FC<InstructionContentProps> = ({
         <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
             <strong>4. Revise Your Answer (Optional):</strong>
             <br />
-            • If you would like to change your answer, click &quot;Record Now&quot; again to start a
-            new recording.
+            • If you would like to change your answer, click &quot;Record Again&quot; to start a new
+            recording.
             <br />• <em>Important:</em> If you record a new answer, your previous answer will be
             lost.
         </Typography>

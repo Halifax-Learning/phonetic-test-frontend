@@ -68,17 +68,13 @@ const TestFinish = () => {
                         <Grid2 size={{ xs: 12, sm: 12, md: 12 }}>
                             <Box display="flex" justifyContent="right">
                                 {currentTestIndex < (testTypes?.length ?? 0) - 1 ? (
-                                    <Button
-                                        variant="contained"
-                                        sx={{ padding: '12px' }}
-                                        onClick={onClickNextTest}
-                                    >
+                                    <Button variant="contained" onClick={onClickNextTest}>
                                         Next Section
                                     </Button>
                                 ) : (
                                     <Button
                                         variant="contained"
-                                        sx={{ padding: '12px' }}
+                                        sx={{ fontSize: '1rem' }}
                                         onClick={onClickFinishAssessment}
                                     >
                                         Finish Assessment

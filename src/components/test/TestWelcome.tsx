@@ -42,8 +42,52 @@ const TestWelcome = () => {
                         justifyContent: 'center',
                     }}
                 >
-                    <Card variant="outlined" sx={{ maxWidth: 'md', padding: 2 }}>
-                        <CardContent>
+                    {/* Card with content */}
+                    <Card
+                        variant="outlined"
+                        sx={{
+                            maxWidth: 'md',
+                            width: '100%',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            zIndex: 3,
+                            border: 'none', // Remove the default border
+                            '&:before': {
+                                content: '""',
+                                position: 'absolute',
+                                top: -5,
+                                left: -5,
+                                right: -5,
+                                bottom: -5,
+                                background: `
+                                    repeating-linear-gradient(
+                                        -45deg,
+                                        rgba(139, 69, 19, 0.8) 0%,
+                                        rgba(89, 43, 10, 1) 5px,
+                                        rgba(189, 111, 55, 1) 5px,
+                                        rgba(189, 111, 55,  0.8) 10px
+                                    )
+                                `,
+                                zIndex: 2,
+                                opacity: 0.8, // 50% opacity
+                            },
+                        }}
+                    >
+                        {/* Background layer */}
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                width: 'calc(100% - 2rem)',
+                                height: 'calc(100% - 2rem)',
+                                background: '#fff8ed', // Light brown to dark brown
+                                zIndex: 2,
+                                top: '1rem',
+                                left: '1rem',
+                                opacity: 1, // 20% opacity
+                                borderRadius: '8px',
+                            }}
+                        />
+                        <CardContent sx={{ position: 'relative', zIndex: 2, margin: '2rem' }}>
                             <Grid2 container spacing={2}>
                                 {/* Top-left: Icon */}
                                 <Grid2
@@ -93,7 +137,7 @@ const TestWelcome = () => {
                                             onClick={() => startTest()}
                                             variant="contained"
                                             color="primary"
-                                            sx={{ padding: '12px' }}
+                                            sx={{ fontSize: '1rem' }}
                                         >
                                             Start {testTypeName} Section
                                         </Button>

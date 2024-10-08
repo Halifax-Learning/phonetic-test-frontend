@@ -24,11 +24,17 @@ import {
 } from '@mui/material'
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
 import { format } from 'date-fns'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 import { FocusEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
-import { AutoGradingHistory, TeacherGradingHistory } from '../../models/interface'
+import {
+    AutoGradingHistory,
+    ExportTestQuestion,
+    TeacherGradingHistory,
+} from '../../models/interface'
 import { fetchAudios } from '../../reducers/actions'
 import {
     retrieveGradingAssessmentFromLocalStorage,
@@ -36,6 +42,8 @@ import {
     setTeacherEvaluation,
     submitTeacherEvaluation,
 } from '../../reducers/gradingAssessmentReducer'
+import { theme } from '../../theme/theme'
+import '../fonts/Inter-VariableFont_opsz,wght-normal.js'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
 
@@ -135,12 +143,12 @@ const GradingScreen = () => {
         const newRows =
             selectedTest?.testQuestions.map((testQuestion, index) => ({
                 id: testQuestion.testQuestionId,
-                questionNo: index + 1,
+                questionNo: testQuestion.questionOrdinal,
                 questionText: testQuestion.question.questionText,
                 questionAudio: testQuestion.question.questionAudioBlobUrl,
                 correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
                 studentAnswerAudio: testQuestion.answerAudioBlobUrl,
-                machinEvaluation:
+                machineEvaluation:
                     testQuestion.latestAutoEvaluation === null
                         ? 'N/A'
                         : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
@@ -227,7 +235,12 @@ const GradingScreen = () => {
     }
 
     const columns: GridColDef[] = [
-        { field: 'questionNo', headerClassName: 'data-grid--header', headerName: 'No.', width: 50 },
+        {
+            field: 'questionNo',
+            headerClassName: 'data-grid--header',
+            headerName: 'No.',
+            width: 50,
+        },
         {
             field: 'questionText',
             headerClassName: 'data-grid--header',
@@ -274,7 +287,7 @@ const GradingScreen = () => {
                 ),
         },
         {
-            field: 'machinEvaluation',
+            field: 'machineEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Machine Evaluation',
             width: 150,
@@ -288,8 +301,8 @@ const GradingScreen = () => {
                         height: '100%',
                     }}
                 >
-                    <span>{params.row.machinEvaluation}</span>
-                    {params.row.machinEvaluation !== 'N/A' && ( // Only show the icon if machinEvaluation is not 'N/A'
+                    <span>{params.row.machineEvaluation}</span>
+                    {params.row.machineEvaluation !== 'N/A' && ( // Only show the icon if machineEvaluation is not 'N/A'
                         <Tooltip title="View Grading History">
                             <IconButton
                                 size="small"
@@ -336,6 +349,7 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Grade',
             width: 200,
+            disableExport: true,
             renderCell: (params) => (
                 <Box
                     sx={{
@@ -413,6 +427,121 @@ const GradingScreen = () => {
             ),
         },
     ]
+
+    const exportToPdf = () => {
+        const doc = new jsPDF({ orientation: 'landscape' })
+        const assessmentName = assessment?.assessmentType.assessmentTypeName || 'Assessment'
+        const studentName =
+            `${assessment?.testTaker.firstName} ${assessment?.testTaker.lastName}` || 'Student'
+        const submissionTime = assessment?.assessmentSubmissionTime
+            ? format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
+            : 'In Progress'
+
+        doc.setFont('Inter-VariableFont_opsz,wght')
+        doc.setFontSize(12)
+        doc.setTextColor(theme.palette.text.primary)
+        doc.setDrawColor(theme.palette.text.primary)
+        doc.text(`Assessment: ${assessmentName}`, 15, 20)
+        doc.text(`Student Name: ${studentName}`, 15, 28)
+        doc.text(`Submission Time: ${submissionTime}`, 15, 36)
+
+        // Add a line separator below the header
+        doc.setLineWidth(0.5)
+        doc.line(15, 40, doc.internal.pageSize.width - 15, 40) // Horizontal line
+
+        const allTestQuestions =
+            assessment?.tests?.reduce<ExportTestQuestion[]>((acc, test) => {
+                const questionTypeName = test.testType?.questionType?.questionTypeName || 'N/A'
+
+                // Concatenate each testQuestion with its corresponding testType
+                const enrichedTestQuestions = test.testQuestions.map((testQuestion) => ({
+                    ...testQuestion,
+                    questionTypeName,
+                }))
+
+                return acc.concat(enrichedTestQuestions)
+            }, []) || []
+
+        const exportColumns = [
+            { title: 'Question Type', dataKey: 'questionTypeName' },
+            { title: 'No.', dataKey: 'questionOrdinal' },
+            ...columns
+                .filter(
+                    (col) =>
+                        !col.disableExport &&
+                        col.field !== 'questionNo' &&
+                        col.field !== 'machineEvaluation'
+                )
+                .map((col) => ({ title: col.headerName, dataKey: col.field })),
+        ]
+
+        const exportRows = allTestQuestions?.map((testQuestion, index) => {
+            const rowData: Record<string, any> = {
+                questionText: testQuestion.question.questionText,
+                questionNo: index + 1,
+                teacherEvaluation:
+                    testQuestion.originalTeacherEvaluation !== null
+                        ? testQuestion.originalTeacherEvaluation
+                            ? 'Correct'
+                            : 'Incorrect'
+                        : 'N/A',
+                feedback: testQuestion.latestTeacherComment || '',
+                questionTypeName: testQuestion.questionTypeName || 'N/A',
+                questionOrdinal: testQuestion.questionOrdinal,
+            }
+
+            return exportColumns.reduce(
+                (acc, col) => {
+                    acc[col.dataKey] = rowData[col.dataKey]
+                    return acc
+                },
+                {} as Record<string, any>
+            )
+        })
+
+        doc.autoTable({
+            startY: 44,
+            columns: exportColumns,
+            body: exportRows,
+            theme: 'grid',
+            headStyles: {
+                fillColor: theme.palette.primary.main,
+                textColor: theme.palette.primary.contrastText,
+                fontSize: 12,
+                halign: 'center',
+            },
+            bodyStyles: {
+                textColor: theme.palette.text.primary,
+                fontSize: 10,
+            },
+            margin: { top: 10, left: 15, right: 15 },
+            styles: {
+                overflow: 'linebreak',
+                cellPadding: 2,
+                font: 'Inter-VariableFont_opsz,wght',
+            },
+        })
+
+        // Add a footer (page number)
+        const pageCount = doc.getNumberOfPages()
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i)
+            doc.setFontSize(10)
+            doc.text(
+                `Page ${i} of ${pageCount}`,
+                doc.internal.pageSize.width - 30,
+                doc.internal.pageSize.height - 10
+            )
+        }
+
+        const formattedSubmissionDate = assessment?.assessmentSubmissionTime
+            ? format(new Date(assessment.assessmentSubmissionTime), 'yyyy-MM-dd')
+            : 'In_Progress'
+
+        const pdfFilename = `${assessmentName.replace(/ /g, '_')}_Feedback_for_${studentName.replace(/ /g, '_')}_${formattedSubmissionDate}.pdf`
+
+        doc.save(pdfFilename)
+    }
 
     return (
         <>
@@ -518,7 +647,6 @@ const GradingScreen = () => {
                                     variant="contained"
                                     color="primary"
                                     onClick={handleBackToAssessments}
-                                    sx={{ padding: '12px' }}
                                 >
                                     Back
                                 </Button>
@@ -528,9 +656,13 @@ const GradingScreen = () => {
                                     variant="contained"
                                     color="secondary"
                                     onClick={onSaveGrading}
-                                    sx={{ padding: '12px' }}
                                 >
                                     Save
+                                </Button>
+                            </Grid2>
+                            <Grid2>
+                                <Button variant="contained" color="secondary" onClick={exportToPdf}>
+                                    Export to PDF
                                 </Button>
                             </Grid2>
                         </Grid2>
