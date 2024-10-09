@@ -15,4 +15,10 @@
     <script type="module" src="/src/main.tsx"></script>
 </body>
 
+<script>
+    if (location.protocol !== 'https:' && !location.hostname.includes('localhost')) {
+        location.replace(`https:${location.href.substring(location.protocol.length)}`)
+    }
+</script>
+
 </html>

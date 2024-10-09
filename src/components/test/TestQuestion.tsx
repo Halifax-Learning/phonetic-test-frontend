@@ -77,6 +77,14 @@ const TestQuestion = () => {
     }, [])
 
     useEffect(() => {
+        const requestMicrophonePermission = async () => {
+            await navigator.mediaDevices.getUserMedia({ audio: true })
+        }
+
+        requestMicrophonePermission()
+    }, [])
+
+    useEffect(() => {
         let timer: NodeJS.Timeout
         if (isRecording) {
             timer = setInterval(() => {
