@@ -11,5 +11,5 @@ export const register = async (user: User) => {
 
 export const login = async (email: string, password: string) => {
     const response = await axios.post(`${baseUrl}/login`, { email, password })
-    return response.data
+    return response
 }

@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+import axios from 'axios'
 import { User } from '../models/interface'
 import * as userService from '../services/user'
 import { convertKeysToCamelCase, convertKeysToSnakeCase } from '../utils/helper'
@@ -39,9 +40,18 @@ export const register = (user: User) => {
 
 export const login = (email: string, password: string) => {
     return async (dispatch: any) => {
-        const data = await userService.login(email, password)
-        const dataCamelCase = convertKeysToCamelCase(data)
-        dispatch(userReducer.actions.setUser(dataCamelCase))
+        try {
+            const response = await userService.login(email, password)
+            const dataCamelCase = convertKeysToCamelCase(response.data)
+            dispatch(userReducer.actions.setUser(dataCamelCase))
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                const errorMessage = error.response.data.error || 'Login failed: Unknown error'
+                throw new Error(errorMessage)
+            } else {
+                throw new Error('An unexpected error occurred')
+            }
+        }
     }
 }
 
