@@ -2,6 +2,7 @@ import { Box, Button, CardContent, CircularProgress, Grid2, Typography } from '@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { RootState } from '../../main'
 import { createAssessment, fetchInProgressAssessment } from '../../reducers/assessmentReducer'
 import { fetchAssessmentTypes } from '../../reducers/assessmentTypeReducer'
@@ -86,7 +87,7 @@ const AssessmentList = () => {
     return (
         <Box sx={{ mx: 'auto', maxWidth: 'md', alignItems: 'center', justifyContent: 'center' }}>
             <Typography variant="h1" color="secondary.dark" sx={{ mb: 4 }}>
-                Hi, {user?.firstName}. Are you ready to start your assessment?
+                Hi {user?.firstName}. Are you ready to start your assessment?
             </Typography>
 
             {assessment ? (
@@ -94,13 +95,17 @@ const AssessmentList = () => {
                     <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
                         You have an assessment in progress. Please continue where you left off.
                     </Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => dispatch(setScreenToDisplay('AssessmentWelcome'))}
-                    >
-                        Continue Assessment
-                    </Button>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => dispatch(setScreenToDisplay('AssessmentWelcome'))}
+                            sx={{ fontSize: '1rem' }}
+                            startIcon={<PlayArrowIcon />}
+                        >
+                            Continue Assessment
+                        </Button>
+                    </Box>
                 </>
             ) : (
                 <>
