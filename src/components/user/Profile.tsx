@@ -76,7 +76,7 @@ const Profile = () => {
                     <Box display="flex" alignItems="center" color="primary.main">
                         <AssignmentIcon sx={{ fontSize: 40, mr: 1 }} />
                         <Typography variant="h2" component="div">
-                            Your Latest 3 Assessments
+                            Your Latest Assessments
                         </Typography>
                     </Box>
                     <Divider sx={{ my: 2 }} />
@@ -100,7 +100,7 @@ const Profile = () => {
                     <Box display="flex" alignItems="center" color="primary.main">
                         <AssignmentIcon sx={{ fontSize: 40, mr: 1 }} />
                         <Typography variant="h2" component="div">
-                            Your Latest 3 Assessments
+                            Your Latest Assessments
                         </Typography>
                     </Box>
                     <Divider sx={{ my: 2 }} />

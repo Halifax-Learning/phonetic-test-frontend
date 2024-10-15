@@ -1,6 +1,8 @@
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { RootState } from '../../main'
 import { nextTest, resetAssessment } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
@@ -68,7 +70,12 @@ const TestFinish = () => {
                         <Grid2 size={{ xs: 12, sm: 12, md: 12 }}>
                             <Box display="flex" justifyContent="right">
                                 {currentTestIndex < (testTypes?.length ?? 0) - 1 ? (
-                                    <Button variant="contained" onClick={onClickNextTest}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={onClickNextTest}
+                                        sx={{ fontSize: '1rem' }}
+                                        startIcon={<ArrowForwardIcon />}
+                                    >
                                         Next Section
                                     </Button>
                                 ) : (
@@ -76,6 +83,7 @@ const TestFinish = () => {
                                         variant="contained"
                                         sx={{ fontSize: '1rem' }}
                                         onClick={onClickFinishAssessment}
+                                        startIcon={<CheckCircleIcon />}
                                     >
                                         Finish Assessment
                                     </Button>

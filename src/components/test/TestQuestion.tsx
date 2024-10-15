@@ -1,5 +1,5 @@
 import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import { Box, Button, Card, CardContent, Grid2, LinearProgress, Typography } from '@mui/material'
+import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
@@ -28,6 +28,8 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
+import ConfirmationModal from './ConfirmationModal'
+import ProgressBar from './ProgressBar'
 import TestInstructionDialog from './TestInstructionDialog'
 
 const TestQuestion = () => {
@@ -43,6 +45,8 @@ const TestQuestion = () => {
     const [isRecording, setIsRecording] = useState(false)
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
+    const [modalOpen, setModalOpen] = useState<boolean>(false)
+    const [currentAction, setCurrentAction] = useState<'next' | 'finish' | null>(null)
 
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ audio: true })
 
@@ -66,13 +70,12 @@ const TestQuestion = () => {
     ]
 
     const [currentSticker, setCurrentSticker] = useState('Animal1.gif')
+    const pickRandomSticker = () => {
+        const randomIndex = Math.floor(Math.random() * stickers.length)
+        setCurrentSticker(stickers[randomIndex])
+    }
 
     useEffect(() => {
-        const pickRandomSticker = () => {
-            const randomIndex = Math.floor(Math.random() * stickers.length)
-            setCurrentSticker(stickers[randomIndex])
-        }
-
         pickRandomSticker()
     }, [])
 
@@ -115,25 +118,24 @@ const TestQuestion = () => {
 
     const onClickNextQuestion = () => {
         if (isQuestionWithoutAnswer) {
-            const confirmProceed = window.confirm(
-                'You have not recorded an answer for this question. \nAre you sure you want to proceed to the next question?'
-            )
-            if (!confirmProceed) return
+            setCurrentAction('next')
+            setModalOpen(true)
+        } else {
+            setIsQuestionWithoutAnswer(true)
+            dispatch(submitTestQuestion())
+            dispatch(nextQuestion())
+            pickRandomSticker()
         }
-        setIsQuestionWithoutAnswer(true)
-        dispatch(submitTestQuestion())
-        dispatch(nextQuestion())
     }
 
     const onFinishTest = () => {
         if (isQuestionWithoutAnswer) {
-            const confirmProceed = window.confirm(
-                'You have not recorded an answer for this question. \nAre you sure you want to proceed to the next question?'
-            )
-            if (!confirmProceed) return
+            setCurrentAction('finish')
+            setModalOpen(true)
+        } else {
+            dispatch(submitTestQuestion())
+            dispatch(setScreenToDisplay('TestFinish'))
         }
-        dispatch(submitTestQuestion())
-        dispatch(setScreenToDisplay('TestFinish'))
     }
 
     const onOnpenInstructionDialog = () => {
@@ -144,10 +146,28 @@ const TestQuestion = () => {
         setOpenInstructionDialog(false)
     }
 
+    const handleConfirm = () => {
+        if (currentAction === 'next') {
+            setIsQuestionWithoutAnswer(true)
+            dispatch(submitTestQuestion())
+            dispatch(nextQuestion())
+            pickRandomSticker()
+        } else if (currentAction === 'finish') {
+            dispatch(submitTestQuestion())
+            dispatch(setScreenToDisplay('TestFinish'))
+        }
+        setModalOpen(false)
+        setCurrentAction(null)
+    }
+
     return (
         <>
             {test && currentTestQuestionIndex !== null && (
                 <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
+                    <ProgressBar
+                        currentQuestionIndex={currentTestQuestionIndex}
+                        numQuestions={test?.testType.numQuestions}
+                    />
                     <Card
                         variant="outlined"
                         sx={{
@@ -171,23 +191,6 @@ const TestQuestion = () => {
                                 zIndex: 1, // Behind the card content
                             }}
                         />
-                        <Box
-                            sx={{
-                                width: '100%',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                zIndex: 2, // Behind the card content
-                            }}
-                        >
-                            <LinearProgress
-                                variant="determinate"
-                                value={
-                                    ((currentTestQuestionIndex + 1) / test?.testType.numQuestions) *
-                                    100
-                                }
-                            />
-                        </Box>
                         <CardContent sx={{ position: 'relative', zIndex: 3 }}>
                             <Grid2 container spacing={2}>
                                 {/* Top-left: Icon */}
@@ -232,6 +235,10 @@ const TestQuestion = () => {
                                                             <audio
                                                                 controls
                                                                 src={questionAudioBlobUrl}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    maxWidth: 'sm',
+                                                                }}
                                                             >
                                                                 Your browser does not support the
                                                                 audio element.
@@ -265,7 +272,40 @@ const TestQuestion = () => {
                                                     {/* Second Box: Recording Section */}
                                                     <Box sx={{ mt: 2, mb: 2 }}>
                                                         {isRecording && (
-                                                            <div>
+                                                            <div
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                }}
+                                                            >
+                                                                <Box
+                                                                    sx={{
+                                                                        width: '10px',
+                                                                        height: '10px',
+                                                                        backgroundColor: 'red',
+                                                                        borderRadius: '50%',
+                                                                        animation:
+                                                                            'pulsate 1s infinite',
+                                                                        margin: '0px 15px',
+                                                                        '@keyframes pulsate': {
+                                                                            '0%': {
+                                                                                transform:
+                                                                                    'scale(1)',
+                                                                                opacity: 1,
+                                                                            },
+                                                                            '50%': {
+                                                                                transform:
+                                                                                    'scale(1.5)',
+                                                                                opacity: 0.7,
+                                                                            },
+                                                                            '100%': {
+                                                                                transform:
+                                                                                    'scale(1)',
+                                                                                opacity: 1,
+                                                                            },
+                                                                        },
+                                                                    }}
+                                                                />
                                                                 Recording Time: {recordingTime}s
                                                             </div>
                                                         )}
@@ -279,6 +319,10 @@ const TestQuestion = () => {
                                                         <audio
                                                             controls
                                                             src={mediaBlobUrl}
+                                                            style={{
+                                                                width: '100%',
+                                                                maxWidth: 'sm',
+                                                            }}
                                                         />
                                                     </>
                                                 )
@@ -453,6 +497,11 @@ const TestQuestion = () => {
                                                                 </Button>
                                                             )
                                                         }
+                                                        <ConfirmationModal
+                                                            open={modalOpen}
+                                                            onClose={() => setModalOpen(false)}
+                                                            onConfirm={handleConfirm}
+                                                        />
                                                     </Box>
                                                 </Grid2>
                                             </Grid2>

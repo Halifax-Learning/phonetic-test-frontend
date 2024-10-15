@@ -2,6 +2,7 @@ import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { useEffect } from 'react'
 import { RootState } from '../../main'
 import { fetchAudios } from '../../reducers/actions'
@@ -138,6 +139,7 @@ const TestWelcome = () => {
                                             variant="contained"
                                             color="primary"
                                             sx={{ fontSize: '1rem' }}
+                                            startIcon={<PlayArrowIcon />}
                                         >
                                             Start {testTypeName} Section
                                         </Button>

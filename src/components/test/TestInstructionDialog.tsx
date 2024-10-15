@@ -70,7 +70,7 @@ const InstructionDialog: React.FC<InstructionDialogProps> = ({
                         position: 'absolute',
                         width: 'calc(100% - 2rem)',
                         height: 'calc(100% - 2rem)',
-                        background: '#fff8ed', // Light brown to dark brown
+                        background: '#fff8ed',
                         zIndex: -1,
                         top: '1rem',
                         left: '1rem',
