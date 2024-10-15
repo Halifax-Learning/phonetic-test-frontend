@@ -115,7 +115,7 @@ const Home = () => {
             >
                 {user && (
                     <Typography variant="h1" sx={{ color: 'inherit', mb: 2 }}>
-                        Hello, {user.firstName}!
+                        Hello {user.firstName}!
                     </Typography>
                 )}
                 <Typography variant="h1" sx={{ color: 'inherit', mb: 2 }}>

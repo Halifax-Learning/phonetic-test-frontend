@@ -1,6 +1,7 @@
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { RootState } from '../../main'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { theme } from '../../theme/theme'
@@ -31,7 +32,7 @@ const AssessmentWelcome = () => {
                     }}
                 >
                     <Typography variant="h1" color="secondary.dark" sx={{ mb: 4 }}>
-                        Hi, {user?.firstName}. Welcome to the{' '}
+                        Hi {user?.firstName}. Welcome to the{' '}
                         {assessment.assessmentType.assessmentTypeName}
                     </Typography>
                     <Typography variant="body1" color="text.primary" sx={{ mb: 2 }}>
@@ -63,6 +64,7 @@ const AssessmentWelcome = () => {
                                     variant="contained"
                                     sx={{ fontSize: '1rem' }}
                                     onClick={onClickNext}
+                                    startIcon={<PlayArrowIcon />}
                                 >
                                     Next
                                 </Button>
