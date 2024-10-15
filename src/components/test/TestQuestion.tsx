@@ -272,7 +272,40 @@ const TestQuestion = () => {
                                                     {/* Second Box: Recording Section */}
                                                     <Box sx={{ mt: 2, mb: 2 }}>
                                                         {isRecording && (
-                                                            <div>
+                                                            <div
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                }}
+                                                            >
+                                                                <Box
+                                                                    sx={{
+                                                                        width: '10px',
+                                                                        height: '10px',
+                                                                        backgroundColor: 'red',
+                                                                        borderRadius: '50%',
+                                                                        animation:
+                                                                            'pulsate 1s infinite',
+                                                                        margin: '0px 15px',
+                                                                        '@keyframes pulsate': {
+                                                                            '0%': {
+                                                                                transform:
+                                                                                    'scale(1)',
+                                                                                opacity: 1,
+                                                                            },
+                                                                            '50%': {
+                                                                                transform:
+                                                                                    'scale(1.5)',
+                                                                                opacity: 0.7,
+                                                                            },
+                                                                            '100%': {
+                                                                                transform:
+                                                                                    'scale(1)',
+                                                                                opacity: 1,
+                                                                            },
+                                                                        },
+                                                                    }}
+                                                                />
                                                                 Recording Time: {recordingTime}s
                                                             </div>
                                                         )}

@@ -6,13 +6,19 @@ import { useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
 
 import { Visibility, VisibilityOff } from '@mui/icons-material'
-import { useState } from 'react'
+import MuiAlert, { AlertProps } from '@mui/material/Alert'
+import Snackbar from '@mui/material/Snackbar'
+import React, { useState } from 'react'
 import { login } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
 
 const schema = yup.object().shape({
     email: yup.string().email('Invalid email address').required('Email is required'),
     password: yup.string().required('Password is required'),
+})
+
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} {...props} />
 })
 
 const Login = () => {
@@ -26,9 +32,23 @@ const Login = () => {
         resolver: yupResolver(schema), // Use Yup schema for validation
     })
     const [showPassword, setShowPassword] = useState(false)
+    const [openSnackbar, setOpenSnackbar] = useState(false)
+    const [snackbarMessage, setSnackbarMessage] = useState('')
 
-    const onSubmit = (data: any) => {
-        dispatch(login(data.email, data.password))
+    const onSubmit = async (data: any) => {
+        try {
+            await dispatch(login(data.email, data.password))
+
+            // Handle successful login (e.g., navigate to a dashboard)
+            console.log('Login successful')
+        } catch (error: any) {
+            // Catch and handle login failure
+            console.error('Login failed:', error)
+
+            // Update snackbar message and open it
+            setSnackbarMessage(error.message || 'Login failed. Please try again.')
+            setOpenSnackbar(true)
+        }
     }
 
     const switchToRegister = () => {
@@ -107,6 +127,16 @@ const Login = () => {
                     </Link>
                 </Typography>
             </Card>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setOpenSnackbar(false)} severity="error">
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     )
 }
