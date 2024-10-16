@@ -1,14 +1,14 @@
-# Use a lightweight server to serve the static files.
+# Use an official Nginx image to serve the app
 FROM nginx:alpine
 
-# Copy built files from the previous stage to the nginx directory.
+# Copy the built files from your local dist directory to the Nginx HTML directory
 COPY ./dist /usr/share/nginx/html
 
 # Copy the custom Nginx configuration file
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose the port for the server.
-EXPOSE 80
+# Expose port 443 for SSL
+EXPOSE 443
 
-# Command to run Nginx.
+# Command to run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
