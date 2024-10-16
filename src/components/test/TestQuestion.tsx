@@ -1,5 +1,5 @@
 import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Grid2, Snackbar, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
@@ -46,6 +46,7 @@ const TestQuestion = () => {
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
+    const [maxRecordingTimeWarning, setMaxRecordingTimeWarning] = useState(false)
 
     // Set up a message to display when student submits the answer
     // Additionally, if color is 'info', a request is in progress and the "Next" button is disabled
@@ -116,6 +117,11 @@ const TestQuestion = () => {
     const onStartRecording = () => {
         startRecording()
         setIsRecording(true)
+        // Stop recording after 5 seconds
+        setTimeout(() => {
+            onStopRecording()
+            setMaxRecordingTimeWarning(true)
+        }, 6000)
     }
 
     const onStopRecording = () => {
@@ -170,6 +176,16 @@ const TestQuestion = () => {
         <>
             {test && currentTestQuestionIndex !== null && (
                 <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
+                    <Snackbar
+                        open={maxRecordingTimeWarning}
+                        autoHideDuration={6000}
+                        onClose={() => setMaxRecordingTimeWarning(false)}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    >
+                        <Alert onClose={() => setMaxRecordingTimeWarning(false)} severity="warning">
+                            Maximum Recording Time is 5 seconds
+                        </Alert>
+                    </Snackbar>
                     <ProgressBar
                         currentQuestionIndex={currentTestQuestionIndex}
                         numQuestions={test?.testType.numQuestions}
