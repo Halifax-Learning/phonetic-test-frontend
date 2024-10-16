@@ -195,7 +195,7 @@ export const submitTeacherEvaluation = () => {
                     testQuestions: reqTestQuestions,
                 })
             } catch {
-                return { error: 'Fail to save grading. Please try again.' }
+                throw Error('Fail to save grading. Please try again.')
             }
 
             dispatch(
@@ -217,9 +217,7 @@ export const submitTeacherEvaluation = () => {
         dispatch(gradingAssessmentReducer.actions.resetOriginalTeacherEvaluation())
 
         if (testQuestions.length === 0) {
-            return { error: 'No grading changes were made.' }
-        } else {
-            return { success: 'Grading saved successfully.' }
+            throw Error('No grading changes were made.')
         }
     }
 }

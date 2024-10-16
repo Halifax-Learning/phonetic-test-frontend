@@ -224,13 +224,14 @@ const GradingScreen = () => {
 
     const onSaveGrading = async () => {
         setOnSaveMsg({ message: 'Saving...', color: 'info' })
-        const response = await dispatch(submitTeacherEvaluation())
-        if (response?.error) {
-            setOnSaveMsg({ message: response.error, color: 'error' })
+        try {
+            await dispatch(submitTeacherEvaluation())
+        } catch (error: any) {
+            setOnSaveMsg({ message: error.message, color: 'error' })
+            return
         }
-        if (response?.success) {
-            setOnSaveMsg({ message: response.success, color: 'success' })
-        }
+
+        setOnSaveMsg({ message: 'Grading saved successfully!', color: 'success' })
     }
 
     const handleBackToAssessments = () => {

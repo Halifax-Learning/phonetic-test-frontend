@@ -127,9 +127,10 @@ const TestQuestion = () => {
     const submitAnswer = async () => {
         setOnSubmitMsg({ message: 'Saving your answer...', color: 'info' })
 
-        const response = await dispatch(submitTestQuestion())
-        if (response?.error) {
-            setOnSubmitMsg({ message: response.error, color: 'error' })
+        try {
+            await dispatch(submitTestQuestion())
+        } catch (error: any) {
+            setOnSubmitMsg({ message: error.message, color: 'error' })
             return
         }
         setIsQuestionWithoutAnswer(true)

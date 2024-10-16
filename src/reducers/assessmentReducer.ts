@@ -145,10 +145,9 @@ export const submitTestQuestion = () => {
                     testQuestion.answerAudioBlobUrl
                 )
             } catch {
-                return { error: 'Failed to submit the answer. Please try again.' }
+                throw new Error('Failed to submit the answer. Please try again.')
             }
         }
-        return { success: true }
     }
 }
 
