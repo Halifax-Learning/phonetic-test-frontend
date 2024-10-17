@@ -61,7 +61,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                                     </Typography>
 
                                     <Typography component="span" variant="body2">
-                                        {test.teacherScore
+                                        {test.teacherScore !== null
                                             ? `: ${test.teacherScore}/${test.testType.numQuestions}`
                                             : ':'}
                                     </Typography>
