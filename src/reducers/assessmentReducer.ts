@@ -62,11 +62,9 @@ export const assessmentReducer = createSlice({
             }
         ) {
             if (state.assessment) {
-                // prettier-ignore
-                state.assessment
-                    .tests[action.payload.testIndex]
-                    .testQuestions[action.payload.testQuestionIndex]
-                    .answerAudioBlobUrl = action.payload.answerAudioBlobUrl
+                state.assessment.tests[action.payload.testIndex].testQuestions[
+                    action.payload.testQuestionIndex
+                ].answerAudioBlobUrl = action.payload.answerAudioBlobUrl
             }
         },
         resetAssessment(state) {
@@ -140,11 +138,15 @@ export const submitTestQuestion = () => {
             state.assessment.assessment?.tests[testIdx!].testQuestions[questionIdx!]
 
         if (testQuestion) {
-            await testQuestionService.updateTestQuestion(
-                testQuestion.testQuestionId,
-                testQuestion.answerText,
-                testQuestion.answerAudioBlobUrl
-            )
+            try {
+                await testQuestionService.updateTestQuestion(
+                    testQuestion.testQuestionId,
+                    testQuestion.answerText,
+                    testQuestion.answerAudioBlobUrl
+                )
+            } catch {
+                throw new Error('Failed to submit the answer. Please try again.')
+            }
         }
     }
 }

@@ -44,18 +44,14 @@ const gradingAssessmentReducer = createSlice({
         ) {
             if (state.assessment) {
                 // update the latest teacher evaluation
-                // prettier-ignore
-                state.assessment
-                    .tests[action.payload.testIndex]
-                    .testQuestions[action.payload.testQuestionIndex]
-                    .latestTeacherEvaluation = action.payload.evaluation
+                state.assessment.tests[action.payload.testIndex].testQuestions[
+                    action.payload.testQuestionIndex
+                ].latestTeacherEvaluation = action.payload.evaluation
 
                 // update the latest teacher comment
-                // prettier-ignore
-                state.assessment
-                    .tests[action.payload.testIndex]
-                    .testQuestions[action.payload.testQuestionIndex]
-                    .latestTeacherComment = action.payload.comment
+                state.assessment.tests[action.payload.testIndex].testQuestions[
+                    action.payload.testQuestionIndex
+                ].latestTeacherComment = action.payload.comment
             }
         },
         resetOriginalTeacherEvaluation(state) {
@@ -193,10 +189,14 @@ export const submitTeacherEvaluation = () => {
                 teacherEvaluation: testQuestion.latestTeacherEvaluation,
                 teacherComment: testQuestion.latestTeacherComment,
             }))
-            await testQuestionService.createTeacherGradings({
-                teacherAccountId: state.user.accountId,
-                testQuestions: reqTestQuestions,
-            })
+            try {
+                await testQuestionService.createTeacherGradings({
+                    teacherAccountId: state.user.accountId,
+                    testQuestions: reqTestQuestions,
+                })
+            } catch {
+                throw Error('Fail to save grading. Please try again.')
+            }
 
             dispatch(
                 gradingAssessmentReducer.actions.updateGradingHistory({
@@ -215,6 +215,10 @@ export const submitTeacherEvaluation = () => {
 
         // reset original teacher evaluation to reflect the latest changes in database
         dispatch(gradingAssessmentReducer.actions.resetOriginalTeacherEvaluation())
+
+        if (testQuestions.length === 0) {
+            throw Error('No grading changes were made.')
+        }
     }
 }
 

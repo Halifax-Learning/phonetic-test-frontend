@@ -1,5 +1,5 @@
 import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Grid2, Snackbar, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
@@ -46,9 +46,18 @@ const TestQuestion = () => {
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
-    const [currentAction, setCurrentAction] = useState<'next' | 'finish' | null>(null)
+    const [maxRecordingTimeWarning, setMaxRecordingTimeWarning] = useState(false)
 
-    const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ audio: true })
+    // Set up a message to display when student submits the answer
+    // Additionally, if color is 'info', a request is in progress and the "Next" button is disabled
+    const [onSubmitMsg, setOnSubmitMsg] = useState({ message: '', color: 'success' })
+
+    const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
+        audio: true,
+        mediaRecorderOptions: {
+            mimeType: MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/web ',
+        },
+    })
 
     const test = assessment?.tests[currentTestIndex!]
 
@@ -108,6 +117,11 @@ const TestQuestion = () => {
     const onStartRecording = () => {
         startRecording()
         setIsRecording(true)
+        // Stop recording after 5 seconds
+        setTimeout(() => {
+            onStopRecording()
+            setMaxRecordingTimeWarning(true)
+        }, 6000)
     }
 
     const onStopRecording = () => {
@@ -116,54 +130,62 @@ const TestQuestion = () => {
         setIsQuestionWithoutAnswer(false)
     }
 
-    const onClickNextQuestion = () => {
+    const submitAnswer = async () => {
+        setOnSubmitMsg({ message: 'Saving your answer...', color: 'info' })
+
+        try {
+            await dispatch(submitTestQuestion())
+        } catch (error: any) {
+            setOnSubmitMsg({ message: error.message, color: 'error' })
+            return
+        }
+        setIsQuestionWithoutAnswer(true)
+        pickRandomSticker()
+        setOnSubmitMsg({ message: '', color: 'success' })
+
+        const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
+        if (isLastQuestionInTest) {
+            dispatch(setScreenToDisplay('TestFinish'))
+        } else {
+            dispatch(nextQuestion())
+        }
+    }
+
+    const onClickNextQuestion = async () => {
         if (isQuestionWithoutAnswer) {
-            setCurrentAction('next')
             setModalOpen(true)
         } else {
-            setIsQuestionWithoutAnswer(true)
-            dispatch(submitTestQuestion())
-            dispatch(nextQuestion())
-            pickRandomSticker()
+            await submitAnswer()
         }
     }
 
-    const onFinishTest = () => {
+    const onFinishTest = async () => {
         if (isQuestionWithoutAnswer) {
-            setCurrentAction('finish')
             setModalOpen(true)
         } else {
-            dispatch(submitTestQuestion())
-            dispatch(setScreenToDisplay('TestFinish'))
+            await submitAnswer()
         }
     }
 
-    const onOnpenInstructionDialog = () => {
-        setOpenInstructionDialog(true)
-    }
-
-    const onCloseInstructionDialog = () => {
-        setOpenInstructionDialog(false)
-    }
-
-    const handleConfirm = () => {
-        if (currentAction === 'next') {
-            setIsQuestionWithoutAnswer(true)
-            dispatch(submitTestQuestion())
-            dispatch(nextQuestion())
-            pickRandomSticker()
-        } else if (currentAction === 'finish') {
-            dispatch(submitTestQuestion())
-            dispatch(setScreenToDisplay('TestFinish'))
-        }
+    const handleConfirmSkipQuestion = async () => {
         setModalOpen(false)
-        setCurrentAction(null)
+        await submitAnswer()
     }
 
     return (
         <>
             {test && currentTestQuestionIndex !== null && (
                 <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
+                    <Snackbar
+                        open={maxRecordingTimeWarning}
+                        autoHideDuration={6000}
+                        onClose={() => setMaxRecordingTimeWarning(false)}
+                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    >
+                        <Alert onClose={() => setMaxRecordingTimeWarning(false)} severity="warning">
+                            Maximum Recording Time is 5 seconds
+                        </Alert>
+                    </Snackbar>
                     <ProgressBar
                         currentQuestionIndex={currentTestQuestionIndex}
                         numQuestions={test?.testType.numQuestions}
@@ -309,24 +331,21 @@ const TestQuestion = () => {
                                                                 Recording Time: {recordingTime}s
                                                             </div>
                                                         )}
-                                                        {
-                                                            // prettier-ignore
-                                                            !isRecording &&
-                                                    mediaBlobUrl &&
-                                                    !isQuestionWithoutAnswer && (
-                                                    <>
-                                                        <div>Your answer:</div>
-                                                        <audio
-                                                            controls
-                                                            src={mediaBlobUrl}
-                                                            style={{
-                                                                width: '100%',
-                                                                maxWidth: 'sm',
-                                                            }}
-                                                        />
-                                                    </>
-                                                )
-                                                        }
+                                                        {!isRecording &&
+                                                            mediaBlobUrl &&
+                                                            !isQuestionWithoutAnswer && (
+                                                                <>
+                                                                    <div>Your answer:</div>
+                                                                    <audio
+                                                                        controls
+                                                                        src={mediaBlobUrl}
+                                                                        style={{
+                                                                            width: '100%',
+                                                                            maxWidth: 'sm',
+                                                                        }}
+                                                                    />
+                                                                </>
+                                                            )}
                                                     </Box>
                                                 </Box>
                                             </Grid2>
@@ -355,6 +374,11 @@ const TestQuestion = () => {
                                                 </Box>
                                             </Grid2>
                                         </Grid2>
+
+                                        <Typography color={onSubmitMsg.color}>
+                                            {onSubmitMsg.message}
+                                        </Typography>
+
                                         <Box sx={{ mt: 2 }}>
                                             <Grid2 container alignItems="flex-start" spacing={1}>
                                                 <Grid2
@@ -363,7 +387,9 @@ const TestQuestion = () => {
                                                 >
                                                     {/* Left-aligned instruction button */}
                                                     <Button
-                                                        onClick={onOnpenInstructionDialog}
+                                                        onClick={() =>
+                                                            setOpenInstructionDialog(true)
+                                                        }
                                                         variant="outlined"
                                                         startIcon={<HelpIcon />}
                                                         sx={{
@@ -378,7 +404,9 @@ const TestQuestion = () => {
                                                     {/* Test Instruction Dialog */}
                                                     <TestInstructionDialog
                                                         open={openInstructionDialog}
-                                                        onClose={onCloseInstructionDialog}
+                                                        onClose={() =>
+                                                            setOpenInstructionDialog(false)
+                                                        }
                                                         showAudioVersion={
                                                             test.testType.hasQuestionAudio
                                                         }
@@ -470,37 +498,40 @@ const TestQuestion = () => {
                                                         flexDirection="column"
                                                         alignItems="flex-end"
                                                     >
-                                                        {
-                                                            // prettier-ignore
-                                                            currentTestQuestionIndex <
-                                                            test.testType.numQuestions - 1 ? (
-                                                                <Button
-                                                                    variant="contained"
-                                                                    color="primary"
-                                                                    startIcon={<NavigateNextIcon />}
-                                                                    sx={{ ml:2,fontSize: '1rem' }}
-                                                                    onClick={onClickNextQuestion}
-                                                                    disabled={isRecording}
-                                                                >
-                                                                    Next Question
-                                                                </Button>
-                                                            ) : (
-                                                                <Button
-                                                                    variant="contained"
-                                                                    color="primary"
-                                                                    startIcon={<EndSessionIcon />}
-                                                                    sx={{ ml:2,fontSize: '1rem' }}
-                                                                    onClick={onFinishTest}
-                                                                    disabled={isRecording}
-                                                                >
-                                                                    Finish Section
-                                                                </Button>
-                                                            )
-                                                        }
+                                                        {currentTestQuestionIndex <
+                                                        test.testType.numQuestions - 1 ? (
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                startIcon={<NavigateNextIcon />}
+                                                                sx={{ ml: 2, fontSize: '1rem' }}
+                                                                onClick={onClickNextQuestion}
+                                                                disabled={
+                                                                    isRecording ||
+                                                                    onSubmitMsg.color === 'info'
+                                                                }
+                                                            >
+                                                                Next Question
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                variant="contained"
+                                                                color="primary"
+                                                                startIcon={<EndSessionIcon />}
+                                                                sx={{ ml: 2, fontSize: '1rem' }}
+                                                                onClick={onFinishTest}
+                                                                disabled={
+                                                                    isRecording ||
+                                                                    onSubmitMsg.color === 'info'
+                                                                }
+                                                            >
+                                                                Finish Section
+                                                            </Button>
+                                                        )}
                                                         <ConfirmationModal
                                                             open={modalOpen}
                                                             onClose={() => setModalOpen(false)}
-                                                            onConfirm={handleConfirm}
+                                                            onConfirm={handleConfirmSkipQuestion}
                                                         />
                                                     </Box>
                                                 </Grid2>

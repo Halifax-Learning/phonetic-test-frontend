@@ -5,6 +5,7 @@ import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import globals from 'globals'
+import tseslint from '@typescript-eslint/eslint-plugin'
 
 export default [
     { ignores: ['dist'] },
@@ -26,6 +27,7 @@ export default [
             'react-hooks': reactHooks,
             'react-refresh': reactRefresh,
             '@stylistic/js': stylisticJs,
+            '@typescript-eslint': tseslint,
         },
 
         settings: {
@@ -38,11 +40,19 @@ export default [
             ...reactPlugin.configs.recommended.rules,
             ...reactPlugin.configs['jsx-runtime'].rules,
             ...reactHooks.configs.recommended.rules,
+            ...tseslint.configs.recommended.rules,
             'react/react-in-jsx-scope': 'off',
             'react-hooks/exhaustive-deps': 'off',
             'no-undef': 'off',
-            'max-len': ['error', { code: 100, ignoreComments: true }],
-            '@stylistic/js/indent': ['error', 4],
+            'max-len': [
+                'error',
+                {
+                    code: 100,
+                    ignoreComments: true,
+                    ignoreStrings: true,
+                    ignoreTemplateLiterals: true,
+                },
+            ],
             eqeqeq: 'error',
             'no-trailing-spaces': 'error',
             'object-curly-spacing': ['error', 'always'],
@@ -50,6 +60,9 @@ export default [
             '@stylistic/js/linebreak-style': ['error', 'unix'],
             '@stylistic/js/quotes': ['error', 'single'],
             '@stylistic/js/semi': ['error', 'never'],
+            'no-unused-vars': 'off',
+            '@typescript-eslint/no-unused-vars': 'error',
+            '@typescript-eslint/no-explicit-any': 'off',
         },
     },
 ]

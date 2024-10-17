@@ -1,4 +1,5 @@
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import DoneIcon from '@mui/icons-material/Done'
 import HistoryIcon from '@mui/icons-material/History'
 import PersonIcon from '@mui/icons-material/Person'
 import {
@@ -63,6 +64,10 @@ const GradingScreen = () => {
         (TeacherGradingHistory | AutoGradingHistory)[]
     >([])
     const [rows, setRows] = useState<any[]>([])
+
+    // Set up a message to display when the user saves the grading
+    // Additionally, if color is 'info', a request is in progress and the "Save" button is disabled
+    const [onSaveMsg, setOnSaveMsg] = useState({ message: '', color: 'success' })
 
     const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
         console.log(
@@ -218,11 +223,20 @@ const GradingScreen = () => {
         )
     }
 
-    const onSaveGrading = () => {
-        dispatch(submitTeacherEvaluation())
+    const onSaveGrading = async () => {
+        setOnSaveMsg({ message: 'Saving...', color: 'info' })
+        try {
+            await dispatch(submitTeacherEvaluation())
+        } catch (error: any) {
+            setOnSaveMsg({ message: error.message, color: 'error' })
+            return
+        }
+
+        setOnSaveMsg({ message: 'Grading saved successfully!', color: 'success' })
     }
 
     const handleBackToAssessments = () => {
+        setOnSaveMsg({ message: '', color: 'info' })
         navigate('/assessments-for-grading')
     }
 
@@ -429,10 +443,13 @@ const GradingScreen = () => {
     ]
 
     const exportToPdf = () => {
+        setOnSaveMsg({ message: '', color: 'info' })
         const doc = new jsPDF({ orientation: 'landscape' })
         const assessmentName = assessment?.assessmentType.assessmentTypeName || 'Assessment'
         const studentName =
-            `${assessment?.testTaker.firstName} ${assessment?.testTaker.lastName}` || 'Student'
+            assessment?.testTaker.firstName && assessment?.testTaker.lastName
+                ? `${assessment.testTaker.firstName} ${assessment.testTaker.lastName}`
+                : 'Student'
         const submissionTime = assessment?.assessmentSubmissionTime
             ? format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
             : 'In Progress'
@@ -613,12 +630,41 @@ const GradingScreen = () => {
                                         name: 'filter-test-type',
                                         id: 'filter-test-type',
                                     }}
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        color:
+                                            selectedTest.numQuestionsGraded ===
+                                            selectedTest.testType.numQuestions
+                                                ? 'primary.main'
+                                                : '',
+                                    }}
                                 >
-                                    {assessment?.tests.map((test, index) => (
-                                        <MenuItem key={test.testId} value={index}>
-                                            {test.testType.testTypeName}
-                                        </MenuItem>
-                                    ))}
+                                    {assessment?.tests.map((test, index) => {
+                                        const finishedGrading =
+                                            test.numQuestionsGraded === test.testType.numQuestions
+                                        return (
+                                            <MenuItem
+                                                key={test.testId}
+                                                value={index}
+                                                sx={{
+                                                    color: finishedGrading ? 'primary.main' : '',
+                                                }}
+                                            >
+                                                <Typography
+                                                    component="span"
+                                                    sx={{ display: 'inline-block', width: 250 }}
+                                                >
+                                                    {test.testType.testTypeName}
+                                                </Typography>
+                                                Graded: {test.numQuestionsGraded}/
+                                                {test.testType.numQuestions}
+                                                {finishedGrading && (
+                                                    <DoneIcon sx={{ marginLeft: 1 }} />
+                                                )}
+                                            </MenuItem>
+                                        )
+                                    })}
                                 </Select>
                             </FormControl>
                         </Grid2>
@@ -641,6 +687,9 @@ const GradingScreen = () => {
                                 />
                             </div>
                         </Grid2>
+
+                        <Typography color={onSaveMsg.color}>{onSaveMsg.message}</Typography>
+
                         <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
                             <Grid2>
                                 <Button
@@ -656,6 +705,7 @@ const GradingScreen = () => {
                                     variant="contained"
                                     color="secondary"
                                     onClick={onSaveGrading}
+                                    disabled={onSaveMsg.color === 'info'}
                                 >
                                     Save
                                 </Button>

@@ -2,7 +2,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import { Box, Typography } from '@mui/material'
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid'
 import * as React from 'react'
-import { Assessment } from '../../models/interface'
+import { Assessment, Test } from '../../models/interface'
 
 interface AssessmentListGridProps {
     assessments: Assessment[]
@@ -36,13 +36,41 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             field: 'machineEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Machine Evaluation',
-            width: 150,
+            width: 200,
         },
         {
             field: 'teacherEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Teacher Evaluation',
-            width: 150,
+            width: 200,
+            renderCell: (params) => {
+                const tests: Test[] = params.value
+                return (
+                    <Box>
+                        {tests.map((test, index) => (
+                            <Box key={index}>
+                                <Typography>
+                                    <Typography
+                                        component="span"
+                                        variant="body2"
+                                        sx={{ display: 'inline-block', width: 80 }}
+                                    >
+                                        {test.testType.testTypeName === 'Single Phoneme Recognition'
+                                            ? 'SPR'
+                                            : test.testType.testTypeName}
+                                    </Typography>
+
+                                    <Typography component="span" variant="body2">
+                                        {test.teacherScore
+                                            ? `: ${test.teacherScore}/${test.testType.numQuestions}`
+                                            : ':'}
+                                    </Typography>
+                                </Typography>
+                            </Box>
+                        ))}
+                    </Box>
+                )
+            },
         },
         {
             field: 'testsGraded',
@@ -80,7 +108,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             ? new Date(assessment.assessmentSubmissionTime).toLocaleString()
             : 'In Progress',
         machineEvaluation: '0',
-        teacherEvaluation: '0',
+        teacherEvaluation: assessment.tests,
         testsGraded: assessment.isAllTestsGradedByTeacher ? 'Yes' : 'No',
     }))
 
@@ -97,6 +125,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                     columns={columns}
                     pagination
                     pageSizeOptions={[5, 10, 20, 100]}
+                    rowHeight={100}
                     disableRowSelectionOnClick
                     sx={{
                         '& .data-grid--header': {
