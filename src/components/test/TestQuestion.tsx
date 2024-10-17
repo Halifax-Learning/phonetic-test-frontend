@@ -1,6 +1,6 @@
 import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
 import { Alert, Box, Button, Card, CardContent, Grid2, Snackbar, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -47,6 +47,7 @@ const TestQuestion = () => {
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
     const [maxRecordingTimeWarning, setMaxRecordingTimeWarning] = useState(false)
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Set up a message to display when student submits the answer
     // Additionally, if color is 'info', a request is in progress and the "Next" button is disabled
@@ -118,7 +119,7 @@ const TestQuestion = () => {
         startRecording()
         setIsRecording(true)
         // Stop recording after 5 seconds
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
             onStopRecording()
             setMaxRecordingTimeWarning(true)
         }, 6000)
@@ -128,6 +129,10 @@ const TestQuestion = () => {
         stopRecording()
         setIsRecording(false)
         setIsQuestionWithoutAnswer(false)
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+        }
     }
 
     const submitAnswer = async () => {
