@@ -14,6 +14,7 @@ import GradingScreen from './components/teacher/GradingScreen.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
+import EmailVerification from './components/user/EmailVerification.js'
 import Login from './components/user/Login.js'
 import Profile from './components/user/Profile.js'
 import Register from './components/user/Register.js'
@@ -63,6 +64,10 @@ const AppRoutes = () => {
         {
             path: '/register',
             element: !user ? <Register /> : <Navigate replace to="/" />,
+        },
+        {
+            path: '/verify_email',
+            element: <EmailVerification />,
         },
         {
             path: '/assessment',

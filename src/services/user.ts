@@ -13,3 +13,13 @@ export const login = async (email: string, password: string) => {
     const response = await axios.post(`${baseUrl}/login`, { email, password })
     return response
 }
+
+export const sendVerificationEmail = async (email: string) => {
+    const response = await axios.post(`${baseUrl}/send_verification_email`, { email })
+    return response.data
+}
+
+export const verifyEmail = async (token: string) => {
+    const response = await axios.post(`${baseUrl}/verify_email`, { token })
+    return response.data
+}

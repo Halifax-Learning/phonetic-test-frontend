@@ -1,13 +1,13 @@
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
 
-import { Visibility, VisibilityOff } from '@mui/icons-material'
-import { useState } from 'react'
-import { register } from '../../reducers/userReducer'
+import { register, sendVerificationEmail } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
 
 const schema = yup.object().shape({
@@ -24,6 +24,8 @@ const Register = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
     const [showPassword, setShowPassword] = useState(false)
+    const [isRegistered, setIsRegistered] = useState(false)
+    const [responseMessage, setResponseMessage] = useState('')
 
     const {
         handleSubmit,
@@ -33,8 +35,21 @@ const Register = () => {
         resolver: yupResolver(schema),
     })
 
-    const onSubmit = (data: any) => {
-        dispatch(register(data))
+    const onSubmit = async (data: any) => {
+        try {
+            await dispatch(register(data))
+        } catch (error: any) {
+            setResponseMessage(error.response.data.error)
+            return
+        }
+
+        setIsRegistered(true)
+
+        try {
+            await dispatch(sendVerificationEmail(data.email))
+        } catch (error: any) {
+            setResponseMessage(error.message)
+        }
     }
 
     const switchToLogin = () => {
@@ -45,7 +60,15 @@ const Register = () => {
         setShowPassword(!showPassword)
     }
 
-    return (
+    const CheckEmailForVerification = () => {
+        return (
+            <Typography>
+                Check your email for a verification link to activate your account.
+            </Typography>
+        )
+    }
+
+    const Register = () => (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Card variant="outlined" sx={{ width: 600, padding: 2 }}>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -127,6 +150,11 @@ const Register = () => {
                                         {errors.password.message}
                                     </Typography>
                                 )}
+                                {responseMessage && (
+                                    <Typography color="error" variant="caption">
+                                        {responseMessage}
+                                    </Typography>
+                                )}
                             </>
                         )}
                     />
@@ -152,6 +180,8 @@ const Register = () => {
             </Card>
         </Box>
     )
+
+    return isRegistered ? <CheckEmailForVerification /> : <Register />
 }
 
 export default Register
