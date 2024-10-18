@@ -47,6 +47,7 @@ import { theme } from '../../theme/theme'
 import '../fonts/Inter-VariableFont_opsz,wght-normal.js'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
+import SendEmailDialog from './SendEmailDialog'
 
 const GradingScreen = () => {
     const navigate = useNavigate()
@@ -60,6 +61,7 @@ const GradingScreen = () => {
     const [feedbackValues, setFeedbackValues] = useState<string[]>([])
     const [filterTestType, setFilterTestType] = useState<number | string>(currentTestIndex!)
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [emailDialogOpen, setEmailDialogOpen] = useState(false)
     const [gradingHistory, setGradingHistory] = useState<
         (TeacherGradingHistory | AutoGradingHistory)[]
     >([])
@@ -715,6 +717,18 @@ const GradingScreen = () => {
                                     Export to PDF
                                 </Button>
                             </Grid2>
+                            <Grid2>
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    onClick={() => {
+                                        setEmailDialogOpen(true)
+                                    }}
+                                    disabled={!assessment}
+                                >
+                                    Release Result
+                                </Button>
+                            </Grid2>
                         </Grid2>
                     </Grid2>
                 )}
@@ -723,6 +737,11 @@ const GradingScreen = () => {
                 open={dialogOpen}
                 onClose={handleCloseDialog}
                 history={gradingHistory}
+            />
+            <SendEmailDialog
+                open={emailDialogOpen}
+                onClose={() => setEmailDialogOpen(false)}
+                assessment={assessment}
             />
         </>
     )
