@@ -23,7 +23,7 @@ import { sendAssessmentResult } from '../../services/assessment'
 interface SendEmailDialogProps {
     open: boolean
     onClose: () => void
-    assessment: Assessment | null
+    assessment: Assessment
 }
 
 const SendEmailDialog = ({ open, onClose, assessment }: SendEmailDialogProps) => {
@@ -34,10 +34,9 @@ const SendEmailDialog = ({ open, onClose, assessment }: SendEmailDialogProps) =>
         message: '',
         severity: 'success',
     })
+    const [sendingInProgress, setSendingInProgress] = useState(false)
 
     const composeGreetings = () => {
-        if (!assessment) return ''
-
         const greeting = `Hello ${assessment.testTaker.firstName},
 
 Your assessment result is ready.
@@ -46,8 +45,6 @@ Your assessment result is ready.
     }
 
     const composeAssessmentHeading = () => {
-        if (!assessment) return ''
-
         const assessmentHeading = `
 Assessment     : ${assessment.assessmentType.assessmentTypeName}
 Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')}
@@ -56,8 +53,6 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
     }
 
     const composeTestTable = () => {
-        if (!assessment) return ''
-
         let table = `
 | Test Name                  | Correct Answers | Total Questions | Score   |
 |----------------------------|-----------------|-----------------|---------|
@@ -103,7 +98,9 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
 
             const doc = selectedOption === 'emailOnly' ? null : generatePDF()
 
+            setSendingInProgress(true)
             await sendAssessmentResult(assessment!.testTaker.email, emailContent, doc)
+            setSendingInProgress(false)
             setOnSendMsg({
                 message: 'Result sent successfully.',
                 severity: 'success',
@@ -228,11 +225,17 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={onSendAssessmentResult}>Send</Button>
-                    <Button color="info" onClick={() => generatePDF(true)}>
+                    <Button onClick={onSendAssessmentResult} disabled={sendingInProgress}>
+                        Send
+                    </Button>
+                    <Button
+                        color="info"
+                        onClick={() => generatePDF(true)}
+                        disabled={sendingInProgress}
+                    >
                         Preview PDF
                     </Button>
-                    <Button color="warning" onClick={onClose}>
+                    <Button color="warning" onClick={onClose} disabled={sendingInProgress}>
                         Cancel
                     </Button>
                 </DialogActions>

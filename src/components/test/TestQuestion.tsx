@@ -49,9 +49,9 @@ const TestQuestion = () => {
     const [maxRecordingTimeWarning, setMaxRecordingTimeWarning] = useState(false)
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    // Set up a message to display when student submits the answer
-    // Additionally, if color is 'info', a request is in progress and the "Next" button is disabled
-    const [onSubmitMsg, setOnSubmitMsg] = useState({ message: '', color: 'success' })
+    // Keep track of the request status when submitting the answer
+    const [onSubmit, setOnSubmit] = useState({ message: '', color: 'info' })
+    const [submittingInProgress, setSubmittingInProgress] = useState(false)
 
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
         audio: true,
@@ -136,23 +136,26 @@ const TestQuestion = () => {
     }
 
     const submitAnswer = async () => {
-        setOnSubmitMsg({ message: 'Saving your answer...', color: 'info' })
-
         try {
-            await dispatch(submitTestQuestion())
-        } catch (error: any) {
-            setOnSubmitMsg({ message: error.message, color: 'error' })
-            return
-        }
-        setIsQuestionWithoutAnswer(true)
-        pickRandomSticker()
-        setOnSubmitMsg({ message: '', color: 'success' })
+            setOnSubmit({ message: 'Saving your answer...', color: 'info' })
+            setSubmittingInProgress(true)
 
-        const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
-        if (isLastQuestionInTest) {
-            dispatch(setScreenToDisplay('TestFinish'))
-        } else {
-            dispatch(nextQuestion())
+            await dispatch(submitTestQuestion())
+
+            setIsQuestionWithoutAnswer(true)
+            pickRandomSticker()
+            setOnSubmit({ message: '', color: 'success' })
+
+            const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
+            if (isLastQuestionInTest) {
+                dispatch(setScreenToDisplay('TestFinish'))
+            } else {
+                dispatch(nextQuestion())
+            }
+        } catch (error: any) {
+            setOnSubmit({ message: error.message, color: 'error' })
+        } finally {
+            setSubmittingInProgress(false)
         }
     }
 
@@ -380,8 +383,8 @@ const TestQuestion = () => {
                                             </Grid2>
                                         </Grid2>
 
-                                        <Typography color={onSubmitMsg.color}>
-                                            {onSubmitMsg.message}
+                                        <Typography color={onSubmit.color}>
+                                            {onSubmit.message}
                                         </Typography>
 
                                         <Box sx={{ mt: 2 }}>
@@ -513,7 +516,7 @@ const TestQuestion = () => {
                                                                 onClick={onClickNextQuestion}
                                                                 disabled={
                                                                     isRecording ||
-                                                                    onSubmitMsg.color === 'info'
+                                                                    submittingInProgress
                                                                 }
                                                             >
                                                                 Next Question
@@ -527,7 +530,7 @@ const TestQuestion = () => {
                                                                 onClick={onFinishTest}
                                                                 disabled={
                                                                     isRecording ||
-                                                                    onSubmitMsg.color === 'info'
+                                                                    submittingInProgress
                                                                 }
                                                             >
                                                                 Finish Section

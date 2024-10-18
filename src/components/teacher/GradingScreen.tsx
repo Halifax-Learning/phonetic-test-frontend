@@ -59,17 +59,17 @@ const GradingScreen = () => {
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
     const [feedbackValues, setFeedbackValues] = useState<string[]>([])
-    const [filterTestType, setFilterTestType] = useState<number | string>(currentTestIndex!)
-    const [dialogOpen, setDialogOpen] = useState(false)
+
+    const [teacherGradingDialogOpen, setTeacherGradingDialog] = useState(false)
     const [emailDialogOpen, setEmailDialogOpen] = useState(false)
     const [gradingHistory, setGradingHistory] = useState<
         (TeacherGradingHistory | AutoGradingHistory)[]
     >([])
     const [rows, setRows] = useState<any[]>([])
 
-    // Set up a message to display when the user saves the grading
-    // Additionally, if color is 'info', a request is in progress and the "Save" button is disabled
-    const [onSaveMsg, setOnSaveMsg] = useState({ message: '', color: 'success' })
+    // Keep track of the request status to save grading
+    const [onSave, setOnSave] = useState({ message: '', color: 'info' })
+    const [savingInProgress, setSavingInProgress] = useState(false)
 
     const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
         console.log(
@@ -87,11 +87,7 @@ const GradingScreen = () => {
             setGradingHistory(selectedTest?.testQuestions[index].teacherGradingHistory || [])
         }
 
-        setDialogOpen(true)
-    }
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false)
+        setTeacherGradingDialog(true)
     }
 
     useEffect(() => {
@@ -115,12 +111,7 @@ const GradingScreen = () => {
     }, [assessment, currentTestIndex])
 
     useEffect(() => {
-        if (assessment?.tests.length && filterTestType === '') {
-            setFilterTestType(0) // Only set initially if needed
-        }
-    }, [assessment])
-
-    useEffect(() => {
+        // Fetch audios when selectedTest changes and its audio has not been fetched
         if (selectedTest && !selectedTest.hasFetchedAudio) {
             dispatch(fetchAudios(selectedTest.testId, currentTestIndex!, true))
         }
@@ -173,12 +164,13 @@ const GradingScreen = () => {
         setRows(newRows)
     }, [selectedTest])
 
-    const onChooseTest = (index: number) => {
+    const onChooseTest = (event: SelectChangeEvent<number>) => {
+        const index = event.target.value as number
         dispatch(setGradingTest(index))
     }
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const value = (event.target as HTMLInputElement).value
+        const value = event.target.value
 
         setSelectedValues((prev) => {
             const newValues = [...prev]
@@ -226,28 +218,26 @@ const GradingScreen = () => {
     }
 
     const onSaveGrading = async () => {
-        setOnSaveMsg({ message: 'Saving...', color: 'info' })
         try {
-            await dispatch(submitTeacherEvaluation())
-        } catch (error: any) {
-            setOnSaveMsg({ message: error.message, color: 'error' })
-            return
-        }
+            setOnSave({ message: 'Saving...', color: 'info' })
+            setSavingInProgress(true)
 
-        setOnSaveMsg({ message: 'Grading saved successfully!', color: 'success' })
+            await dispatch(submitTeacherEvaluation())
+
+            setOnSave({
+                message: 'Grading saved successfully!',
+                color: 'success',
+            })
+        } catch (error: any) {
+            setOnSave({ message: error.message, color: 'error' })
+        } finally {
+            setSavingInProgress(false)
+        }
     }
 
     const handleBackToAssessments = () => {
-        setOnSaveMsg({ message: '', color: 'info' })
+        setOnSave({ message: '', color: 'info' })
         navigate('/assessments-for-grading')
-    }
-
-    const handleFilterChange = (event: SelectChangeEvent<string | number>) => {
-        const selectedIndex = event.target.value as number // Get the selected index (number)
-
-        setFilterTestType(selectedIndex) // Update the filter state
-
-        onChooseTest(selectedIndex)
     }
 
     const columns: GridColDef[] = [
@@ -445,7 +435,7 @@ const GradingScreen = () => {
     ]
 
     const exportToPdf = () => {
-        setOnSaveMsg({ message: '', color: 'info' })
+        setOnSave({ message: '', color: 'info' })
         const doc = new jsPDF({ orientation: 'landscape' })
         const assessmentName = assessment?.assessmentType.assessmentTypeName || 'Assessment'
         const studentName =
@@ -625,8 +615,8 @@ const GradingScreen = () => {
                                     Filter by Test Type
                                 </InputLabel>
                                 <Select
-                                    value={filterTestType}
-                                    onChange={handleFilterChange}
+                                    value={currentTestIndex}
+                                    onChange={onChooseTest}
                                     label="Filter by Test Type"
                                     inputProps={{
                                         name: 'filter-test-type',
@@ -690,13 +680,13 @@ const GradingScreen = () => {
                             </div>
                         </Grid2>
 
-                        <Typography color={onSaveMsg.color}>{onSaveMsg.message}</Typography>
+                        <Typography color={onSave.color}>{onSave.message}</Typography>
 
                         <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
                             <Grid2>
                                 <Button
                                     variant="contained"
-                                    color="primary"
+                                    color="secondary"
                                     onClick={handleBackToAssessments}
                                 >
                                     Back
@@ -705,9 +695,9 @@ const GradingScreen = () => {
                             <Grid2>
                                 <Button
                                     variant="contained"
-                                    color="secondary"
+                                    color="primary"
                                     onClick={onSaveGrading}
-                                    disabled={onSaveMsg.color === 'info'}
+                                    disabled={savingInProgress}
                                 >
                                     Save
                                 </Button>
@@ -720,11 +710,10 @@ const GradingScreen = () => {
                             <Grid2>
                                 <Button
                                     variant="contained"
-                                    color="secondary"
+                                    color="primary"
                                     onClick={() => {
                                         setEmailDialogOpen(true)
                                     }}
-                                    disabled={!assessment}
                                 >
                                     Release Result
                                 </Button>
@@ -734,15 +723,17 @@ const GradingScreen = () => {
                 )}
             </Box>
             <GradingHistoryDialog
-                open={dialogOpen}
-                onClose={handleCloseDialog}
+                open={teacherGradingDialogOpen}
+                onClose={() => setTeacherGradingDialog(false)}
                 history={gradingHistory}
             />
-            <SendEmailDialog
-                open={emailDialogOpen}
-                onClose={() => setEmailDialogOpen(false)}
-                assessment={assessment}
-            />
+            {assessment && (
+                <SendEmailDialog
+                    open={emailDialogOpen}
+                    onClose={() => setEmailDialogOpen(false)}
+                    assessment={assessment}
+                />
+            )}
         </>
     )
 }
