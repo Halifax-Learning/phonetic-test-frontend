@@ -127,12 +127,7 @@ const Login = () => {
                     </Link>
                 </Typography>
             </Card>
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={6000}
-                onClose={() => setOpenSnackbar(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
+            <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
                 <Alert onClose={() => setOpenSnackbar(false)} severity="error">
                     {snackbarMessage}
                 </Alert>
