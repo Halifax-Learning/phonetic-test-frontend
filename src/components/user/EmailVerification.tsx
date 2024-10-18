@@ -13,21 +13,21 @@ const EmailVerification = () => {
     const SUCCESS = 'Email verified successfully.'
     const FAIL = 'Email verification failed.'
 
-    const getTokenFromQuery = () => {
+    const getVerificationCodeFromQuery = () => {
         const searchParams = new URLSearchParams(location.search)
-        return searchParams.get('token')
+        return searchParams.get('verification_code')
     }
 
-    const token = getTokenFromQuery()
+    const verificationCode = getVerificationCodeFromQuery()
 
     useEffect(() => {
-        if (!token) {
+        if (!verificationCode) {
             setMessage(FAIL)
             return
         }
         const verify = async () => {
             try {
-                await dispatch(verifyEmail(token))
+                await dispatch(verifyEmail(verificationCode))
                 setMessage(SUCCESS)
             } catch (error: any) {
                 console.error(error)
@@ -36,7 +36,7 @@ const EmailVerification = () => {
         }
 
         verify()
-    }, [token])
+    }, [])
 
     return <Box sx={{ margin: 2 }}>{message}</Box>
 }

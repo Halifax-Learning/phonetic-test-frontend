@@ -19,7 +19,9 @@ export const sendVerificationEmail = async (email: string) => {
     return response.data
 }
 
-export const verifyEmail = async (token: string) => {
-    const response = await axios.post(`${baseUrl}/verify_email`, { token })
+export const verifyEmail = async (verificationCode: string) => {
+    const response = await axios.post(`${baseUrl}/verify_email`, {
+        verification_code: verificationCode,
+    })
     return response.data
 }

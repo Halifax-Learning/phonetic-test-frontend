@@ -65,9 +65,9 @@ export const sendVerificationEmail = (email: string) => {
     }
 }
 
-export const verifyEmail = (token: string) => {
+export const verifyEmail = (verificationCode: string) => {
     return async () => {
-        await userService.verifyEmail(token)
+        await userService.verifyEmail(verificationCode)
     }
 }
 
