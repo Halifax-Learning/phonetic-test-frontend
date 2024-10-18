@@ -1,5 +1,15 @@
 import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import { Alert, Box, Button, Card, CardContent, Grid2, Snackbar, Typography } from '@mui/material'
+import {
+    Alert,
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CircularProgress,
+    Grid2,
+    Snackbar,
+    Typography,
+} from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { useReactMediaRecorder } from 'react-media-recorder'
 import { useDispatch, useSelector } from 'react-redux'
@@ -50,8 +60,12 @@ const TestQuestion = () => {
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Keep track of the request status when submitting the answer
-    const [onSubmit, setOnSubmit] = useState({ message: '', color: 'info' })
+    const [onSubmit, setOnSubmit] = useState<{
+        message: string
+        color: 'success' | 'info' | 'warning' | 'error'
+    }>({ message: '', color: 'info' })
     const [submittingInProgress, setSubmittingInProgress] = useState(false)
+    const [openSnackbar, setOpenSnackbar] = useState(false)
 
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
         audio: true,
@@ -130,6 +144,7 @@ const TestQuestion = () => {
         setIsRecording(false)
         setIsQuestionWithoutAnswer(false)
 
+        // Clear the timeout if the user stops recording before the 5 seconds limit
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current)
         }
@@ -142,9 +157,9 @@ const TestQuestion = () => {
 
             await dispatch(submitTestQuestion())
 
+            setOnSubmit({ message: 'Your answer has been saved successfully!', color: 'success' })
             setIsQuestionWithoutAnswer(true)
             pickRandomSticker()
-            setOnSubmit({ message: '', color: 'success' })
 
             const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
             if (isLastQuestionInTest) {
@@ -156,6 +171,7 @@ const TestQuestion = () => {
             setOnSubmit({ message: error.message, color: 'error' })
         } finally {
             setSubmittingInProgress(false)
+            setOpenSnackbar(true)
         }
     }
 
@@ -186,12 +202,15 @@ const TestQuestion = () => {
                 <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
                     <Snackbar
                         open={maxRecordingTimeWarning}
-                        autoHideDuration={6000}
                         onClose={() => setMaxRecordingTimeWarning(false)}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     >
                         <Alert onClose={() => setMaxRecordingTimeWarning(false)} severity="warning">
                             Maximum Recording Time is 5 seconds
+                        </Alert>
+                    </Snackbar>
+                    <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
+                        <Alert onClose={() => setOpenSnackbar(false)} severity={onSubmit.color}>
+                            {onSubmit.message}
                         </Alert>
                     </Snackbar>
                     <ProgressBar
@@ -382,11 +401,6 @@ const TestQuestion = () => {
                                                 </Box>
                                             </Grid2>
                                         </Grid2>
-
-                                        <Typography color={onSubmit.color}>
-                                            {onSubmit.message}
-                                        </Typography>
-
                                         <Box sx={{ mt: 2 }}>
                                             <Grid2 container alignItems="flex-start" spacing={1}>
                                                 <Grid2
@@ -447,6 +461,10 @@ const TestQuestion = () => {
                                                                     startIcon={<MicIcon />}
                                                                     sx={{ ml: 2, fontSize: '1rem' }}
                                                                     onClick={onStartRecording}
+                                                                    disabled={
+                                                                        isRecording ||
+                                                                        submittingInProgress
+                                                                    }
                                                                 >
                                                                     Record Now
                                                                 </Button>
@@ -535,6 +553,20 @@ const TestQuestion = () => {
                                                             >
                                                                 Finish Section
                                                             </Button>
+                                                        )}
+                                                        {submittingInProgress && (
+                                                            <Box display="flex" alignItems="center">
+                                                                <CircularProgress
+                                                                    size={24}
+                                                                    style={{ marginRight: 8 }}
+                                                                />
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    color={onSubmit.color}
+                                                                >
+                                                                    {onSubmit.message}
+                                                                </Typography>
+                                                            </Box>
                                                         )}
                                                         <ConfirmationModal
                                                             open={modalOpen}
