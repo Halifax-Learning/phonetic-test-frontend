@@ -68,7 +68,10 @@ const GradingScreen = () => {
     const [rows, setRows] = useState<any[]>([])
 
     // Keep track of the request status to save grading
-    const [onSave, setOnSave] = useState({ message: '', color: 'info' })
+    const [onSave, setOnSave] = useState<{
+        message: string
+        color: 'success' | 'info' | 'warning' | 'error'
+    }>({ message: '', color: 'info' })
     const [savingInProgress, setSavingInProgress] = useState(false)
 
     const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {

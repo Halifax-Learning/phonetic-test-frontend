@@ -241,12 +241,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                 </DialogActions>
             </Dialog>
 
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={6000}
-                onClose={() => setOpenSnackbar(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
+            <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
                 <Alert onClose={() => setOpenSnackbar(false)} severity={onSendMsg.severity}>
                     {onSendMsg.message}
                 </Alert>
