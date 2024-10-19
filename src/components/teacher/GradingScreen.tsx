@@ -19,15 +19,14 @@ import {
     RadioGroup,
     Select,
     SelectChangeEvent,
-    TextField,
     Tooltip,
     Typography,
 } from '@mui/material'
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridRowModel, GridToolbar } from '@mui/x-data-grid'
 import { format } from 'date-fns'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
-import { FocusEvent, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
@@ -59,7 +58,6 @@ const GradingScreen = () => {
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
-    const [feedbackValues, setFeedbackValues] = useState<string[]>([])
 
     const [teacherGradingDialogOpen, setTeacherGradingDialog] = useState(false)
     const [emailDialogOpen, setEmailDialogOpen] = useState(false)
@@ -135,12 +133,6 @@ const GradingScreen = () => {
             }) || []
         setSelectedValues(updatedSelectedValues)
 
-        // Update feedback values when selectedTest changes
-        const updatedFeedbackValues =
-            selectedTest?.testQuestions.map((testQuestion) => testQuestion.latestTeacherComment) ||
-            []
-        setFeedbackValues(updatedFeedbackValues)
-
         // Update rows when selectedTest changes
         const newRows =
             selectedTest?.testQuestions.map((testQuestion, index) => ({
@@ -162,7 +154,7 @@ const GradingScreen = () => {
                         : 'N/A',
                 index,
                 grade: selectedValues[index],
-                feedback: feedbackValues[index] || '',
+                feedback: testQuestion.latestTeacherComment || '',
             })) || []
 
         setRows(newRows)
@@ -185,40 +177,26 @@ const GradingScreen = () => {
         dispatch(
             setTeacherEvaluation({
                 evaluation: value === 'Correct',
-                comment: feedbackValues[index],
+                comment: selectedTest?.testQuestions[index].latestTeacherComment || '',
                 testIndex: currentTestIndex!,
                 testQuestionIndex: index,
             })
         )
     }
 
-    const handleFeedbackChange = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-        index: number
-    ) => {
-        const value = event.target.value
-
-        setFeedbackValues((prev) => {
-            const newValues = [...prev]
-            newValues[index] = value // Update feedback for the specific question
-            return newValues
-        })
-    }
-
-    const dispatchFeedback = (
-        event: FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>,
-        index: number
-    ) => {
-        const value = event.target.value
-
-        dispatch(
-            setTeacherEvaluation({
-                evaluation: selectedValues[index] === 'Correct',
-                comment: value,
-                testIndex: currentTestIndex!,
-                testQuestionIndex: index,
-            })
-        )
+    const processRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
+        if (newRow.feedback !== oldRow.feedback) {
+            dispatch(
+                setTeacherEvaluation({
+                    evaluation:
+                        selectedTest?.testQuestions[newRow.index].latestTeacherEvaluation || false,
+                    comment: newRow.feedback,
+                    testIndex: currentTestIndex!,
+                    testQuestionIndex: newRow.index,
+                })
+            )
+        }
+        return newRow
     }
 
     const onSaveGrading = async () => {
@@ -411,30 +389,7 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Feedback',
             minWidth: 300,
-            renderCell: (params) => (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center', // Align vertically
-                        height: '100%', // Make sure it takes the full row height
-                        width: '100%', // Make sure it takes the full cell width
-                    }}
-                >
-                    <TextField
-                        variant="outlined"
-                        size="small"
-                        value={feedbackValues[params.row.index] || ''}
-                        onChange={(event) => handleFeedbackChange(event, params.row.index)}
-                        onBlur={(event) => {
-                            dispatchFeedback(event, params.row.index)
-                        }}
-                        onKeyDown={(event) => {
-                            event.stopPropagation()
-                        }}
-                        fullWidth
-                    />
-                </Box>
-            ),
+            editable: true,
         },
     ]
 
@@ -643,20 +598,35 @@ const GradingScreen = () => {
                                                 key={test.testId}
                                                 value={index}
                                                 sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center', // Center vertically
                                                     color: finishedGrading ? 'primary.main' : '',
                                                 }}
                                             >
                                                 <Typography
-                                                    component="span"
-                                                    sx={{ display: 'inline-block', width: 250 }}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        flex: 1, // Allow this column to take up available space
+                                                        maxWidth: 400, // Set max width for the first column
+                                                        wordWrap: 'break-word', // Allow wrapping for long text
+                                                        whiteSpace: 'normal', // Ensure text can wrap onto multiple lines
+                                                        overflowWrap: 'break-word', // Ensure breaking for long words
+                                                        alignItems: 'center', // Center vertically
+                                                    }}
                                                 >
-                                                    {test.testType.testTypeName}
+                                                    <span style={{ flex: 1, marginRight: '16px' }}>
+                                                        {test.testType.testTypeName}
+                                                    </span>
+                                                    Graded: {test.numQuestionsGraded}/
+                                                    {test.testType.numQuestions}
+                                                    {finishedGrading && (
+                                                        <DoneIcon
+                                                            sx={{
+                                                                marginLeft: 1,
+                                                            }}
+                                                        />
+                                                    )}
                                                 </Typography>
-                                                Graded: {test.numQuestionsGraded}/
-                                                {test.testType.numQuestions}
-                                                {finishedGrading && (
-                                                    <DoneIcon sx={{ marginLeft: 1 }} />
-                                                )}
                                             </MenuItem>
                                         )
                                     })}
@@ -670,7 +640,9 @@ const GradingScreen = () => {
                                     columns={columns}
                                     pagination
                                     pageSizeOptions={[5, 10, 20, 100]}
-                                    disableRowSelectionOnClick
+                                    processRowUpdate={(updatedRow, originalRow) =>
+                                        processRowUpdate(updatedRow, originalRow)
+                                    }
                                     slots={{
                                         toolbar: GridToolbar,
                                     }}
