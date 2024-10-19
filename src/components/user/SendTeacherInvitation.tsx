@@ -1,32 +1,48 @@
-import { Alert, Box, Button, Snackbar, TextField, Typography } from '@mui/material'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
+
 import { sendTeacherInvitation } from '../../reducers/userReducer'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const SendTeacherInvitation = () => {
     const dispatch = useDispatch<any>()
     const [email, setEmail] = useState('')
     const [sendingInProgress, setSendingInProgress] = useState(false)
-    const [onSend, setOnSend] = useState<{
-        message: string
-        color: 'success' | 'error' | 'info' | 'warning'
-        display: boolean
-    }>({ message: '', color: 'info', display: false })
+    const [onSend, setOnSend] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const onClickSend = async () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            setOnSend({
+                display: true,
+                message: 'Invalid email format',
+                color: 'error',
+            })
+            return
+        }
+
         try {
             setSendingInProgress(true)
-            setOnSend({ message: 'Sending...', color: 'info', display: true })
+            setOnSend({ display: true, message: 'Sending...', color: 'info' })
 
             await dispatch(sendTeacherInvitation(email))
 
             setOnSend({
+                display: true,
                 message: 'Invitation has been sent successfully!',
                 color: 'success',
-                display: true,
             })
         } catch (error: any) {
-            setOnSend({ message: error.response.data.error, color: 'error', display: true })
+            setOnSend({
+                display: true,
+                message: error.response.data.error || 'Failed to send invitation!',
+                color: 'error',
+            })
         } finally {
             setSendingInProgress(false)
         }
@@ -52,17 +68,7 @@ const SendTeacherInvitation = () => {
             >
                 Send
             </Button>
-            <Snackbar
-                open={onSend.display}
-                onClose={() => setOnSend({ ...onSend, display: false })}
-            >
-                <Alert
-                    onClose={() => setOnSend({ ...onSend, display: false })}
-                    severity={onSend.color}
-                >
-                    {onSend.message}
-                </Alert>
-            </Snackbar>
+            <CustomSnackbar onRequest={onSend} setOnRequest={setOnSend} />
         </Box>
     )
 }

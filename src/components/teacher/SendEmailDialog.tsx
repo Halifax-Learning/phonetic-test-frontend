@@ -1,6 +1,4 @@
 import {
-    Alert,
-    AlertColor,
     Button,
     Dialog,
     DialogActions,
@@ -9,16 +7,15 @@ import {
     FormControlLabel,
     FormGroup,
     Radio,
-    Snackbar,
     TextField,
 } from '@mui/material'
 import { format } from 'date-fns'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 import { useState } from 'react'
-
 import { Assessment } from '../../models/interface'
 import { sendAssessmentResult } from '../../services/assessment'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 interface SendEmailDialogProps {
     open: boolean
@@ -29,12 +26,12 @@ interface SendEmailDialogProps {
 const SendEmailDialog = ({ open, onClose, assessment }: SendEmailDialogProps) => {
     const [teacherComment, setTeacherComment] = useState('')
     const [selectedOption, setSelectedOption] = useState('pdfOnly')
-    const [openSnackbar, setOpenSnackbar] = useState(false)
-    const [onSendMsg, setOnSendMsg] = useState<{ message: string; severity: AlertColor }>({
-        message: '',
-        severity: 'success',
-    })
     const [sendingInProgress, setSendingInProgress] = useState(false)
+    const [onSend, setOnSend] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const composeGreetings = () => {
         const greeting = `Hello ${assessment.testTaker.firstName},
@@ -83,8 +80,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
     const footer = '\n\nRegards,\nHalifax Learning Centre'
 
     const onSendAssessmentResult = async () => {
-        setOnSendMsg({ message: 'Sending result to student...', severity: 'info' })
-        setOpenSnackbar(true)
+        setOnSend({ message: 'Sending result to student...', color: 'info', display: true })
 
         try {
             let emailContent
@@ -99,18 +95,23 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
             const doc = selectedOption === 'emailOnly' ? null : generatePDF()
 
             setSendingInProgress(true)
+
             await sendAssessmentResult(assessment!.testTaker.email, emailContent, doc)
-            setSendingInProgress(false)
-            setOnSendMsg({
+
+            setOnSend({
                 message: 'Result sent successfully.',
-                severity: 'success',
+                color: 'success',
+                display: true,
             })
             onClose()
         } catch {
-            setOnSendMsg({
+            setOnSend({
                 message: 'Failed to send the result. Please try again.',
-                severity: 'error',
+                color: 'error',
+                display: true,
             })
+        } finally {
+            setSendingInProgress(false)
         }
     }
 
@@ -241,11 +242,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                 </DialogActions>
             </Dialog>
 
-            <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
-                <Alert onClose={() => setOpenSnackbar(false)} severity={onSendMsg.severity}>
-                    {onSendMsg.message}
-                </Alert>
-            </Snackbar>
+            <CustomSnackbar onRequest={onSend} setOnRequest={setOnSend} />
         </>
     )
 }

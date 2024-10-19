@@ -1,7 +1,6 @@
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
-
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { RootState } from '../../main'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { theme } from '../../theme/theme'

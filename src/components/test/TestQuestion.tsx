@@ -1,24 +1,14 @@
-import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import {
-    Alert,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    CircularProgress,
-    Grid2,
-    Snackbar,
-    Typography,
-} from '@mui/material'
-import { useEffect, useRef, useState } from 'react'
-import { useReactMediaRecorder } from 'react-media-recorder'
-import { useDispatch, useSelector } from 'react-redux'
-
 import HelpIcon from '@mui/icons-material/Help'
 import EndSessionIcon from '@mui/icons-material/LastPage'
 import MicIcon from '@mui/icons-material/Mic'
 import MicNoneIcon from '@mui/icons-material/MicNone'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
+import { Box, Button, Card, CardContent, CircularProgress, Grid2, Typography } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
+import { useReactMediaRecorder } from 'react-media-recorder'
+import { useDispatch, useSelector } from 'react-redux'
+
 import background from '../../assets/testQuestions/backgrounds/bg1.png'
 import sticker1 from '../../assets/testQuestions/stickers/Animal1.gif'
 import sticker10 from '../../assets/testQuestions/stickers/Animal10.gif'
@@ -38,6 +28,7 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import ConfirmationModal from './ConfirmationModal'
 import ProgressBar from './ProgressBar'
 import TestInstructionDialog from './TestInstructionDialog'
@@ -56,16 +47,20 @@ const TestQuestion = () => {
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
-    const [maxRecordingTimeWarning, setMaxRecordingTimeWarning] = useState(false)
+
+    const [onMaxRecordingTime, setOnMaxRecordingTime] = useState<OnRequestProps>({
+        display: false,
+        message: 'Maximum Recording Time is 5 seconds',
+        color: 'warning',
+    })
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    // Keep track of the request status when submitting the answer
-    const [onSubmit, setOnSubmit] = useState<{
-        message: string
-        color: 'success' | 'info' | 'warning' | 'error'
-    }>({ message: '', color: 'info' })
     const [submittingInProgress, setSubmittingInProgress] = useState(false)
-    const [openSnackbar, setOpenSnackbar] = useState(false)
+    const [onSubmit, setOnSubmit] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
         audio: true,
@@ -135,7 +130,7 @@ const TestQuestion = () => {
         // Stop recording after 5 seconds
         timeoutRef.current = setTimeout(() => {
             onStopRecording()
-            setMaxRecordingTimeWarning(true)
+            setOnMaxRecordingTime({ ...onMaxRecordingTime, display: true })
         }, 6000)
     }
 
@@ -152,12 +147,16 @@ const TestQuestion = () => {
 
     const submitAnswer = async () => {
         try {
-            setOnSubmit({ message: 'Saving your answer...', color: 'info' })
+            setOnSubmit({ display: false, message: 'Saving your answer...', color: 'info' })
             setSubmittingInProgress(true)
 
             await dispatch(submitTestQuestion())
 
-            setOnSubmit({ message: 'Your answer has been saved successfully!', color: 'success' })
+            setOnSubmit({
+                display: true,
+                message: 'Your answer has been saved successfully!',
+                color: 'success',
+            })
             setIsQuestionWithoutAnswer(true)
             pickRandomSticker()
 
@@ -168,10 +167,9 @@ const TestQuestion = () => {
                 dispatch(nextQuestion())
             }
         } catch (error: any) {
-            setOnSubmit({ message: error.message, color: 'error' })
+            setOnSubmit({ display: true, message: error.message, color: 'error' })
         } finally {
             setSubmittingInProgress(false)
-            setOpenSnackbar(true)
         }
     }
 
@@ -200,19 +198,11 @@ const TestQuestion = () => {
         <>
             {test && currentTestQuestionIndex !== null && (
                 <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
-                    <Snackbar
-                        open={maxRecordingTimeWarning}
-                        onClose={() => setMaxRecordingTimeWarning(false)}
-                    >
-                        <Alert onClose={() => setMaxRecordingTimeWarning(false)} severity="warning">
-                            Maximum Recording Time is 5 seconds
-                        </Alert>
-                    </Snackbar>
-                    <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
-                        <Alert onClose={() => setOpenSnackbar(false)} severity={onSubmit.color}>
-                            {onSubmit.message}
-                        </Alert>
-                    </Snackbar>
+                    <CustomSnackbar
+                        onRequest={onMaxRecordingTime}
+                        setOnRequest={setOnMaxRecordingTime}
+                    />
+                    <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
                     <ProgressBar
                         currentQuestionIndex={currentTestQuestionIndex}
                         numQuestions={test?.testType.numQuestions}

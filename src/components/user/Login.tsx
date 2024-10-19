@@ -1,24 +1,19 @@
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
 
-import { Visibility, VisibilityOff } from '@mui/icons-material'
-import MuiAlert, { AlertProps } from '@mui/material/Alert'
-import Snackbar from '@mui/material/Snackbar'
-import React, { useState } from 'react'
 import { login } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const schema = yup.object().shape({
     email: yup.string().email('Invalid email address').required('Email is required'),
     password: yup.string().required('Password is required'),
-})
-
-const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
-    return <MuiAlert elevation={6} ref={ref} {...props} />
 })
 
 const Login = () => {
@@ -32,22 +27,26 @@ const Login = () => {
         resolver: yupResolver(schema), // Use Yup schema for validation
     })
     const [showPassword, setShowPassword] = useState(false)
-    const [openSnackbar, setOpenSnackbar] = useState(false)
-    const [snackbarMessage, setSnackbarMessage] = useState('')
+
+    const [loginInProgress, setLoginInProgress] = useState(false)
+    const [onLogin, setOnLogin] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const onSubmit = async (data: any) => {
         try {
+            setLoginInProgress(true)
             await dispatch(login(data.email, data.password))
-
-            // Handle successful login (e.g., navigate to a dashboard)
-            console.log('Login successful')
         } catch (error: any) {
-            // Catch and handle login failure
-            console.error('Login failed:', error)
-
-            // Update snackbar message and open it
-            setSnackbarMessage(error.message || 'Login failed. Please try again.')
-            setOpenSnackbar(true)
+            setOnLogin({
+                display: true,
+                message: error.message || 'Login failed. Please try again.',
+                color: 'error',
+            })
+        } finally {
+            setLoginInProgress(false)
         }
     }
 
@@ -113,7 +112,12 @@ const Login = () => {
                             </>
                         )}
                     />
-                    <Button type="submit" variant="contained" sx={{ width: '100%', mt: 2 }}>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        sx={{ width: '100%', mt: 2 }}
+                        disabled={loginInProgress}
+                    >
                         Login
                     </Button>
                 </Box>
@@ -127,11 +131,8 @@ const Login = () => {
                     </Link>
                 </Typography>
             </Card>
-            <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
-                <Alert onClose={() => setOpenSnackbar(false)} severity="error">
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
+
+            <CustomSnackbar onRequest={onLogin} setOnRequest={setOnLogin} />
         </Box>
     )
 }

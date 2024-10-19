@@ -45,6 +45,7 @@ import {
 } from '../../reducers/gradingAssessmentReducer'
 import { theme } from '../../theme/theme'
 import '../fonts/Inter-VariableFont_opsz,wght-normal.js'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
 import SendEmailDialog from './SendEmailDialog'
@@ -67,12 +68,12 @@ const GradingScreen = () => {
     >([])
     const [rows, setRows] = useState<any[]>([])
 
-    // Keep track of the request status to save grading
-    const [onSave, setOnSave] = useState<{
-        message: string
-        color: 'success' | 'info' | 'warning' | 'error'
-    }>({ message: '', color: 'info' })
     const [savingInProgress, setSavingInProgress] = useState(false)
+    const [onSave, setOnSave] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
         console.log(
@@ -222,24 +223,24 @@ const GradingScreen = () => {
 
     const onSaveGrading = async () => {
         try {
-            setOnSave({ message: 'Saving...', color: 'info' })
+            setOnSave({ display: true, message: 'Saving...', color: 'info' })
             setSavingInProgress(true)
 
             await dispatch(submitTeacherEvaluation())
 
-            setOnSave({
-                message: 'Grading saved successfully!',
-                color: 'success',
-            })
+            setOnSave({ display: true, message: 'Grading saved successfully!', color: 'success' })
         } catch (error: any) {
-            setOnSave({ message: error.message, color: 'error' })
+            setOnSave({
+                display: true,
+                message: error.message || 'Failed to save grading. Please try again.',
+                color: 'error',
+            })
         } finally {
             setSavingInProgress(false)
         }
     }
 
     const handleBackToAssessments = () => {
-        setOnSave({ message: '', color: 'info' })
         navigate('/assessments-for-grading')
     }
 
@@ -438,7 +439,6 @@ const GradingScreen = () => {
     ]
 
     const exportToPdf = () => {
-        setOnSave({ message: '', color: 'info' })
         const doc = new jsPDF({ orientation: 'landscape' })
         const assessmentName = assessment?.assessmentType.assessmentTypeName || 'Assessment'
         const studentName =
@@ -683,8 +683,6 @@ const GradingScreen = () => {
                             </div>
                         </Grid2>
 
-                        <Typography color={onSave.color}>{onSave.message}</Typography>
-
                         <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
                             <Grid2>
                                 <Button
@@ -725,11 +723,15 @@ const GradingScreen = () => {
                     </Grid2>
                 )}
             </Box>
+
+            <CustomSnackbar onRequest={onSave} setOnRequest={setOnSave} />
+
             <GradingHistoryDialog
                 open={teacherGradingDialogOpen}
                 onClose={() => setTeacherGradingDialog(false)}
                 history={gradingHistory}
             />
+
             {assessment && (
                 <SendEmailDialog
                     open={emailDialogOpen}

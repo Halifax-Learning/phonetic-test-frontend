@@ -1,16 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
-import {
-    Alert,
-    Box,
-    Button,
-    Card,
-    IconButton,
-    InputAdornment,
-    Link,
-    Snackbar,
-    Typography,
-} from '@mui/material'
+import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
@@ -19,6 +9,7 @@ import * as yup from 'yup'
 
 import { register, sendVerificationEmail } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const schema = yup.object().shape({
     firstName: yup.string().required('First Name is required'),
@@ -37,11 +28,11 @@ const Register = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [isRegistered, setIsRegistered] = useState(false)
     const [registerInProgress, setRegisterInProgress] = useState(false)
-    const [onRegister, setOnRegister] = useState<{
-        message: string
-        color: 'success' | 'error' | 'info' | 'warning'
-        display: boolean
-    }>({ message: '', color: 'info', display: false })
+    const [onRegister, setOnRegister] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const {
         handleSubmit,
@@ -65,7 +56,7 @@ const Register = () => {
 
             await dispatch(sendVerificationEmail(data.email))
         } catch (error: any) {
-            setOnRegister({ message: error.response.data.error, color: 'error', display: true })
+            setOnRegister({ display: true, message: error.response.data.error, color: 'error' })
         } finally {
             setRegisterInProgress(false)
         }
@@ -198,17 +189,7 @@ const Register = () => {
                     </Link>{' '}
                 </Typography>
             </Card>
-            <Snackbar
-                open={onRegister.display}
-                onClose={() => setOnRegister({ ...onRegister, display: false })}
-            >
-                <Alert
-                    onClose={() => setOnRegister({ ...onRegister, display: false })}
-                    severity={onRegister.color}
-                >
-                    {onRegister.message}
-                </Alert>
-            </Snackbar>
+            <CustomSnackbar onRequest={onRegister} setOnRequest={setOnRegister} />
         </Box>
     )
 

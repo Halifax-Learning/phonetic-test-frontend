@@ -1,13 +1,13 @@
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { Alert, Box, Button, Card, CardContent, Grid2, Snackbar, Typography } from '@mui/material'
-import { useState } from 'react'
+import { Box, Button, Card, CardContent, Grid2, Typography } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { RootState } from '../../main'
 import { nextTest, resetAssessment } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { theme } from '../../theme/theme'
+import { SimpleCustomSnackbar } from '../reusables/CustomSnackbar'
 
 const TestFinish = () => {
     const dispatch = useDispatch<any>()
@@ -16,7 +16,6 @@ const TestFinish = () => {
     const currentTestIndex = useSelector((state: RootState) => state.assessment.currentTestIndex)
 
     const testTypes = assessment?.tests.map((test) => test.testType)
-    const [openSnackbar, setOpenSnackbar] = useState(true)
 
     const onClickNextTest = () => {
         dispatch(nextTest())
@@ -37,11 +36,11 @@ const TestFinish = () => {
                         maxWidth: 'md',
                     }}
                 >
-                    <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
-                        <Alert onClose={() => setOpenSnackbar(false)} severity="success">
-                            Your answer has been saved successfully!
-                        </Alert>
-                    </Snackbar>
+                    <SimpleCustomSnackbar
+                        display={true}
+                        message="Your answer has been saved successfully!"
+                        color="success"
+                    />
                     <Typography variant="h1" color="secondary.dark" sx={{ mb: 2 }}>
                         You have completed the following sections:
                     </Typography>

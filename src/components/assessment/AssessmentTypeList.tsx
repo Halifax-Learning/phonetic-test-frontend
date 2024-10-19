@@ -1,8 +1,7 @@
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { Box, Button, CardContent, CircularProgress, Grid2, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { RootState } from '../../main'
 import { createAssessment, fetchInProgressAssessment } from '../../reducers/assessmentReducer'
 import { fetchAssessmentTypes } from '../../reducers/assessmentTypeReducer'
