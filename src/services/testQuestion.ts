@@ -29,7 +29,6 @@ export const updateTestQuestion = async (
 }
 
 interface TeacherGradingsHttpRequestData {
-    teacherAccountId: string
     testQuestions: { testQuestionId: string; teacherEvaluation: boolean; teacherComment: string }[]
 }
 

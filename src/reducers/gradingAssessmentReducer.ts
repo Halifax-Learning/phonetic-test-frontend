@@ -191,7 +191,6 @@ export const submitTeacherEvaluation = () => {
             }))
             try {
                 await testQuestionService.createTeacherGradings({
-                    teacherAccountId: state.user.accountId,
                     testQuestions: reqTestQuestions,
                 })
             } catch {
