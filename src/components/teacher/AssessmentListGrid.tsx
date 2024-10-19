@@ -33,44 +33,18 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             width: 200,
         },
         {
-            field: 'machineEvaluation',
+            field: 'autoEvaluation',
             headerClassName: 'data-grid--header',
-            headerName: 'Machine Evaluation',
+            headerName: 'Auto Evaluation',
             width: 200,
+            renderCell: (params) => displayTestScores(params.value, false),
         },
         {
             field: 'teacherEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Teacher Evaluation',
             width: 200,
-            renderCell: (params) => {
-                const tests: Test[] = params.value
-                return (
-                    <Box>
-                        {tests.map((test, index) => (
-                            <Box key={index}>
-                                <Typography>
-                                    <Typography
-                                        component="span"
-                                        variant="body2"
-                                        sx={{ display: 'inline-block', width: 80 }}
-                                    >
-                                        {test.testType.testTypeName === 'Single Phoneme Recognition'
-                                            ? 'SPR'
-                                            : test.testType.testTypeName}
-                                    </Typography>
-
-                                    <Typography component="span" variant="body2">
-                                        {test.teacherScore !== null
-                                            ? `: ${test.teacherScore}/${test.testType.numQuestions}`
-                                            : ':'}
-                                    </Typography>
-                                </Typography>
-                            </Box>
-                        ))}
-                    </Box>
-                )
-            },
+            renderCell: (params) => displayTestScores(params.value, true),
         },
         {
             field: 'testsGraded',
@@ -107,7 +81,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
         submissionTime: assessment.assessmentSubmissionTime
             ? new Date(assessment.assessmentSubmissionTime).toLocaleString()
             : 'In Progress',
-        machineEvaluation: '0',
+        autoEvaluation: assessment.tests,
         teacherEvaluation: assessment.tests,
         testsGraded: assessment.isAllTestsGradedByTeacher ? 'Yes' : 'No',
     }))
@@ -125,7 +99,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                     columns={columns}
                     pagination
                     pageSizeOptions={[5, 10, 20, 100]}
-                    rowHeight={100}
+                    rowHeight={25 * assessments[0].tests.length}
                     disableRowSelectionOnClick
                     sx={{
                         '& .data-grid--header': {
@@ -137,6 +111,36 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                 <Typography>No assessments available.</Typography>
             )}
         </Box>
+    )
+}
+
+const displayTestScores = (tests: Test[], byTeacher: boolean) => {
+    return (
+        <>
+            {tests.map((test, index) => {
+                const score = byTeacher ? test.teacherScore : test.autoScore
+
+                return (
+                    <Box key={index}>
+                        <Typography>
+                            <Typography
+                                component="span"
+                                variant="body2"
+                                sx={{ display: 'inline-block', width: 75 }}
+                            >
+                                {test.testType.testTypeName === 'Single Phoneme Recognition'
+                                    ? 'SPR'
+                                    : test.testType.testTypeName}
+                            </Typography>
+
+                            <Typography component="span" variant="body2">
+                                {score !== null ? `: ${score}/${test.testType.numQuestions}` : ':'}
+                            </Typography>
+                        </Typography>
+                    </Box>
+                )
+            })}
+        </>
     )
 }
 

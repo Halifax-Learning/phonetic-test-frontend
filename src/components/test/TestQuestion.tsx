@@ -65,7 +65,7 @@ const TestQuestion = () => {
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
         audio: true,
         mediaRecorderOptions: {
-            mimeType: MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/web ',
+            mimeType: MediaRecorder.isTypeSupported('audio/mpeg') ? 'audio/mpeg' : 'audio/webm',
         },
     })
 

@@ -81,7 +81,7 @@ const GradingHistoryDialog: React.FC<GradingHistoryDialogProps> = ({ open, onClo
                                     isAutoGradingHistory(entry) ? (
                                         <TableRow key={entry.autoGradingHistoryId}>
                                             <TableCell sx={{ width: '30%' }}>
-                                                {entry.modelVersion}
+                                                {entry.modelName}
                                             </TableCell>
                                             <TableCell sx={{ width: '20%' }}>
                                                 {entry.autoEvaluation ? 'Correct' : 'Incorrect'}

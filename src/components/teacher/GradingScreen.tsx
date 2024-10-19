@@ -73,19 +73,10 @@ const GradingScreen = () => {
         color: 'info',
     })
 
-    const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
-        console.log(
-            'Show grading history for question:',
-            index,
-            'Machine History:',
-            isMachineHistory
-        )
-
-        if (isMachineHistory) {
-            // Handle machine grading history
+    const handleShowGradingHistory = (index: number, isAutoHistory: boolean) => {
+        if (isAutoHistory) {
             setGradingHistory(selectedTest?.testQuestions[index].autoGradingHistory || [])
         } else {
-            // Handle teacher grading history
             setGradingHistory(selectedTest?.testQuestions[index].teacherGradingHistory || [])
         }
 
@@ -142,7 +133,7 @@ const GradingScreen = () => {
                 questionAudio: testQuestion.question.questionAudioBlobUrl,
                 correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
                 studentAnswerAudio: testQuestion.answerAudioBlobUrl,
-                machineEvaluation:
+                autoEvaluation:
                     testQuestion.latestAutoEvaluation === null
                         ? 'N/A'
                         : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
@@ -275,9 +266,9 @@ const GradingScreen = () => {
                 ),
         },
         {
-            field: 'machineEvaluation',
+            field: 'autoEvaluation',
             headerClassName: 'data-grid--header',
-            headerName: 'Machine Evaluation',
+            headerName: 'Auto Evaluation',
             width: 150,
             renderCell: (params) => (
                 <Box
@@ -289,8 +280,8 @@ const GradingScreen = () => {
                         height: '100%',
                     }}
                 >
-                    <span>{params.row.machineEvaluation}</span>
-                    {params.row.machineEvaluation !== 'N/A' && ( // Only show the icon if machineEvaluation is not 'N/A'
+                    <span>{params.row.autoEvaluation}</span>
+                    {/* {params.row.autoEvaluation !== 'N/A' && ( // Only show the icon if autoEvaluation is not 'N/A'
                         <Tooltip title="View Grading History">
                             <IconButton
                                 size="small"
@@ -300,7 +291,7 @@ const GradingScreen = () => {
                                 <HistoryIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                    )}
+                    )} */}
                 </Box>
             ),
         },
@@ -438,7 +429,7 @@ const GradingScreen = () => {
                     (col) =>
                         !col.disableExport &&
                         col.field !== 'questionNo' &&
-                        col.field !== 'machineEvaluation'
+                        col.field !== 'autoEvaluation'
                 )
                 .map((col) => ({ title: col.headerName, dataKey: col.field })),
         ]
@@ -625,9 +616,12 @@ const GradingScreen = () => {
                                                         <DoneIcon sx={{ marginRight: 1 }} />
                                                     )}
                                                     Graded:
-                                                    <Typography sx={{ whiteSpace: 'pre' }}>
+                                                    <Box
+                                                        component="span"
+                                                        sx={{ whiteSpace: 'pre' }}
+                                                    >
                                                         {` ${numQuestionsGraded}/${test.testQuestions.length}`}
-                                                    </Typography>
+                                                    </Box>
                                                 </Typography>
                                             </MenuItem>
                                         )

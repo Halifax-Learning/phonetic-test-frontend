@@ -80,7 +80,7 @@ export interface Assessment {
 
 export interface AutoGradingHistory {
     autoGradingHistoryId: string
-    modelVersion: string
+    modelName: string
     autoEvaluation: number
     createdAt: Date
 }
