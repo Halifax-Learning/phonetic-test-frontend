@@ -29,10 +29,10 @@ const userReducer = createSlice({
     },
 })
 
-export const register = (user: User) => {
+export const register = (user: User, verificationCode: string | null) => {
     return async () => {
         const userSnakeCase = convertKeysToSnakeCase(user)
-        await userService.register(userSnakeCase)
+        await userService.register(userSnakeCase, verificationCode)
     }
 }
 
@@ -68,6 +68,12 @@ export const sendVerificationEmail = (email: string) => {
 export const verifyEmail = (verificationCode: string) => {
     return async () => {
         await userService.verifyEmail(verificationCode)
+    }
+}
+
+export const sendTeacherInvitation = (email: string) => {
+    return async () => {
+        await userService.sendTeacherInvitation(email)
     }
 }
 

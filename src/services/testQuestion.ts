@@ -1,6 +1,6 @@
 import axios from 'axios'
-import axiosInstance from './axiosInstance'
 import { convertKeysToSnakeCase } from '../utils/helper'
+import axiosInstance from './axiosInstance'
 
 const baseUrl = import.meta.env.VITE_API_URL
 

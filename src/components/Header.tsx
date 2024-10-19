@@ -343,7 +343,7 @@ const Header: React.FC = () => {
                                         >
                                             Profile
                                         </MenuItem>
-                                        {user.accountRole === 'teacher' && (
+                                        {['admin', 'teacher'].includes(user.accountRole) && (
                                             <MenuItem
                                                 component={Link}
                                                 to="/assessments-for-grading"
@@ -358,6 +358,23 @@ const Header: React.FC = () => {
                                                 }}
                                             >
                                                 Grade Assessment
+                                            </MenuItem>
+                                        )}
+                                        {user.accountRole === 'admin' && (
+                                            <MenuItem
+                                                component={Link}
+                                                to="/send_teacher_invitation"
+                                                onClick={() => {
+                                                    handleDrawerClose()
+                                                    handleMenuClose()
+                                                }}
+                                                style={{
+                                                    ...theme.typography.h3,
+                                                    textDecoration: 'none',
+                                                    color: theme.palette.text.primary,
+                                                }}
+                                            >
+                                                Send Teacher Invitation
                                             </MenuItem>
                                         )}
                                         <MenuItem
