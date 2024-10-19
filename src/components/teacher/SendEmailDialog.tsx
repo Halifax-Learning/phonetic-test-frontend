@@ -226,17 +226,29 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={onSendAssessmentResult} disabled={sendingInProgress}>
+                    <Button
+                        variant="contained"
+                        onClick={onSendAssessmentResult}
+                        disabled={sendingInProgress}
+                        sx={{ marginRight: 1 }}
+                    >
                         Send
                     </Button>
                     <Button
-                        color="info"
+                        color="secondary"
+                        variant="contained"
                         onClick={() => generatePDF(true)}
                         disabled={sendingInProgress}
+                        sx={{ marginRight: 1 }}
                     >
                         Preview PDF
                     </Button>
-                    <Button color="warning" onClick={onClose} disabled={sendingInProgress}>
+                    <Button
+                        variant="contained"
+                        color="warning"
+                        onClick={onClose}
+                        disabled={sendingInProgress}
+                    >
                         Cancel
                     </Button>
                 </DialogActions>
