@@ -35,7 +35,7 @@ const gradingAssessmentReducer = createSlice({
             state,
             action: {
                 payload: {
-                    evaluation: boolean
+                    evaluation: boolean | null
                     comment: string
                     testIndex: number
                     testQuestionIndex: number
@@ -78,7 +78,7 @@ const gradingAssessmentReducer = createSlice({
                     const gradingHistory: TeacherGradingHistory = {
                         teacherGradingHistoryId: new Date().toString(),
                         teacherAccount: action.payload.user,
-                        teacherEvaluation: testQuestion.latestTeacherEvaluation,
+                        teacherEvaluation: testQuestion.latestTeacherEvaluation!,
                         teacherComment: testQuestion.latestTeacherComment,
                         createdAt: new Date().toISOString(),
                     }
@@ -186,7 +186,7 @@ export const submitTeacherEvaluation = () => {
         if (testQuestions.length > 0) {
             const reqTestQuestions = testQuestions.map((testQuestion) => ({
                 testQuestionId: testQuestion.testQuestionId,
-                teacherEvaluation: testQuestion.latestTeacherEvaluation,
+                teacherEvaluation: testQuestion.latestTeacherEvaluation!,
                 teacherComment: testQuestion.latestTeacherComment,
             }))
             try {

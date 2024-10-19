@@ -33,8 +33,8 @@ export interface TestQuestion {
     answerAudioBlobUrl: string
     hasAnswerAudio: boolean // if the answer in the question has audio
     latestAutoEvaluation: number
-    latestTeacherEvaluation: boolean
-    originalTeacherEvaluation: boolean // to keep track if the teacher evaluation has been changed
+    latestTeacherEvaluation: boolean | null
+    originalTeacherEvaluation: boolean | null // to keep track if the teacher evaluation has been changed
     latestTeacherComment: string
     testQuestionSubmissionTime: Date
     autoGradingHistory: AutoGradingHistory[]
@@ -102,8 +102,8 @@ export interface ExportTestQuestion {
     answerAudioBlobUrl: string
     hasAnswerAudio: boolean
     latestAutoEvaluation: number
-    latestTeacherEvaluation: boolean
-    originalTeacherEvaluation: boolean
+    latestTeacherEvaluation: boolean | null
+    originalTeacherEvaluation: boolean | null
     latestTeacherComment: string
     testQuestionSubmissionTime: Date
     autoGradingHistory: AutoGradingHistory[]

@@ -189,7 +189,7 @@ const GradingScreen = () => {
             dispatch(
                 setTeacherEvaluation({
                     evaluation:
-                        selectedTest?.testQuestions[newRow.index].latestTeacherEvaluation || false,
+                        selectedTest?.testQuestions[newRow.index].latestTeacherEvaluation || null,
                     comment: newRow.feedback,
                     testIndex: currentTestIndex!,
                     testQuestionIndex: newRow.index,
@@ -389,6 +389,7 @@ const GradingScreen = () => {
             headerClassName: 'data-grid--header',
             headerName: 'Feedback',
             minWidth: 300,
+            cellClassName: 'editable-cell',
             editable: true,
         },
     ]
@@ -585,14 +586,17 @@ const GradingScreen = () => {
                                         alignItems: 'center',
                                         color:
                                             selectedTest.numQuestionsGraded ===
-                                            selectedTest.testType.numQuestions
+                                            selectedTest.testQuestions.length
                                                 ? 'primary.main'
                                                 : '',
                                     }}
                                 >
                                     {assessment?.tests.map((test, index) => {
                                         const finishedGrading =
-                                            test.numQuestionsGraded === test.testType.numQuestions
+                                            test.numQuestionsGraded === test.testQuestions.length
+                                        const numQuestionsGraded = String(
+                                            test.numQuestionsGraded
+                                        ).padStart(2, ' ')
                                         return (
                                             <MenuItem
                                                 key={test.testId}
@@ -617,15 +621,13 @@ const GradingScreen = () => {
                                                     <span style={{ flex: 1, marginRight: '16px' }}>
                                                         {test.testType.testTypeName}
                                                     </span>
-                                                    Graded: {test.numQuestionsGraded}/
-                                                    {test.testType.numQuestions}
                                                     {finishedGrading && (
-                                                        <DoneIcon
-                                                            sx={{
-                                                                marginLeft: 1,
-                                                            }}
-                                                        />
+                                                        <DoneIcon sx={{ marginRight: 1 }} />
                                                     )}
+                                                    Graded:
+                                                    <Typography sx={{ whiteSpace: 'pre' }}>
+                                                        {` ${numQuestionsGraded}/${test.testQuestions.length}`}
+                                                    </Typography>
                                                 </Typography>
                                             </MenuItem>
                                         )
@@ -649,6 +651,11 @@ const GradingScreen = () => {
                                     sx={{
                                         '& .data-grid--header': {
                                             color: 'primary.main',
+                                        },
+                                        '& .editable-cell': {
+                                            border: `1px solid ${theme.palette.secondary.light}`,
+                                            borderRadius: 1.5,
+                                            cursor: 'pointer',
                                         },
                                     }}
                                 />
