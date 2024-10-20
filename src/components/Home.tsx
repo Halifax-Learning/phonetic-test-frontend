@@ -119,19 +119,21 @@ const Home = () => {
                     </Typography>
                 )}
                 <Typography variant="h1" sx={{ color: 'inherit', mb: 2 }}>
-                    {user?.accountRole === 'teacher'
+                    {['admin', 'teacher'].includes(user?.accountRole || '')
                         ? 'Grade Your Students'
                         : 'Discover Your English Strengths'}
                 </Typography>
                 <Typography variant="body1" sx={{ color: 'inherit', mb: 4 }}>
-                    {user?.accountRole === 'teacher'
+                    {['admin', 'teacher'].includes(user?.accountRole || '')
                         ? 'Evaluate and assess student performance to enhance their learning.'
                         : 'Comprehensive Skill Assessment for Students and Families to Identify Areas for Improvement'}
                 </Typography>
                 <Button
                     component={Link}
                     to={
-                        user?.accountRole === 'teacher' ? '/assessments-for-grading' : '/assessment'
+                        ['admin', 'teacher'].includes(user?.accountRole || '')
+                            ? '/assessments-for-grading'
+                            : '/assessment'
                     }
                     variant="contained"
                     sx={{
@@ -139,7 +141,7 @@ const Home = () => {
                         color: 'inherit',
                     }}
                 >
-                    {user?.accountRole === 'teacher'
+                    {['admin', 'teacher'].includes(user?.accountRole || '')
                         ? 'GRADE ASSESSMENTS'
                         : 'TAKE THE ASSESSMENT NOW'}
                 </Button>
