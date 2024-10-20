@@ -39,11 +39,11 @@ const AssessmentList = () => {
             if (isAssessmentInProgress === null) {
                 await dispatch(fetchInProgressAssessment())
             }
+
+            setOnLoading({ inProgress: false })
         } catch (err) {
             setOnLoading({ inProgress: false, message: 'Failed to load. Please try again later.' })
             console.error('Failed to fetch assessment types:', err)
-        } finally {
-            setOnLoading({ inProgress: false })
         }
     }
 
