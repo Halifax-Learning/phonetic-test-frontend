@@ -1,38 +1,53 @@
-import { Box, Card, CardHeader, CircularProgress, Typography } from '@mui/material'
+import { Box, Button, Card, CardHeader, CircularProgress, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
-import { Assessment } from '../../models/interface'
 import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
-import { fetchGradingAssessment } from '../../reducers/gradingAssessmentReducer'
+import { OnRequestProps } from '../reusables/CustomSnackbar'
 import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
-    const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const assessments = useSelector(
-        (state: RootState) => state.gradingAssessmentList as Assessment[]
-    )
-    const [loading, setLoading] = useState(true)
-    const [loadingAssessment, setLoadingAssessment] = useState(false)
+    const assessments = useSelector((state: RootState) => state.gradingAssessmentList)
+
+    const [onLoading, setOnLoading] = useState<OnRequestProps>({
+        inProgress: false,
+        message: '',
+    })
 
     useEffect(() => {
-        const loadData = async () => {
-            if (!assessments) {
-                await dispatch(fetchGradingAssessments())
-            }
-            setLoading(false)
-        }
-
         loadData()
     }, [dispatch])
 
-    const onChooseAssessment = async (assessmentId: string) => {
-        setLoadingAssessment(true) // Start loading
-        await dispatch(fetchGradingAssessment(assessmentId))
-        navigate('/grading')
-        setLoadingAssessment(false) // End loading
+    const loadData = async () => {
+        if (!assessments) {
+            try {
+                setOnLoading({ inProgress: true })
+
+                await dispatch(fetchGradingAssessments())
+
+                setOnLoading({ inProgress: false })
+            } catch (err) {
+                setOnLoading({
+                    inProgress: false,
+                    message: 'Failed to load. Please try again later.',
+                })
+                console.error('Failed to fetch grading assessments:', err)
+            }
+        }
+    }
+
+    if (!onLoading.inProgress && onLoading.message) {
+        return (
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography variant="body1" color="error">
+                    {onLoading.message}
+                </Typography>
+                <Button variant="contained" onClick={loadData}>
+                    Retry
+                </Button>
+            </Box>
+        )
     }
 
     return (
@@ -46,19 +61,12 @@ const TeacherAssessmentList = () => {
                     }
                 />
             </Card>
-            {loading ? (
-                <Box display="flex" justifyContent="center" alignItems="center" height="500px">
-                    <CircularProgress />
-                </Box>
-            ) : loadingAssessment ? (
+            {onLoading.inProgress || !assessments ? (
                 <Box display="flex" justifyContent="center" alignItems="center" height="500px">
                     <CircularProgress />
                 </Box>
             ) : (
-                <AssessmentListGrid
-                    assessments={assessments}
-                    onChooseAssessment={onChooseAssessment}
-                />
+                <AssessmentListGrid assessments={assessments} />
             )}
         </Box>
     )

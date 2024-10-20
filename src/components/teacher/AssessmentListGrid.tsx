@@ -1,18 +1,48 @@
 import EditIcon from '@mui/icons-material/Edit'
 import { Box, Typography } from '@mui/material'
 import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid'
-import * as React from 'react'
+import { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { Assessment, Test } from '../../models/interface'
+import { fetchGradingAssessment } from '../../reducers/gradingAssessmentReducer'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
-interface AssessmentListGridProps {
-    assessments: Assessment[]
-    onChooseAssessment: (assessmentId: string) => void
-}
+const AssessmentListGrid = ({ assessments }: { assessments: Assessment[] }) => {
+    const navigate = useNavigate()
+    const dispatch = useDispatch<any>()
 
-const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
-    assessments,
-    onChooseAssessment,
-}) => {
+    const [onLoadingAssessment, setOnLoadingAssessment] = useState<OnRequestProps>({
+        inProgress: false,
+        display: false,
+        message: '',
+        color: 'info',
+    })
+
+    const onChooseAssessment = async (assessmentId: string) => {
+        try {
+            setOnLoadingAssessment({
+                inProgress: true,
+                display: true,
+                message: 'Loading...',
+                color: 'info',
+            })
+
+            await dispatch(fetchGradingAssessment(assessmentId))
+
+            navigate('/grading')
+
+            setOnLoadingAssessment({ inProgress: false })
+        } catch (err) {
+            setOnLoadingAssessment({
+                inProgress: false,
+                display: true,
+                message: 'Failed to load. Please try again later.',
+                color: 'error',
+            })
+            console.error('Failed to fetch a specific grading assessment:', err)
+        }
+    }
     const columns: GridColDef[] = [
         {
             field: 'assessmentTypeName',
@@ -76,6 +106,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                         icon={<EditIcon sx={{ color: 'primary.main' }} />}
                         label="Edit"
                         onClick={() => onChooseAssessment(row.id as string)}
+                        disabled={onLoadingAssessment.inProgress}
                     />,
                 ]
             },
@@ -110,9 +141,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                     rowHeight={25 * assessments[0].tests.length}
                     disableRowSelectionOnClick
                     sx={{
-                        '& .data-grid--header': {
-                            color: 'primary.main',
-                        },
+                        '& .data-grid--header': { color: 'primary.main' },
                         '& .centered-cell': {
                             display: 'flex',
                             justifyContent: 'center',
@@ -123,6 +152,8 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             ) : (
                 <Typography>No assessments available.</Typography>
             )}
+
+            <CustomSnackbar onRequest={onLoadingAssessment} setOnRequest={setOnLoadingAssessment} />
         </Box>
     )
 }
