@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { Assessment, Test } from '../../models/interface'
 import { fetchGradingAssessment } from '../../reducers/gradingAssessmentReducer'
+import { logError } from '../../utils/logger'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const AssessmentListGrid = ({ assessments }: { assessments: Assessment[] }) => {
@@ -40,7 +41,7 @@ const AssessmentListGrid = ({ assessments }: { assessments: Assessment[] }) => {
                 message: 'Failed to load. Please try again later.',
                 color: 'error',
             })
-            console.error('Failed to fetch a specific grading assessment:', err)
+            logError('Failed to fetch a specific grading assessment:', err)
         }
     }
     const columns: GridColDef[] = [

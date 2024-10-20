@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../main'
 import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
+import { logError } from '../../utils/logger'
 import { OnRequestProps } from '../reusables/CustomSnackbar'
 import AssessmentListGrid from './AssessmentListGrid'
 
@@ -32,7 +33,7 @@ const TeacherAssessmentList = () => {
                     inProgress: false,
                     message: 'Failed to load. Please try again later.',
                 })
-                console.error('Failed to fetch grading assessments:', err)
+                logError('Failed to fetch grading assessments:', err)
             }
         }
     }

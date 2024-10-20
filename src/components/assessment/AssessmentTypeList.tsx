@@ -8,6 +8,7 @@ import { fetchAssessmentTypes } from '../../reducers/assessmentTypeReducer'
 import { setGradingAssessmentList } from '../../reducers/gradingAssessmentListReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledClickableCard } from '../../theme/theme'
+import { logError } from '../../utils/logger'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const AssessmentList = () => {
@@ -43,7 +44,7 @@ const AssessmentList = () => {
             setOnLoading({ inProgress: false })
         } catch (err) {
             setOnLoading({ inProgress: false, message: 'Failed to load. Please try again later.' })
-            console.error('Failed to fetch assessment types:', err)
+            logError('Failed to fetch assessment types:', err)
         }
     }
 
@@ -62,6 +63,7 @@ const AssessmentList = () => {
 
             await dispatch(createAssessment(assessmentTypeId))
 
+            setOnCreatingAssessment({ inProgress: false })
             dispatch(setScreenToDisplay('AssessmentWelcome'))
             dispatch(setGradingAssessmentList(null))
         } catch (err) {
@@ -71,9 +73,7 @@ const AssessmentList = () => {
                 message: 'Failed to start assessment. Please try again later.',
                 color: 'error',
             })
-            console.error('Failed to create assessment:', err)
-        } finally {
-            setOnCreatingAssessment({ inProgress: false })
+            logError('Failed to create assessment:', err)
         }
     }
 

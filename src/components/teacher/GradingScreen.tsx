@@ -43,6 +43,7 @@ import {
     submitTeacherEvaluation,
 } from '../../reducers/gradingAssessmentReducer'
 import { theme } from '../../theme/theme'
+import { logError } from '../../utils/logger'
 import '../fonts/Inter-VariableFont_opsz,wght-normal.js'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
@@ -127,7 +128,7 @@ const GradingScreen = () => {
                         message: 'Failed to fetch audio. Please try again.',
                         color: 'error',
                     })
-                    console.error(err)
+                    logError('Failed to fetch audio:', err)
                 }
             }
         }
@@ -262,7 +263,7 @@ const GradingScreen = () => {
                 message: error.message || 'Failed to save grading. Please try again.',
                 color: 'error',
             })
-            console.error(error)
+            logError('Failed to save grading:', error)
         }
     }
 

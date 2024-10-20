@@ -9,6 +9,7 @@ import * as yup from 'yup'
 
 import { register, sendVerificationEmail } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
+import { logError } from '../../utils/logger'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const schema = yup.object().shape({
@@ -64,7 +65,7 @@ const Register = () => {
                 message: error.response.data.error || 'Registration failed. Please try again.',
                 color: 'error',
             })
-            console.error(error)
+            logError('Registration failed:', error)
         }
     }
 

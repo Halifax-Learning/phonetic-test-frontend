@@ -28,6 +28,7 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
+import { logError } from '../../utils/logger'
 import CustomSnackbar, { OnRequestProps, SimpleCustomSnackbar } from '../reusables/CustomSnackbar'
 import ConfirmationModal from './ConfirmationModal'
 import ProgressBar from './ProgressBar'
@@ -109,7 +110,7 @@ const TestQuestion = () => {
                         setMicrophoneAllowed(true)
                     } catch (error) {
                         setMicrophoneAllowed(false)
-                        console.error('Microphone permission denied:', error)
+                        logError('Microphone permission denied:', error)
                     }
                 }
 
@@ -117,7 +118,7 @@ const TestQuestion = () => {
                     setMicrophoneAllowed(permissionStatus.state === 'granted')
                 }
             } catch (error) {
-                console.error('Error checking microphone permission:', error)
+                logError('Error checking microphone permission:', error)
             }
         }
         checkMicrophonePermission()
