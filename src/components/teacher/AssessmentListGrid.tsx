@@ -18,71 +18,53 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             field: 'assessmentTypeName',
             headerClassName: 'data-grid--header',
             headerName: 'Assessment Type',
+            headerAlign: 'center',
             width: 250,
         },
         {
             field: 'studentName',
             headerClassName: 'data-grid--header',
             headerName: 'Student',
+            headerAlign: 'center',
             width: 150,
         },
         {
             field: 'submissionTime',
             headerClassName: 'data-grid--header',
             headerName: 'Submission Time',
+            headerAlign: 'center',
             width: 200,
         },
         {
-            field: 'machineEvaluation',
+            field: 'autoEvaluation',
             headerClassName: 'data-grid--header',
-            headerName: 'Machine Evaluation',
+            headerName: 'Auto Evaluation',
+            headerAlign: 'center',
             width: 200,
+            renderCell: (params) => displayTestScores(params.value, false),
         },
         {
             field: 'teacherEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Teacher Evaluation',
+            headerAlign: 'center',
             width: 200,
-            renderCell: (params) => {
-                const tests: Test[] = params.value
-                return (
-                    <Box>
-                        {tests.map((test, index) => (
-                            <Box key={index}>
-                                <Typography>
-                                    <Typography
-                                        component="span"
-                                        variant="body2"
-                                        sx={{ display: 'inline-block', width: 80 }}
-                                    >
-                                        {test.testType.testTypeName === 'Single Phoneme Recognition'
-                                            ? 'SPR'
-                                            : test.testType.testTypeName}
-                                    </Typography>
-
-                                    <Typography component="span" variant="body2">
-                                        {test.teacherScore
-                                            ? `: ${test.teacherScore}/${test.testType.numQuestions}`
-                                            : ':'}
-                                    </Typography>
-                                </Typography>
-                            </Box>
-                        ))}
-                    </Box>
-                )
-            },
+            renderCell: (params) => displayTestScores(params.value, true),
         },
         {
             field: 'testsGraded',
             headerClassName: 'data-grid--header',
-            headerName: 'Tests Graded',
+            headerName: 'Graded by Teacher',
+            headerAlign: 'center',
             width: 150,
+            cellClassName: 'centered-cell',
         },
         {
             field: 'actions',
             type: 'actions',
             headerClassName: 'data-grid--header',
             headerName: 'Actions',
+            headerAlign: 'center',
             width: 80,
             getActions: ({ row }) => {
                 if (row.submissionTime === 'In Progress') {
@@ -107,7 +89,7 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
         submissionTime: assessment.assessmentSubmissionTime
             ? new Date(assessment.assessmentSubmissionTime).toLocaleString()
             : 'In Progress',
-        machineEvaluation: '0',
+        autoEvaluation: assessment.tests,
         teacherEvaluation: assessment.tests,
         testsGraded: assessment.isAllTestsGradedByTeacher ? 'Yes' : 'No',
     }))
@@ -125,11 +107,16 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                     columns={columns}
                     pagination
                     pageSizeOptions={[5, 10, 20, 100]}
-                    rowHeight={100}
+                    rowHeight={25 * assessments[0].tests.length}
                     disableRowSelectionOnClick
                     sx={{
                         '& .data-grid--header': {
                             color: 'primary.main',
+                        },
+                        '& .centered-cell': {
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
                         },
                     }}
                 />
@@ -137,6 +124,36 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                 <Typography>No assessments available.</Typography>
             )}
         </Box>
+    )
+}
+
+const displayTestScores = (tests: Test[], byTeacher: boolean) => {
+    return (
+        <>
+            {tests.map((test, index) => {
+                const score = byTeacher ? test.teacherScore : test.autoScore
+
+                return (
+                    <Box key={index}>
+                        <Typography>
+                            <Typography
+                                component="span"
+                                variant="body2"
+                                sx={{ display: 'inline-block', width: 75 }}
+                            >
+                                {test.testType.testTypeName === 'Single Phoneme Recognition'
+                                    ? 'SPR'
+                                    : test.testType.testTypeName}
+                            </Typography>
+
+                            <Typography component="span" variant="body2">
+                                {score !== null ? `: ${score}/${test.testType.numQuestions}` : ':'}
+                            </Typography>
+                        </Typography>
+                    </Box>
+                )
+            })}
+        </>
     )
 }
 

@@ -1,24 +1,14 @@
-import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
-import {
-    Alert,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    CircularProgress,
-    Grid2,
-    Snackbar,
-    Typography,
-} from '@mui/material'
-import { useEffect, useRef, useState } from 'react'
-import { useReactMediaRecorder } from 'react-media-recorder'
-import { useDispatch, useSelector } from 'react-redux'
-
 import HelpIcon from '@mui/icons-material/Help'
 import EndSessionIcon from '@mui/icons-material/LastPage'
 import MicIcon from '@mui/icons-material/Mic'
 import MicNoneIcon from '@mui/icons-material/MicNone'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import HeaderIcon from '@mui/icons-material/RecordVoiceOver'
+import { Box, Button, Card, CardContent, CircularProgress, Grid2, Typography } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
+import { useReactMediaRecorder } from 'react-media-recorder'
+import { useDispatch, useSelector } from 'react-redux'
+
 import background from '../../assets/testQuestions/backgrounds/bg1.png'
 import sticker1 from '../../assets/testQuestions/stickers/Animal1.gif'
 import sticker10 from '../../assets/testQuestions/stickers/Animal10.gif'
@@ -38,6 +28,7 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import ConfirmationModal from './ConfirmationModal'
 import ProgressBar from './ProgressBar'
 import TestInstructionDialog from './TestInstructionDialog'
@@ -56,21 +47,25 @@ const TestQuestion = () => {
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [modalOpen, setModalOpen] = useState<boolean>(false)
-    const [maxRecordingTimeWarning, setMaxRecordingTimeWarning] = useState(false)
 
-    // Set up a message to display when student submits the answer
-    // Additionally, if color is 'info', a request is in progress and the "Next" button is disabled
-    const [onSubmitMsg, setOnSubmitMsg] = useState<{
-        message: string
-        color: 'success' | 'info' | 'warning' | 'error'
-    }>({ message: '', color: 'success' })
-    const [isLoading, setIsLoading] = useState(false)
-    const [openSnackbar, setOpenSnackbar] = useState(false)
+    const [onMaxRecordingTime, setOnMaxRecordingTime] = useState<OnRequestProps>({
+        display: false,
+        message: 'Maximum Recording Time is 5 seconds',
+        color: 'warning',
+    })
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    const [submittingInProgress, setSubmittingInProgress] = useState(false)
+    const [onSubmit, setOnSubmit] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
         audio: true,
         mediaRecorderOptions: {
-            mimeType: MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/web ',
+            mimeType: MediaRecorder.isTypeSupported('audio/mpeg') ? 'audio/mpeg' : 'audio/webm',
         },
     })
 
@@ -79,8 +74,6 @@ const TestQuestion = () => {
     const instructionAudioBlobUrl = test?.testType.questionType.instructionAudioBlobUrl
     const questionAudioBlobUrl =
         test?.testQuestions[currentTestQuestionIndex!].question.questionAudioBlobUrl
-
-    const recordingTimeoutIdRef = useRef<NodeJS.Timeout | null>(null) // Using a ref to store the timeout ID
 
     const stickers = [
         sticker1,
@@ -135,50 +128,48 @@ const TestQuestion = () => {
         startRecording()
         setIsRecording(true)
         // Stop recording after 5 seconds
-        recordingTimeoutIdRef.current = setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
             onStopRecording()
-            setMaxRecordingTimeWarning(true)
+            setOnMaxRecordingTime({ ...onMaxRecordingTime, display: true })
         }, 6000)
-        console.log('Recording timeout ID set:', recordingTimeoutIdRef.current)
     }
 
     const onStopRecording = () => {
-        console.log('Stopping recording, current timeout ID:', recordingTimeoutIdRef.current)
-        if (recordingTimeoutIdRef.current) {
-            console.log('Clearing timeout')
-            clearTimeout(recordingTimeoutIdRef.current) // Clear the timeout
-            recordingTimeoutIdRef.current = null // Reset the timeout ID
-        }
         stopRecording()
         setIsRecording(false)
         setIsQuestionWithoutAnswer(false)
+
+        // Clear the timeout if the user stops recording before the 5 seconds limit
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+        }
     }
 
     const submitAnswer = async () => {
-        setOnSubmitMsg({ message: 'Saving your answer...', color: 'info' })
-        setIsLoading(true) // Start loading
-
         try {
+            setOnSubmit({ display: false, message: 'Saving your answer...', color: 'info' })
+            setSubmittingInProgress(true)
+
             await dispatch(submitTestQuestion())
-            setOnSubmitMsg({
+
+            setOnSubmit({
+                display: true,
                 message: 'Your answer has been saved successfully!',
                 color: 'success',
             })
-        } catch (error: any) {
-            setOnSubmitMsg({ message: error.message, color: 'error' })
-            return
-        } finally {
-            setIsLoading(false) // Stop loading
-            setOpenSnackbar(true)
-        }
-        setIsQuestionWithoutAnswer(true)
-        pickRandomSticker()
+            setIsQuestionWithoutAnswer(true)
+            pickRandomSticker()
 
-        const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
-        if (isLastQuestionInTest) {
-            dispatch(setScreenToDisplay('TestFinish'))
-        } else {
-            dispatch(nextQuestion())
+            const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
+            if (isLastQuestionInTest) {
+                dispatch(setScreenToDisplay('TestFinish'))
+            } else {
+                dispatch(nextQuestion())
+            }
+        } catch (error: any) {
+            setOnSubmit({ display: true, message: error.message, color: 'error' })
+        } finally {
+            setSubmittingInProgress(false)
         }
     }
 
@@ -207,19 +198,11 @@ const TestQuestion = () => {
         <>
             {test && currentTestQuestionIndex !== null && (
                 <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
-                    <Snackbar
-                        open={maxRecordingTimeWarning}
-                        onClose={() => setMaxRecordingTimeWarning(false)}
-                    >
-                        <Alert onClose={() => setMaxRecordingTimeWarning(false)} severity="warning">
-                            Maximum Recording Time is 5 seconds
-                        </Alert>
-                    </Snackbar>
-                    <Snackbar open={openSnackbar} onClose={() => setOpenSnackbar(false)}>
-                        <Alert onClose={() => setOpenSnackbar(false)} severity={onSubmitMsg.color}>
-                            {onSubmitMsg.message}
-                        </Alert>
-                    </Snackbar>
+                    <CustomSnackbar
+                        onRequest={onMaxRecordingTime}
+                        setOnRequest={setOnMaxRecordingTime}
+                    />
+                    <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
                     <ProgressBar
                         currentQuestionIndex={currentTestQuestionIndex}
                         numQuestions={test?.testType.numQuestions}
@@ -469,7 +452,8 @@ const TestQuestion = () => {
                                                                     sx={{ ml: 2, fontSize: '1rem' }}
                                                                     onClick={onStartRecording}
                                                                     disabled={
-                                                                        isRecording || isLoading
+                                                                        isRecording ||
+                                                                        submittingInProgress
                                                                     }
                                                                 >
                                                                     Record Now
@@ -538,7 +522,10 @@ const TestQuestion = () => {
                                                                 startIcon={<NavigateNextIcon />}
                                                                 sx={{ ml: 2, fontSize: '1rem' }}
                                                                 onClick={onClickNextQuestion}
-                                                                disabled={isRecording || isLoading}
+                                                                disabled={
+                                                                    isRecording ||
+                                                                    submittingInProgress
+                                                                }
                                                             >
                                                                 Next Question
                                                             </Button>
@@ -549,12 +536,15 @@ const TestQuestion = () => {
                                                                 startIcon={<EndSessionIcon />}
                                                                 sx={{ ml: 2, fontSize: '1rem' }}
                                                                 onClick={onFinishTest}
-                                                                disabled={isRecording || isLoading}
+                                                                disabled={
+                                                                    isRecording ||
+                                                                    submittingInProgress
+                                                                }
                                                             >
                                                                 Finish Section
                                                             </Button>
                                                         )}
-                                                        {isLoading && (
+                                                        {submittingInProgress && (
                                                             <Box display="flex" alignItems="center">
                                                                 <CircularProgress
                                                                     size={24}
@@ -562,9 +552,9 @@ const TestQuestion = () => {
                                                                 />
                                                                 <Typography
                                                                     variant="body2"
-                                                                    color={onSubmitMsg.color}
+                                                                    color={onSubmit.color}
                                                                 >
-                                                                    {onSubmitMsg.message}
+                                                                    {onSubmit.message}
                                                                 </Typography>
                                                             </Box>
                                                         )}

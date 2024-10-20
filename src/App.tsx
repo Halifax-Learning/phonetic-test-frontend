@@ -14,9 +14,11 @@ import GradingScreen from './components/teacher/GradingScreen.js'
 import TestFinish from './components/test/TestFinish.js'
 import TestQuestion from './components/test/TestQuestion.js'
 import TestWelcome from './components/test/TestWelcome.js'
+import EmailVerification from './components/user/EmailVerification.js'
 import Login from './components/user/Login.js'
 import Profile from './components/user/Profile.js'
 import Register from './components/user/Register.js'
+import SendTeacherInvitation from './components/user/SendTeacherInvitation.js'
 import { RootState } from './main.js'
 import { retrieveUser } from './reducers/userReducer.js'
 import { theme } from './theme/theme.js'
@@ -32,7 +34,10 @@ const AppRoutes = () => {
         setLoadingUser(false)
     }, [dispatch])
 
-    const notTeacherUser = (!user || user.accountRole !== 'teacher') && !loadingUser
+    const notTeacherUser =
+        (!user || !['admin', 'teacher'].includes(user.accountRole)) && !loadingUser
+
+    const notAdminUser = (!user || user.accountRole !== 'admin') && !loadingUser
 
     const notLoggedIn = !user && !loadingUser
 
@@ -63,6 +68,14 @@ const AppRoutes = () => {
         {
             path: '/register',
             element: !user ? <Register /> : <Navigate replace to="/" />,
+        },
+        {
+            path: '/verify_email',
+            element: <EmailVerification />,
+        },
+        {
+            path: 'send_teacher_invitation',
+            element: notAdminUser ? <Navigate replace to="/login" /> : <SendTeacherInvitation />,
         },
         {
             path: '/assessment',

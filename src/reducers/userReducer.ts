@@ -29,12 +29,10 @@ const userReducer = createSlice({
     },
 })
 
-export const register = (user: User) => {
-    return async (dispatch: any) => {
+export const register = (user: User, verificationCode: string | null) => {
+    return async () => {
         const userSnakeCase = convertKeysToSnakeCase(user)
-        const data = await userService.register(userSnakeCase)
-        const dataCamelCase = convertKeysToCamelCase(data)
-        dispatch(userReducer.actions.setUser(dataCamelCase))
+        await userService.register(userSnakeCase, verificationCode)
     }
 }
 
@@ -58,6 +56,24 @@ export const login = (email: string, password: string) => {
 export const logout = () => {
     return async (dispatch: any) => {
         dispatch(resetRootState())
+    }
+}
+
+export const sendVerificationEmail = (email: string) => {
+    return async () => {
+        await userService.sendVerificationEmail(email)
+    }
+}
+
+export const verifyEmail = (verificationCode: string) => {
+    return async () => {
+        await userService.verifyEmail(verificationCode)
+    }
+}
+
+export const sendTeacherInvitation = (email: string) => {
+    return async () => {
+        await userService.sendTeacherInvitation(email)
     }
 }
 

@@ -1,14 +1,15 @@
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { Box, Button, Card, IconButton, InputAdornment, Link, Typography } from '@mui/material'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
 
-import { Visibility, VisibilityOff } from '@mui/icons-material'
-import { useState } from 'react'
-import { register } from '../../reducers/userReducer'
+import { register, sendVerificationEmail } from '../../reducers/userReducer'
 import { FormInput, FormInputLabel, theme } from '../../theme/theme'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const schema = yup.object().shape({
     firstName: yup.string().required('First Name is required'),
@@ -22,8 +23,16 @@ const schema = yup.object().shape({
 
 const Register = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const dispatch = useDispatch<any>()
     const [showPassword, setShowPassword] = useState(false)
+    const [isRegistered, setIsRegistered] = useState(false)
+    const [registerInProgress, setRegisterInProgress] = useState(false)
+    const [onRegister, setOnRegister] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const {
         handleSubmit,
@@ -33,8 +42,24 @@ const Register = () => {
         resolver: yupResolver(schema),
     })
 
-    const onSubmit = (data: any) => {
-        dispatch(register(data))
+    const searchParams = new URLSearchParams(location.search)
+    const verificationCode = searchParams.get('verification_code')
+    const prefilledEmail = searchParams.get('email')
+
+    const onSubmit = async (data: any) => {
+        try {
+            setRegisterInProgress(true)
+
+            await dispatch(register(data, verificationCode))
+
+            setIsRegistered(true)
+
+            await dispatch(sendVerificationEmail(data.email))
+        } catch (error: any) {
+            setOnRegister({ display: true, message: error.response.data.error, color: 'error' })
+        } finally {
+            setRegisterInProgress(false)
+        }
     }
 
     const switchToLogin = () => {
@@ -45,7 +70,15 @@ const Register = () => {
         setShowPassword(!showPassword)
     }
 
-    return (
+    const CheckEmailForVerification = () => {
+        return (
+            <Typography>
+                Check your email for a verification link to activate your account.
+            </Typography>
+        )
+    }
+
+    const Register = () => (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Card variant="outlined" sx={{ width: 600, padding: 2 }}>
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -87,11 +120,16 @@ const Register = () => {
                     <Controller
                         name="email"
                         control={control}
-                        defaultValue=""
+                        defaultValue={prefilledEmail || ''}
                         render={({ field }) => (
                             <>
                                 <FormInputLabel htmlFor="email">Email</FormInputLabel>
-                                <FormInput {...field} id="email" type="email" />
+                                <FormInput
+                                    {...field}
+                                    id="email"
+                                    type="email"
+                                    disabled={!!prefilledEmail}
+                                />
                                 {errors.email && (
                                     <Typography color="error" variant="caption">
                                         {errors.email.message}
@@ -136,6 +174,7 @@ const Register = () => {
                         variant="contained"
                         color="secondary"
                         sx={{ width: '100%', mt: 2 }}
+                        disabled={registerInProgress}
                     >
                         Register
                     </Button>
@@ -150,8 +189,11 @@ const Register = () => {
                     </Link>{' '}
                 </Typography>
             </Card>
+            <CustomSnackbar onRequest={onRegister} setOnRequest={setOnRegister} />
         </Box>
     )
+
+    return isRegistered ? <CheckEmailForVerification /> : <Register />
 }
 
 export default Register

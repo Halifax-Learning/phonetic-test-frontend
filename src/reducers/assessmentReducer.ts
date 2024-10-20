@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import jsPDF from 'jspdf'
 
 import { Assessment } from '../models/interface'
 import * as assessmentService from '../services/assessment'
@@ -148,6 +149,16 @@ export const submitTestQuestion = () => {
                 throw new Error('Failed to submit the answer. Please try again.')
             }
         }
+    }
+}
+
+export const sendAssessmentResult = (
+    testTakerEmail: string,
+    emailContent: string,
+    doc: jsPDF | null
+) => {
+    return async () => {
+        await assessmentService.sendAssessmentResult(testTakerEmail, emailContent, doc)
     }
 }
 

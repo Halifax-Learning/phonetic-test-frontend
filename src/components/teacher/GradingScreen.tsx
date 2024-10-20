@@ -19,15 +19,14 @@ import {
     RadioGroup,
     Select,
     SelectChangeEvent,
-    TextField,
     Tooltip,
     Typography,
 } from '@mui/material'
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridRowModel, GridToolbar } from '@mui/x-data-grid'
 import { format } from 'date-fns'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
-import { FocusEvent, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RootState } from '../../main'
@@ -45,8 +44,10 @@ import {
 } from '../../reducers/gradingAssessmentReducer'
 import { theme } from '../../theme/theme'
 import '../fonts/Inter-VariableFont_opsz,wght-normal.js'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import AudioPlayerWithIcon from '../test/AudioPlayerWithIcon'
 import GradingHistoryDialog from './GradingHistoryDialog'
+import SendEmailDialog from './SendEmailDialog'
 
 const GradingScreen = () => {
     const navigate = useNavigate()
@@ -57,39 +58,29 @@ const GradingScreen = () => {
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
     const [selectedValues, setSelectedValues] = useState<string[]>([])
-    const [feedbackValues, setFeedbackValues] = useState<string[]>([])
-    const [filterTestType, setFilterTestType] = useState<number | string>(currentTestIndex!)
-    const [dialogOpen, setDialogOpen] = useState(false)
+
+    const [teacherGradingDialogOpen, setTeacherGradingDialog] = useState(false)
+    const [emailDialogOpen, setEmailDialogOpen] = useState(false)
     const [gradingHistory, setGradingHistory] = useState<
         (TeacherGradingHistory | AutoGradingHistory)[]
     >([])
     const [rows, setRows] = useState<any[]>([])
 
-    // Set up a message to display when the user saves the grading
-    // Additionally, if color is 'info', a request is in progress and the "Save" button is disabled
-    const [onSaveMsg, setOnSaveMsg] = useState({ message: '', color: 'success' })
+    const [savingInProgress, setSavingInProgress] = useState(false)
+    const [onSave, setOnSave] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
-    const handleShowGradingHistory = (index: number, isMachineHistory: boolean) => {
-        console.log(
-            'Show grading history for question:',
-            index,
-            'Machine History:',
-            isMachineHistory
-        )
-
-        if (isMachineHistory) {
-            // Handle machine grading history
+    const handleShowGradingHistory = (index: number, isAutoHistory: boolean) => {
+        if (isAutoHistory) {
             setGradingHistory(selectedTest?.testQuestions[index].autoGradingHistory || [])
         } else {
-            // Handle teacher grading history
             setGradingHistory(selectedTest?.testQuestions[index].teacherGradingHistory || [])
         }
 
-        setDialogOpen(true)
-    }
-
-    const handleCloseDialog = () => {
-        setDialogOpen(false)
+        setTeacherGradingDialog(true)
     }
 
     useEffect(() => {
@@ -113,12 +104,7 @@ const GradingScreen = () => {
     }, [assessment, currentTestIndex])
 
     useEffect(() => {
-        if (assessment?.tests.length && filterTestType === '') {
-            setFilterTestType(0) // Only set initially if needed
-        }
-    }, [assessment])
-
-    useEffect(() => {
+        // Fetch audios when selectedTest changes and its audio has not been fetched
         if (selectedTest && !selectedTest.hasFetchedAudio) {
             dispatch(fetchAudios(selectedTest.testId, currentTestIndex!, true))
         }
@@ -138,12 +124,6 @@ const GradingScreen = () => {
             }) || []
         setSelectedValues(updatedSelectedValues)
 
-        // Update feedback values when selectedTest changes
-        const updatedFeedbackValues =
-            selectedTest?.testQuestions.map((testQuestion) => testQuestion.latestTeacherComment) ||
-            []
-        setFeedbackValues(updatedFeedbackValues)
-
         // Update rows when selectedTest changes
         const newRows =
             selectedTest?.testQuestions.map((testQuestion, index) => ({
@@ -153,30 +133,59 @@ const GradingScreen = () => {
                 questionAudio: testQuestion.question.questionAudioBlobUrl,
                 correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
                 studentAnswerAudio: testQuestion.answerAudioBlobUrl,
-                machineEvaluation:
-                    testQuestion.latestAutoEvaluation === null
-                        ? 'N/A'
-                        : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
-                teacherEvaluation:
-                    testQuestion.originalTeacherEvaluation !== null
-                        ? testQuestion.originalTeacherEvaluation
-                            ? 'Correct'
-                            : 'Incorrect'
-                        : 'N/A',
+                autoEvaluation: displayAutoEvaluation(testQuestion.latestAutoEvaluation),
+                autoEvaluationConfidence: displayAutoEvaluationConfidence(
+                    testQuestion.latestAutoEvaluation
+                ),
+                teacherEvaluation: displayTeacherEvaluation(testQuestion.originalTeacherEvaluation),
                 index,
                 grade: selectedValues[index],
-                feedback: feedbackValues[index] || '',
+                feedback: testQuestion.latestTeacherComment || '',
             })) || []
 
         setRows(newRows)
     }, [selectedTest])
 
-    const onChooseTest = (index: number) => {
+    // Return the display value and color for autoEvaluation
+    const displayAutoEvaluation = (value: number | null) => {
+        if (value === null) {
+            return ['N/A', '']
+        } else if (value >= 60) {
+            return ['Correct', theme.palette.success.main]
+        } else {
+            return ['Incorrect', theme.palette.error.main]
+        }
+    }
+
+    // Return the display value and color for autoEvaluationConfidence
+    const displayAutoEvaluationConfidence = (value: number | null) => {
+        if (value === null) {
+            return ['', '']
+        } else if (value >= 90 || value <= 10) {
+            return ['High', theme.palette.info.main]
+        } else {
+            return ['Low', theme.palette.warning.main]
+        }
+    }
+
+    // Return the display value and color for teacherEvaluation
+    const displayTeacherEvaluation = (value: boolean | null) => {
+        if (value === null) {
+            return ['N/A', '']
+        } else if (value) {
+            return ['Correct', theme.palette.success.main]
+        } else {
+            return ['Incorrect', theme.palette.error.main]
+        }
+    }
+
+    const onChooseTest = (event: SelectChangeEvent<number>) => {
+        const index = event.target.value as number
         dispatch(setGradingTest(index))
     }
 
     const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const value = (event.target as HTMLInputElement).value
+        const value = event.target.value
 
         setSelectedValues((prev) => {
             const newValues = [...prev]
@@ -187,65 +196,49 @@ const GradingScreen = () => {
         dispatch(
             setTeacherEvaluation({
                 evaluation: value === 'Correct',
-                comment: feedbackValues[index],
+                comment: selectedTest?.testQuestions[index].latestTeacherComment || '',
                 testIndex: currentTestIndex!,
                 testQuestionIndex: index,
             })
         )
     }
 
-    const handleFeedbackChange = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-        index: number
-    ) => {
-        const value = event.target.value
-
-        setFeedbackValues((prev) => {
-            const newValues = [...prev]
-            newValues[index] = value // Update feedback for the specific question
-            return newValues
-        })
-    }
-
-    const dispatchFeedback = (
-        event: FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>,
-        index: number
-    ) => {
-        const value = event.target.value
-
-        dispatch(
-            setTeacherEvaluation({
-                evaluation: selectedValues[index] === 'Correct',
-                comment: value,
-                testIndex: currentTestIndex!,
-                testQuestionIndex: index,
-            })
-        )
+    const processRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
+        if (newRow.feedback !== oldRow.feedback) {
+            dispatch(
+                setTeacherEvaluation({
+                    evaluation:
+                        selectedTest?.testQuestions[newRow.index].latestTeacherEvaluation || null,
+                    comment: newRow.feedback,
+                    testIndex: currentTestIndex!,
+                    testQuestionIndex: newRow.index,
+                })
+            )
+        }
+        return newRow
     }
 
     const onSaveGrading = async () => {
-        setOnSaveMsg({ message: 'Saving...', color: 'info' })
         try {
-            await dispatch(submitTeacherEvaluation())
-        } catch (error: any) {
-            setOnSaveMsg({ message: error.message, color: 'error' })
-            return
-        }
+            setOnSave({ display: true, message: 'Saving...', color: 'info' })
+            setSavingInProgress(true)
 
-        setOnSaveMsg({ message: 'Grading saved successfully!', color: 'success' })
+            await dispatch(submitTeacherEvaluation())
+
+            setOnSave({ display: true, message: 'Grading saved successfully!', color: 'success' })
+        } catch (error: any) {
+            setOnSave({
+                display: true,
+                message: error.message || 'Failed to save grading. Please try again.',
+                color: 'error',
+            })
+        } finally {
+            setSavingInProgress(false)
+        }
     }
 
     const handleBackToAssessments = () => {
-        setOnSaveMsg({ message: '', color: 'info' })
         navigate('/assessments-for-grading')
-    }
-
-    const handleFilterChange = (event: SelectChangeEvent<string | number>) => {
-        const selectedIndex = event.target.value as number // Get the selected index (number)
-
-        setFilterTestType(selectedIndex) // Update the filter state
-
-        onChooseTest(selectedIndex)
     }
 
     const columns: GridColDef[] = [
@@ -253,19 +246,23 @@ const GradingScreen = () => {
             field: 'questionNo',
             headerClassName: 'data-grid--header',
             headerName: 'No.',
+            headerAlign: 'center',
             width: 50,
         },
         {
             field: 'questionText',
             headerClassName: 'data-grid--header',
             headerName: 'Question Text',
+            headerAlign: 'center',
             width: 150,
         },
         {
             field: 'questionAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Question Audio',
+            headerAlign: 'center',
             width: 150,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) =>
                 params.row.questionAudio ? (
@@ -278,7 +275,9 @@ const GradingScreen = () => {
             field: 'correctAnswerAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Correct Answer Audio',
+            headerAlign: 'center',
             width: 170,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) =>
                 params.row.correctAnswerAudio ? (
@@ -291,7 +290,9 @@ const GradingScreen = () => {
             field: 'studentAnswerAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Student Answer Audio',
+            headerAlign: 'center',
             width: 170,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) =>
                 params.row.studentAnswerAudio ? (
@@ -301,22 +302,24 @@ const GradingScreen = () => {
                 ),
         },
         {
-            field: 'machineEvaluation',
+            field: 'autoEvaluation',
             headerClassName: 'data-grid--header',
-            headerName: 'Machine Evaluation',
+            headerName: 'Auto Evaluation',
+            headerAlign: 'center',
             width: 150,
             renderCell: (params) => (
                 <Box
                     sx={{
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'center',
                         alignItems: 'center',
                         width: '100%',
                         height: '100%',
+                        color: params.row.autoEvaluation[1],
                     }}
                 >
-                    <span>{params.row.machineEvaluation}</span>
-                    {params.row.machineEvaluation !== 'N/A' && ( // Only show the icon if machineEvaluation is not 'N/A'
+                    {params.row.autoEvaluation[0]}
+                    {/* {params.row.autoEvaluation !== 'N/A' && ( // Only show the icon if autoEvaluation is not 'N/A'
                         <Tooltip title="View Grading History">
                             <IconButton
                                 size="small"
@@ -326,7 +329,28 @@ const GradingScreen = () => {
                                 <HistoryIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                    )}
+                    )} */}
+                </Box>
+            ),
+        },
+        {
+            field: 'autoEvaluationConfidence',
+            headerClassName: 'data-grid--header',
+            headerName: 'Auto Evaluation Confidence',
+            headerAlign: 'center',
+            width: 220,
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                        color: params.row.autoEvaluationConfidence[1],
+                    }}
+                >
+                    {params.row.autoEvaluationConfidence[0]}
                 </Box>
             ),
         },
@@ -345,7 +369,15 @@ const GradingScreen = () => {
                         height: '100%',
                     }}
                 >
-                    <span>{params.row.teacherEvaluation}</span>
+                    <Box
+                        sx={{
+                            flexGrow: 1,
+                            textAlign: 'center',
+                            color: params.row.teacherEvaluation[1],
+                        }}
+                    >
+                        {params.row.teacherEvaluation[0]}
+                    </Box>
                     <Tooltip title="View Grading History">
                         <IconButton
                             size="small"
@@ -362,7 +394,9 @@ const GradingScreen = () => {
             field: 'grade',
             headerClassName: 'data-grid--header',
             headerName: 'Grade',
+            headerAlign: 'center',
             width: 200,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) => (
                 <Box
@@ -414,36 +448,14 @@ const GradingScreen = () => {
             field: 'feedback',
             headerClassName: 'data-grid--header',
             headerName: 'Feedback',
+            headerAlign: 'center',
             minWidth: 300,
-            renderCell: (params) => (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center', // Align vertically
-                        height: '100%', // Make sure it takes the full row height
-                        width: '100%', // Make sure it takes the full cell width
-                    }}
-                >
-                    <TextField
-                        variant="outlined"
-                        size="small"
-                        value={feedbackValues[params.row.index] || ''}
-                        onChange={(event) => handleFeedbackChange(event, params.row.index)}
-                        onBlur={(event) => {
-                            dispatchFeedback(event, params.row.index)
-                        }}
-                        onKeyDown={(event) => {
-                            event.stopPropagation()
-                        }}
-                        fullWidth
-                    />
-                </Box>
-            ),
+            cellClassName: 'editable-cell',
+            editable: true,
         },
     ]
 
     const exportToPdf = () => {
-        setOnSaveMsg({ message: '', color: 'info' })
         const doc = new jsPDF({ orientation: 'landscape' })
         const assessmentName = assessment?.assessmentType.assessmentTypeName || 'Assessment'
         const studentName =
@@ -487,7 +499,7 @@ const GradingScreen = () => {
                     (col) =>
                         !col.disableExport &&
                         col.field !== 'questionNo' &&
-                        col.field !== 'machineEvaluation'
+                        col.field !== 'autoEvaluation'
                 )
                 .map((col) => ({ title: col.headerName, dataKey: col.field })),
         ]
@@ -623,8 +635,8 @@ const GradingScreen = () => {
                                     Filter by Test Type
                                 </InputLabel>
                                 <Select
-                                    value={filterTestType}
-                                    onChange={handleFilterChange}
+                                    value={currentTestIndex}
+                                    onChange={onChooseTest}
                                     label="Filter by Test Type"
                                     inputProps={{
                                         name: 'filter-test-type',
@@ -635,33 +647,52 @@ const GradingScreen = () => {
                                         alignItems: 'center',
                                         color:
                                             selectedTest.numQuestionsGraded ===
-                                            selectedTest.testType.numQuestions
+                                            selectedTest.testQuestions.length
                                                 ? 'primary.main'
                                                 : '',
                                     }}
                                 >
                                     {assessment?.tests.map((test, index) => {
                                         const finishedGrading =
-                                            test.numQuestionsGraded === test.testType.numQuestions
+                                            test.numQuestionsGraded === test.testQuestions.length
+                                        const numQuestionsGraded = String(
+                                            test.numQuestionsGraded
+                                        ).padStart(2, ' ')
                                         return (
                                             <MenuItem
                                                 key={test.testId}
                                                 value={index}
                                                 sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center', // Center vertically
                                                     color: finishedGrading ? 'primary.main' : '',
                                                 }}
                                             >
                                                 <Typography
-                                                    component="span"
-                                                    sx={{ display: 'inline-block', width: 250 }}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        flex: 1, // Allow this column to take up available space
+                                                        maxWidth: 400, // Set max width for the first column
+                                                        wordWrap: 'break-word', // Allow wrapping for long text
+                                                        whiteSpace: 'normal', // Ensure text can wrap onto multiple lines
+                                                        overflowWrap: 'break-word', // Ensure breaking for long words
+                                                        alignItems: 'center', // Center vertically
+                                                    }}
                                                 >
-                                                    {test.testType.testTypeName}
+                                                    <span style={{ flex: 1, marginRight: '16px' }}>
+                                                        {test.testType.testTypeName}
+                                                    </span>
+                                                    {finishedGrading && (
+                                                        <DoneIcon sx={{ marginRight: 1 }} />
+                                                    )}
+                                                    Graded:
+                                                    <Box
+                                                        component="span"
+                                                        sx={{ whiteSpace: 'pre' }}
+                                                    >
+                                                        {` ${numQuestionsGraded}/${test.testQuestions.length}`}
+                                                    </Box>
                                                 </Typography>
-                                                Graded: {test.numQuestionsGraded}/
-                                                {test.testType.numQuestions}
-                                                {finishedGrading && (
-                                                    <DoneIcon sx={{ marginLeft: 1 }} />
-                                                )}
                                             </MenuItem>
                                         )
                                     })}
@@ -675,7 +706,9 @@ const GradingScreen = () => {
                                     columns={columns}
                                     pagination
                                     pageSizeOptions={[5, 10, 20, 100]}
-                                    disableRowSelectionOnClick
+                                    processRowUpdate={(updatedRow, originalRow) =>
+                                        processRowUpdate(updatedRow, originalRow)
+                                    }
                                     slots={{
                                         toolbar: GridToolbar,
                                     }}
@@ -683,18 +716,26 @@ const GradingScreen = () => {
                                         '& .data-grid--header': {
                                             color: 'primary.main',
                                         },
+                                        '& .centered-cell': {
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        },
+                                        '& .editable-cell': {
+                                            border: `1px solid ${theme.palette.secondary.light}`,
+                                            borderRadius: 1.5,
+                                            cursor: 'pointer',
+                                        },
                                     }}
                                 />
                             </div>
                         </Grid2>
 
-                        <Typography color={onSaveMsg.color}>{onSaveMsg.message}</Typography>
-
                         <Grid2 container spacing={2} justifyContent="flex-end" size={12}>
                             <Grid2>
                                 <Button
                                     variant="contained"
-                                    color="primary"
+                                    color="secondary"
                                     onClick={handleBackToAssessments}
                                 >
                                     Back
@@ -703,9 +744,9 @@ const GradingScreen = () => {
                             <Grid2>
                                 <Button
                                     variant="contained"
-                                    color="secondary"
+                                    color="primary"
                                     onClick={onSaveGrading}
-                                    disabled={onSaveMsg.color === 'info'}
+                                    disabled={savingInProgress}
                                 >
                                     Save
                                 </Button>
@@ -715,15 +756,37 @@ const GradingScreen = () => {
                                     Export to PDF
                                 </Button>
                             </Grid2>
+                            <Grid2>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => {
+                                        setEmailDialogOpen(true)
+                                    }}
+                                >
+                                    Release Result
+                                </Button>
+                            </Grid2>
                         </Grid2>
                     </Grid2>
                 )}
             </Box>
+
+            <CustomSnackbar onRequest={onSave} setOnRequest={setOnSave} />
+
             <GradingHistoryDialog
-                open={dialogOpen}
-                onClose={handleCloseDialog}
+                open={teacherGradingDialogOpen}
+                onClose={() => setTeacherGradingDialog(false)}
                 history={gradingHistory}
             />
+
+            {assessment && (
+                <SendEmailDialog
+                    open={emailDialogOpen}
+                    onClose={() => setEmailDialogOpen(false)}
+                    assessment={assessment}
+                />
+            )}
         </>
     )
 }
