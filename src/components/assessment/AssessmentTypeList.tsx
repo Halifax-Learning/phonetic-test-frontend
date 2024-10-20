@@ -142,6 +142,7 @@ const AssessmentList = () => {
                             >
                                 <StyledClickableCard
                                     onClick={() => startAssessment(assessmentType.assessmentTypeId)}
+                                    disabled={onCreatingAssessment.inProgress}
                                 >
                                     <CardContent
                                         sx={{
