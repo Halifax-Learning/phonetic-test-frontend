@@ -49,9 +49,9 @@ const TestQuestion = () => {
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [modalNoAnswerWarningOpen, setNoAnswerWarningModalOpen] = useState<boolean>(false)
 
-    const [onMaxRecordingTime, setOnMaxRecordingTime] = useState<OnRequestProps>({
+    const [onRecordWarning, setOnRecordWarning] = useState<OnRequestProps>({
         display: false,
-        message: 'Maximum Recording Time is 5 seconds',
+        message: '',
         color: 'warning',
     })
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -153,7 +153,7 @@ const TestQuestion = () => {
 
     const showMicrophonePermissionWarning = (): boolean => {
         if (!microphoneAllowed) {
-            setOnSubmit({
+            setOnRecordWarning({
                 display: true,
                 message: 'Please allow microphone access to record your answer.',
                 color: 'error',
@@ -173,7 +173,11 @@ const TestQuestion = () => {
         // Stop recording after 5 seconds
         timeoutRef.current = setTimeout(() => {
             onStopRecording()
-            setOnMaxRecordingTime({ ...onMaxRecordingTime, display: true })
+            setOnRecordWarning({
+                display: true,
+                message: 'Maximum Recording Time is 5 seconds',
+                color: 'warning',
+            })
         }, 6000)
     }
 
@@ -242,43 +246,6 @@ const TestQuestion = () => {
         setNoAnswerWarningModalOpen(false)
         await submitAnswer()
     }
-
-    const QuestionAudio = () => (
-        <>
-            {test?.testType.hasQuestionAudio ? (
-                <Box>
-                    <audio
-                        controls
-                        src={questionAudioBlobUrl}
-                        style={{ width: '70%', maxWidth: 'sm' }}
-                    >
-                        Your browser does not support the audio element.
-                    </audio>
-                </Box>
-            ) : (
-                <Box display="flex">
-                    <StyledSoundCard>
-                        <CardContent>
-                            <Typography
-                                variant="h1"
-                                sx={{
-                                    fontFamily: 'Inter, sans-serif',
-                                    fontSize: '2rem',
-                                    fontWeight: 700,
-                                    color: 'secondary.main',
-                                }}
-                            >
-                                {
-                                    test!.testQuestions[currentTestQuestionIndex!].question
-                                        .questionText
-                                }
-                            </Typography>
-                        </CardContent>
-                    </StyledSoundCard>
-                </Box>
-            )}
-        </>
-    )
 
     const AnswerAudio = () => (
         <Box sx={{ mt: 2, mb: 2 }}>
@@ -457,7 +424,7 @@ const TestQuestion = () => {
 
     return (
         <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
-            <CustomSnackbar onRequest={onMaxRecordingTime} setOnRequest={setOnMaxRecordingTime} />
+            <CustomSnackbar onRequest={onRecordWarning} setOnRequest={setOnRecordWarning} />
             <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
             <ProgressBar
                 currentQuestionIndex={currentTestQuestionIndex}
@@ -505,7 +472,13 @@ const TestQuestion = () => {
                                 <Grid2 container spacing={0}>
                                     {/* Left side: Question and Answer Audio */}
                                     <Grid2 size={{ xs: 12, sm: 8 }}>
-                                        <QuestionAudio />
+                                        <QuestionAudio
+                                            {...{
+                                                test,
+                                                currentTestQuestionIndex,
+                                                questionAudioBlobUrl,
+                                            }}
+                                        />
                                         <AnswerAudio />
                                     </Grid2>
                                     {/* Right side: Sticker */}
@@ -543,5 +516,37 @@ const TestQuestion = () => {
         </Box>
     )
 }
+
+// Extracted QuestionAudio component from outside of TestQuestion component to prevent
+// the audio player from flickering when the state changes
+const QuestionAudio = ({ test, currentTestQuestionIndex, questionAudioBlobUrl }: any) => (
+    <>
+        {test?.testType.hasQuestionAudio ? (
+            <Box>
+                <audio controls src={questionAudioBlobUrl} style={{ width: '70%', maxWidth: 'sm' }}>
+                    Your browser does not support the audio element.
+                </audio>
+            </Box>
+        ) : (
+            <Box display="flex">
+                <StyledSoundCard>
+                    <CardContent>
+                        <Typography
+                            variant="h1"
+                            sx={{
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: '2rem',
+                                fontWeight: 700,
+                                color: 'secondary.main',
+                            }}
+                        >
+                            {test!.testQuestions[currentTestQuestionIndex!].question.questionText}
+                        </Typography>
+                    </CardContent>
+                </StyledSoundCard>
+            </Box>
+        )}
+    </>
+)
 
 export default TestQuestion
