@@ -78,7 +78,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
     const testTable = composeTestTable()
     const template = greeting + assessmentHeading + testTable
 
-    const footer = '\n\nRegards,\nHalifax Learning Centre'
+    const footer = '\n\n\nRegards,\nHalifax Learning Centre'
 
     const onSendAssessmentResult = async () => {
         setOnSend({ message: 'Sending result to student...', color: 'info', display: true })
@@ -163,9 +163,11 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
 
         // Add additional comments
         if (teacherComment) {
-            const additionalComments = 'Additional Comments:\n\n' + teacherComment
+            const additionalComments = 'Additional Comments:\n\n' + teacherComment + footer
             const additionalCommentsLines = doc.splitTextToSize(additionalComments, 180)
             doc.text(additionalCommentsLines, 14, 120)
+        } else {
+            doc.text(footer, 14, 120)
         }
 
         // Save the PDF
