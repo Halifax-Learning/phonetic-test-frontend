@@ -29,7 +29,7 @@ import {
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
 import { logError } from '../../utils/logger'
-import CustomSnackbar, { OnRequestProps, SimpleCustomSnackbar } from '../reusables/CustomSnackbar'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import ConfirmationModal from './ConfirmationModal'
 import ProgressBar from './ProgressBar'
 import TestInstructionDialog from './TestInstructionDialog'
@@ -49,6 +49,12 @@ const TestQuestion = () => {
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
     const [openModalNoAnswerWarning, setOpenNoAnswerWarningModal] = useState<boolean>(false)
+
+    const [onFailToFetchAudio, setOnFailToFetchAudio] = useState<OnRequestProps>({
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const [onRecordWarning, setOnRecordWarning] = useState<OnRequestProps>({
         display: false,
@@ -96,31 +102,40 @@ const TestQuestion = () => {
         setCurrentSticker(stickers[randomIndex])
     }
 
-    useEffect(() => {
-        const checkMicrophonePermission = async () => {
-            try {
-                const permissionStatus = await navigator.permissions.query({
-                    name: 'microphone' as PermissionName,
-                })
-                if (permissionStatus.state === 'granted') {
+    const checkMicrophonePermission = async () => {
+        try {
+            const permissionStatus = await navigator.permissions.query({
+                name: 'microphone' as PermissionName,
+            })
+            if (permissionStatus.state === 'granted') {
+                setMicrophoneAllowed(true)
+            } else {
+                try {
+                    await navigator.mediaDevices.getUserMedia({ audio: true })
                     setMicrophoneAllowed(true)
-                } else {
-                    try {
-                        await navigator.mediaDevices.getUserMedia({ audio: true })
-                        setMicrophoneAllowed(true)
-                    } catch (error) {
-                        setMicrophoneAllowed(false)
-                        logError('Microphone permission denied:', error)
-                    }
+                } catch (error) {
+                    setMicrophoneAllowed(false)
+                    logError('Microphone permission denied:', error)
                 }
-
-                permissionStatus.onchange = () => {
-                    setMicrophoneAllowed(permissionStatus.state === 'granted')
-                }
-            } catch (error) {
-                logError('Error checking microphone permission:', error)
             }
+
+            permissionStatus.onchange = () => {
+                setMicrophoneAllowed(permissionStatus.state === 'granted')
+            }
+        } catch (error) {
+            logError('Error checking microphone permission:', error)
         }
+    }
+
+    useEffect(() => {
+        if (test?.testType.hasQuestionAudio && !questionAudioBlobUrl) {
+            setOnFailToFetchAudio({
+                display: true,
+                message: 'Failed to fetch audio. Please try again.',
+                color: 'error',
+            })
+        }
+
         checkMicrophonePermission()
 
         pickRandomSticker()
@@ -164,8 +179,20 @@ const TestQuestion = () => {
         return false
     }
 
+    const showAudioFetchError = () => {
+        if (test?.testType.hasQuestionAudio && !questionAudioBlobUrl) {
+            setOnFailToFetchAudio({
+                display: true,
+                message: 'Failed to fetch audio. Please try again.',
+                color: 'error',
+            })
+            return true
+        }
+        return false
+    }
+
     const onStartRecording = () => {
-        if (showMicrophonePermissionWarning()) {
+        if (showMicrophonePermissionWarning() || showAudioFetchError()) {
             return
         }
 
@@ -226,22 +253,12 @@ const TestQuestion = () => {
                 message: error.message,
                 color: 'error',
             })
+            logError('Failed to submit test question:', error)
         }
     }
 
-    const onClickNextQuestion = async () => {
-        if (showMicrophonePermissionWarning()) {
-            return
-        }
-        if (isQuestionWithoutAnswer) {
-            setOpenNoAnswerWarningModal(true)
-        } else {
-            await submitAnswer()
-        }
-    }
-
-    const onFinishTest = async () => {
-        if (showMicrophonePermissionWarning()) {
+    const onClickNext = async () => {
+        if (showMicrophonePermissionWarning() || showAudioFetchError()) {
             return
         }
         if (isQuestionWithoutAnswer) {
@@ -386,46 +403,37 @@ const TestQuestion = () => {
         </Box>
     )
 
-    const NextButton = () => (
-        <Box display="flex" flexDirection="column" alignItems="flex-end">
-            {currentTestQuestionIndex! < test!.testType.numQuestions - 1 ? (
+    const NextButton = () => {
+        const isLastQuestionInTest = currentTestQuestionIndex === test!.testQuestions.length - 1
+        return (
+            <Box display="flex" flexDirection="column" alignItems="flex-end">
                 <Button
                     variant="contained"
                     color="primary"
-                    startIcon={<NavigateNextIcon />}
+                    startIcon={isLastQuestionInTest ? <EndSessionIcon /> : <NavigateNextIcon />}
                     sx={{ ml: 2, fontSize: '1rem' }}
-                    onClick={onClickNextQuestion}
+                    onClick={onClickNext}
                     disabled={isRecording || onSubmit.inProgress}
                 >
-                    Next Question
+                    {isLastQuestionInTest ? 'Finish Section' : 'Next Question'}
                 </Button>
-            ) : (
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<EndSessionIcon />}
-                    sx={{ ml: 2, fontSize: '1rem' }}
-                    onClick={onFinishTest}
-                    disabled={isRecording || onSubmit.inProgress}
-                >
-                    Finish Section
-                </Button>
-            )}
-            {onSubmit.inProgress && (
-                <Box display="flex" alignItems="center">
-                    <CircularProgress size={24} style={{ marginRight: 8 }} />
-                    <Typography variant="body2" color={onSubmit.color}>
-                        {onSubmit.message}
-                    </Typography>
-                </Box>
-            )}
-            <ConfirmationModal
-                open={openModalNoAnswerWarning}
-                onClose={() => setOpenNoAnswerWarningModal(false)}
-                onConfirm={handleConfirmSkipQuestion}
-            />
-        </Box>
-    )
+
+                {onSubmit.inProgress && (
+                    <Box display="flex" alignItems="center">
+                        <CircularProgress size={24} style={{ marginRight: 8 }} />
+                        <Typography variant="body2" color={onSubmit.color}>
+                            {onSubmit.message}
+                        </Typography>
+                    </Box>
+                )}
+                <ConfirmationModal
+                    open={openModalNoAnswerWarning}
+                    onClose={() => setOpenNoAnswerWarningModal(false)}
+                    onConfirm={handleConfirmSkipQuestion}
+                />
+            </Box>
+        )
+    }
 
     if (!test || currentTestQuestionIndex === null) {
         return <></>
@@ -433,11 +441,7 @@ const TestQuestion = () => {
 
     return (
         <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
-            <SimpleCustomSnackbar
-                display={test.testType.hasQuestionAudio && !questionAudioBlobUrl}
-                message="Failed to fetch audio. Please try again."
-                color="error"
-            />
+            <CustomSnackbar onRequest={onFailToFetchAudio} setOnRequest={setOnFailToFetchAudio} />
             <CustomSnackbar onRequest={onRecordWarning} setOnRequest={setOnRecordWarning} />
             <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
             <ProgressBar
