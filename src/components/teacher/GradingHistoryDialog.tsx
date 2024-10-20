@@ -48,13 +48,16 @@ const GradingHistoryDialog: React.FC<GradingHistoryDialogProps> = ({ open, onClo
                                 <TableRow>
                                     {isAutoGradingHistory(history[0]) ? (
                                         <>
-                                            <TableCell sx={{ color: 'primary.main', width: '30%' }}>
+                                            <TableCell sx={{ color: 'primary.main', width: '40%' }}>
                                                 Model Version
                                             </TableCell>
                                             <TableCell sx={{ color: 'primary.main', width: '20%' }}>
-                                                Auto Evaluation
+                                                User Answer Transcription
                                             </TableCell>
-                                            <TableCell sx={{ color: 'primary.main', width: '50%' }}>
+                                            <TableCell sx={{ color: 'primary.main', width: '15%' }}>
+                                                Auto Evaluation (Score)
+                                            </TableCell>
+                                            <TableCell sx={{ color: 'primary.main', width: '25%' }}>
                                                 Date
                                             </TableCell>
                                         </>
@@ -80,13 +83,16 @@ const GradingHistoryDialog: React.FC<GradingHistoryDialogProps> = ({ open, onClo
                                 {history.map((entry) =>
                                     isAutoGradingHistory(entry) ? (
                                         <TableRow key={entry.autoGradingHistoryId}>
-                                            <TableCell sx={{ width: '30%' }}>
+                                            <TableCell sx={{ width: '40%' }}>
                                                 {entry.modelName}
                                             </TableCell>
                                             <TableCell sx={{ width: '20%' }}>
-                                                {entry.autoEvaluation ? 'Correct' : 'Incorrect'}
+                                                {entry.transcription}
                                             </TableCell>
-                                            <TableCell sx={{ width: '50%' }}>
+                                            <TableCell sx={{ width: '15%' }}>
+                                                {entry.autoEvaluation}
+                                            </TableCell>
+                                            <TableCell sx={{ width: '25%' }}>
                                                 {format(new Date(entry.createdAt), 'PPpp')}
                                             </TableCell>
                                         </TableRow>

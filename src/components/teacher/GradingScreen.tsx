@@ -133,16 +133,11 @@ const GradingScreen = () => {
                 questionAudio: testQuestion.question.questionAudioBlobUrl,
                 correctAnswerAudio: testQuestion.question.correctAnswerAudioBlobUrl,
                 studentAnswerAudio: testQuestion.answerAudioBlobUrl,
-                autoEvaluation:
-                    testQuestion.latestAutoEvaluation === null
-                        ? 'N/A'
-                        : testQuestion.latestAutoEvaluation, // Show 'N/A' if null
-                teacherEvaluation:
-                    testQuestion.originalTeacherEvaluation !== null
-                        ? testQuestion.originalTeacherEvaluation
-                            ? 'Correct'
-                            : 'Incorrect'
-                        : 'N/A',
+                autoEvaluation: displayAutoEvaluation(testQuestion.latestAutoEvaluation),
+                autoEvaluationConfidence: displayAutoEvaluationConfidence(
+                    testQuestion.latestAutoEvaluation
+                ),
+                teacherEvaluation: displayTeacherEvaluation(testQuestion.originalTeacherEvaluation),
                 index,
                 grade: selectedValues[index],
                 feedback: testQuestion.latestTeacherComment || '',
@@ -150,6 +145,39 @@ const GradingScreen = () => {
 
         setRows(newRows)
     }, [selectedTest])
+
+    // Return the display value and color for autoEvaluation
+    const displayAutoEvaluation = (value: number | null) => {
+        if (value === null) {
+            return ['N/A', '']
+        } else if (value >= 60) {
+            return ['Correct', theme.palette.success.main]
+        } else {
+            return ['Incorrect', theme.palette.error.main]
+        }
+    }
+
+    // Return the display value and color for autoEvaluationConfidence
+    const displayAutoEvaluationConfidence = (value: number | null) => {
+        if (value === null) {
+            return ['', '']
+        } else if (value >= 90 || value <= 10) {
+            return ['High', theme.palette.info.main]
+        } else {
+            return ['Low', theme.palette.warning.main]
+        }
+    }
+
+    // Return the display value and color for teacherEvaluation
+    const displayTeacherEvaluation = (value: boolean | null) => {
+        if (value === null) {
+            return ['N/A', '']
+        } else if (value) {
+            return ['Correct', theme.palette.success.main]
+        } else {
+            return ['Incorrect', theme.palette.error.main]
+        }
+    }
 
     const onChooseTest = (event: SelectChangeEvent<number>) => {
         const index = event.target.value as number
@@ -218,19 +246,23 @@ const GradingScreen = () => {
             field: 'questionNo',
             headerClassName: 'data-grid--header',
             headerName: 'No.',
+            headerAlign: 'center',
             width: 50,
         },
         {
             field: 'questionText',
             headerClassName: 'data-grid--header',
             headerName: 'Question Text',
+            headerAlign: 'center',
             width: 150,
         },
         {
             field: 'questionAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Question Audio',
+            headerAlign: 'center',
             width: 150,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) =>
                 params.row.questionAudio ? (
@@ -243,7 +275,9 @@ const GradingScreen = () => {
             field: 'correctAnswerAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Correct Answer Audio',
+            headerAlign: 'center',
             width: 170,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) =>
                 params.row.correctAnswerAudio ? (
@@ -256,7 +290,9 @@ const GradingScreen = () => {
             field: 'studentAnswerAudio',
             headerClassName: 'data-grid--header',
             headerName: 'Student Answer Audio',
+            headerAlign: 'center',
             width: 170,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) =>
                 params.row.studentAnswerAudio ? (
@@ -269,18 +305,20 @@ const GradingScreen = () => {
             field: 'autoEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Auto Evaluation',
+            headerAlign: 'center',
             width: 150,
             renderCell: (params) => (
                 <Box
                     sx={{
                         display: 'flex',
-                        justifyContent: 'space-between',
+                        justifyContent: 'center',
                         alignItems: 'center',
                         width: '100%',
                         height: '100%',
+                        color: params.row.autoEvaluation[1],
                     }}
                 >
-                    <span>{params.row.autoEvaluation}</span>
+                    {params.row.autoEvaluation[0]}
                     {/* {params.row.autoEvaluation !== 'N/A' && ( // Only show the icon if autoEvaluation is not 'N/A'
                         <Tooltip title="View Grading History">
                             <IconButton
@@ -292,6 +330,27 @@ const GradingScreen = () => {
                             </IconButton>
                         </Tooltip>
                     )} */}
+                </Box>
+            ),
+        },
+        {
+            field: 'autoEvaluationConfidence',
+            headerClassName: 'data-grid--header',
+            headerName: 'Auto Evaluation Confidence',
+            headerAlign: 'center',
+            width: 220,
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                        color: params.row.autoEvaluationConfidence[1],
+                    }}
+                >
+                    {params.row.autoEvaluationConfidence[0]}
                 </Box>
             ),
         },
@@ -310,7 +369,15 @@ const GradingScreen = () => {
                         height: '100%',
                     }}
                 >
-                    <span>{params.row.teacherEvaluation}</span>
+                    <Box
+                        sx={{
+                            flexGrow: 1,
+                            textAlign: 'center',
+                            color: params.row.teacherEvaluation[1],
+                        }}
+                    >
+                        {params.row.teacherEvaluation[0]}
+                    </Box>
                     <Tooltip title="View Grading History">
                         <IconButton
                             size="small"
@@ -327,7 +394,9 @@ const GradingScreen = () => {
             field: 'grade',
             headerClassName: 'data-grid--header',
             headerName: 'Grade',
+            headerAlign: 'center',
             width: 200,
+            cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) => (
                 <Box
@@ -379,6 +448,7 @@ const GradingScreen = () => {
             field: 'feedback',
             headerClassName: 'data-grid--header',
             headerName: 'Feedback',
+            headerAlign: 'center',
             minWidth: 300,
             cellClassName: 'editable-cell',
             editable: true,
@@ -645,6 +715,11 @@ const GradingScreen = () => {
                                     sx={{
                                         '& .data-grid--header': {
                                             color: 'primary.main',
+                                        },
+                                        '& .centered-cell': {
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
                                         },
                                         '& .editable-cell': {
                                             border: `1px solid ${theme.palette.secondary.light}`,

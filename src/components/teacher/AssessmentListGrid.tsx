@@ -18,24 +18,28 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             field: 'assessmentTypeName',
             headerClassName: 'data-grid--header',
             headerName: 'Assessment Type',
+            headerAlign: 'center',
             width: 250,
         },
         {
             field: 'studentName',
             headerClassName: 'data-grid--header',
             headerName: 'Student',
+            headerAlign: 'center',
             width: 150,
         },
         {
             field: 'submissionTime',
             headerClassName: 'data-grid--header',
             headerName: 'Submission Time',
+            headerAlign: 'center',
             width: 200,
         },
         {
             field: 'autoEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Auto Evaluation',
+            headerAlign: 'center',
             width: 200,
             renderCell: (params) => displayTestScores(params.value, false),
         },
@@ -43,20 +47,24 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
             field: 'teacherEvaluation',
             headerClassName: 'data-grid--header',
             headerName: 'Teacher Evaluation',
+            headerAlign: 'center',
             width: 200,
             renderCell: (params) => displayTestScores(params.value, true),
         },
         {
             field: 'testsGraded',
             headerClassName: 'data-grid--header',
-            headerName: 'Tests Graded',
+            headerName: 'Graded by Teacher',
+            headerAlign: 'center',
             width: 150,
+            cellClassName: 'centered-cell',
         },
         {
             field: 'actions',
             type: 'actions',
             headerClassName: 'data-grid--header',
             headerName: 'Actions',
+            headerAlign: 'center',
             width: 80,
             getActions: ({ row }) => {
                 if (row.submissionTime === 'In Progress') {
@@ -104,6 +112,11 @@ const AssessmentListGrid: React.FC<AssessmentListGridProps> = ({
                     sx={{
                         '& .data-grid--header': {
                             color: 'primary.main',
+                        },
+                        '& .centered-cell': {
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
                         },
                     }}
                 />
