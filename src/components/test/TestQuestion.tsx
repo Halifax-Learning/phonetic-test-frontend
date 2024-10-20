@@ -43,6 +43,7 @@ const TestQuestion = () => {
     )
 
     const [isQuestionWithoutAnswer, setIsQuestionWithoutAnswer] = useState(true)
+    const [microphoneAllowed, setMicrophoneAllowed] = useState(false)
     const [isRecording, setIsRecording] = useState(false)
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
@@ -95,6 +96,32 @@ const TestQuestion = () => {
     }
 
     useEffect(() => {
+        const checkMicrophonePermission = async () => {
+            try {
+                const permissionStatus = await navigator.permissions.query({
+                    name: 'microphone' as PermissionName,
+                })
+                if (permissionStatus.state === 'granted') {
+                    setMicrophoneAllowed(true)
+                } else {
+                    try {
+                        await navigator.mediaDevices.getUserMedia({ audio: true })
+                        setMicrophoneAllowed(true)
+                    } catch (error) {
+                        setMicrophoneAllowed(false)
+                        console.error('Microphone permission denied:', error)
+                    }
+                }
+
+                permissionStatus.onchange = () => {
+                    setMicrophoneAllowed(permissionStatus.state === 'granted')
+                }
+            } catch (error) {
+                console.error('Error checking microphone permission:', error)
+            }
+        }
+        checkMicrophonePermission()
+
         pickRandomSticker()
     }, [])
 
@@ -124,7 +151,23 @@ const TestQuestion = () => {
         }
     }, [mediaBlobUrl])
 
+    const showMicrophonePermissionWarning = (): boolean => {
+        if (!microphoneAllowed) {
+            setOnSubmit({
+                display: true,
+                message: 'Please allow microphone access to record your answer.',
+                color: 'error',
+            })
+            return true
+        }
+        return false
+    }
+
     const onStartRecording = () => {
+        if (showMicrophonePermissionWarning()) {
+            return
+        }
+
         startRecording()
         setIsRecording(true)
         // Stop recording after 5 seconds
@@ -174,6 +217,9 @@ const TestQuestion = () => {
     }
 
     const onClickNextQuestion = async () => {
+        if (showMicrophonePermissionWarning()) {
+            return
+        }
         if (isQuestionWithoutAnswer) {
             setModalOpen(true)
         } else {
@@ -182,6 +228,9 @@ const TestQuestion = () => {
     }
 
     const onFinishTest = async () => {
+        if (showMicrophonePermissionWarning()) {
+            return
+        }
         if (isQuestionWithoutAnswer) {
             setModalOpen(true)
         } else {
