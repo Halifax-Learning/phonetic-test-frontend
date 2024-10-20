@@ -27,8 +27,9 @@ const Register = () => {
     const dispatch = useDispatch<any>()
     const [showPassword, setShowPassword] = useState(false)
     const [isRegistered, setIsRegistered] = useState(false)
-    const [registerInProgress, setRegisterInProgress] = useState(false)
+
     const [onRegister, setOnRegister] = useState<OnRequestProps>({
+        inProgress: false,
         display: false,
         message: '',
         color: 'info',
@@ -48,17 +49,22 @@ const Register = () => {
 
     const onSubmit = async (data: any) => {
         try {
-            setRegisterInProgress(true)
+            setOnRegister({ inProgress: true })
 
             await dispatch(register(data, verificationCode))
 
             setIsRegistered(true)
 
             await dispatch(sendVerificationEmail(data.email))
+
+            setOnRegister({ inProgress: false })
         } catch (error: any) {
-            setOnRegister({ display: true, message: error.response.data.error, color: 'error' })
-        } finally {
-            setRegisterInProgress(false)
+            setOnRegister({
+                display: true,
+                message: error.response.data.error || 'Registration failed. Please try again.',
+                color: 'error',
+            })
+            console.error(error)
         }
     }
 
@@ -174,7 +180,7 @@ const Register = () => {
                         variant="contained"
                         color="secondary"
                         sx={{ width: '100%', mt: 2 }}
-                        disabled={registerInProgress}
+                        disabled={onRegister.inProgress}
                     >
                         Register
                     </Button>

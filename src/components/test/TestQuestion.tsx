@@ -28,7 +28,7 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
-import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
+import CustomSnackbar, { OnRequestProps, SimpleCustomSnackbar } from '../reusables/CustomSnackbar'
 import ConfirmationModal from './ConfirmationModal'
 import ProgressBar from './ProgressBar'
 import TestInstructionDialog from './TestInstructionDialog'
@@ -47,7 +47,7 @@ const TestQuestion = () => {
     const [isRecording, setIsRecording] = useState(false)
     const [recordingTime, setRecordingTime] = useState(0)
     const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
-    const [modalNoAnswerWarningOpen, setNoAnswerWarningModalOpen] = useState<boolean>(false)
+    const [openModalNoAnswerWarning, setOpenNoAnswerWarningModal] = useState<boolean>(false)
 
     const [onRecordWarning, setOnRecordWarning] = useState<OnRequestProps>({
         display: false,
@@ -56,8 +56,8 @@ const TestQuestion = () => {
     })
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    const [submittingInProgress, setSubmittingInProgress] = useState(false)
     const [onSubmit, setOnSubmit] = useState<OnRequestProps>({
+        inProgress: false,
         display: false,
         message: '',
         color: 'info',
@@ -194,12 +194,17 @@ const TestQuestion = () => {
 
     const submitAnswer = async () => {
         try {
-            setOnSubmit({ display: false, message: 'Saving your answer...', color: 'info' })
-            setSubmittingInProgress(true)
+            setOnSubmit({
+                inProgress: true,
+                display: false,
+                message: 'Saving your answer...',
+                color: 'info',
+            })
 
             await dispatch(submitTestQuestion())
 
             setOnSubmit({
+                inProgress: false,
                 display: true,
                 message: 'Your answer has been saved successfully!',
                 color: 'success',
@@ -214,9 +219,12 @@ const TestQuestion = () => {
                 dispatch(nextQuestion())
             }
         } catch (error: any) {
-            setOnSubmit({ display: true, message: error.message, color: 'error' })
-        } finally {
-            setSubmittingInProgress(false)
+            setOnSubmit({
+                inProgress: false,
+                display: true,
+                message: error.message,
+                color: 'error',
+            })
         }
     }
 
@@ -225,7 +233,7 @@ const TestQuestion = () => {
             return
         }
         if (isQuestionWithoutAnswer) {
-            setNoAnswerWarningModalOpen(true)
+            setOpenNoAnswerWarningModal(true)
         } else {
             await submitAnswer()
         }
@@ -236,14 +244,14 @@ const TestQuestion = () => {
             return
         }
         if (isQuestionWithoutAnswer) {
-            setNoAnswerWarningModalOpen(true)
+            setOpenNoAnswerWarningModal(true)
         } else {
             await submitAnswer()
         }
     }
 
     const handleConfirmSkipQuestion = async () => {
-        setNoAnswerWarningModalOpen(false)
+        setOpenNoAnswerWarningModal(false)
         await submitAnswer()
     }
 
@@ -338,7 +346,7 @@ const TestQuestion = () => {
                     startIcon={<MicIcon />}
                     sx={{ ml: 2, fontSize: '1rem' }}
                     onClick={onStartRecording}
-                    disabled={isRecording || submittingInProgress}
+                    disabled={isRecording || onSubmit.inProgress}
                 >
                     Record Now
                 </Button>
@@ -386,7 +394,7 @@ const TestQuestion = () => {
                     startIcon={<NavigateNextIcon />}
                     sx={{ ml: 2, fontSize: '1rem' }}
                     onClick={onClickNextQuestion}
-                    disabled={isRecording || submittingInProgress}
+                    disabled={isRecording || onSubmit.inProgress}
                 >
                     Next Question
                 </Button>
@@ -397,12 +405,12 @@ const TestQuestion = () => {
                     startIcon={<EndSessionIcon />}
                     sx={{ ml: 2, fontSize: '1rem' }}
                     onClick={onFinishTest}
-                    disabled={isRecording || submittingInProgress}
+                    disabled={isRecording || onSubmit.inProgress}
                 >
                     Finish Section
                 </Button>
             )}
-            {submittingInProgress && (
+            {onSubmit.inProgress && (
                 <Box display="flex" alignItems="center">
                     <CircularProgress size={24} style={{ marginRight: 8 }} />
                     <Typography variant="body2" color={onSubmit.color}>
@@ -411,8 +419,8 @@ const TestQuestion = () => {
                 </Box>
             )}
             <ConfirmationModal
-                open={modalNoAnswerWarningOpen}
-                onClose={() => setNoAnswerWarningModalOpen(false)}
+                open={openModalNoAnswerWarning}
+                onClose={() => setOpenNoAnswerWarningModal(false)}
                 onConfirm={handleConfirmSkipQuestion}
             />
         </Box>
@@ -424,6 +432,11 @@ const TestQuestion = () => {
 
     return (
         <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
+            <SimpleCustomSnackbar
+                display={test.testType.hasQuestionAudio && !questionAudioBlobUrl}
+                message="Failed to fetch audio. Please try again."
+                color="error"
+            />
             <CustomSnackbar onRequest={onRecordWarning} setOnRequest={setOnRecordWarning} />
             <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
             <ProgressBar

@@ -66,8 +66,15 @@ const GradingScreen = () => {
     >([])
     const [rows, setRows] = useState<any[]>([])
 
-    const [savingInProgress, setSavingInProgress] = useState(false)
+    const [onFetchAudio, setOnFetchAudio] = useState<OnRequestProps>({
+        inProgress: false,
+        display: false,
+        message: '',
+        color: 'info',
+    })
+
     const [onSave, setOnSave] = useState<OnRequestProps>({
+        inProgress: false,
         display: false,
         message: '',
         color: 'info',
@@ -104,10 +111,28 @@ const GradingScreen = () => {
     }, [assessment, currentTestIndex])
 
     useEffect(() => {
-        // Fetch audios when selectedTest changes and its audio has not been fetched
-        if (selectedTest && !selectedTest.hasFetchedAudio) {
-            dispatch(fetchAudios(selectedTest.testId, currentTestIndex!, true))
+        const fetchAudio = async () => {
+            // Fetch audios when selectedTest changes and its audio has not been fetched
+            if (selectedTest && !selectedTest.hasFetchedAudio) {
+                try {
+                    setOnFetchAudio({ inProgress: true })
+
+                    await dispatch(fetchAudios(selectedTest.testId, currentTestIndex!, true))
+
+                    setOnFetchAudio({ inProgress: false })
+                } catch (err) {
+                    setOnFetchAudio({
+                        inProgress: false,
+                        display: true,
+                        message: 'Failed to fetch audio. Please try again.',
+                        color: 'error',
+                    })
+                    console.error(err)
+                }
+            }
         }
+
+        fetchAudio()
     }, [selectedTest])
 
     useEffect(() => {
@@ -220,20 +245,24 @@ const GradingScreen = () => {
 
     const onSaveGrading = async () => {
         try {
-            setOnSave({ display: true, message: 'Saving...', color: 'info' })
-            setSavingInProgress(true)
+            setOnSave({ inProgress: true, display: true, message: 'Saving...', color: 'info' })
 
             await dispatch(submitTeacherEvaluation())
 
-            setOnSave({ display: true, message: 'Grading saved successfully!', color: 'success' })
+            setOnSave({
+                inProgress: false,
+                display: true,
+                message: 'Grading saved successfully!',
+                color: 'success',
+            })
         } catch (error: any) {
             setOnSave({
+                inProgress: false,
                 display: true,
                 message: error.message || 'Failed to save grading. Please try again.',
                 color: 'error',
             })
-        } finally {
-            setSavingInProgress(false)
+            console.error(error)
         }
     }
 
@@ -746,7 +775,7 @@ const GradingScreen = () => {
                                     variant="contained"
                                     color="primary"
                                     onClick={onSaveGrading}
-                                    disabled={savingInProgress}
+                                    disabled={onSave.inProgress}
                                 >
                                     Save
                                 </Button>
@@ -772,6 +801,7 @@ const GradingScreen = () => {
                 )}
             </Box>
 
+            <CustomSnackbar onRequest={onFetchAudio} setOnRequest={setOnFetchAudio} />
             <CustomSnackbar onRequest={onSave} setOnRequest={setOnSave} />
 
             <GradingHistoryDialog

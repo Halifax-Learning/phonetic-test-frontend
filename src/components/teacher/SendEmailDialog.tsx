@@ -26,8 +26,9 @@ interface SendEmailDialogProps {
 const SendEmailDialog = ({ open, onClose, assessment }: SendEmailDialogProps) => {
     const [teacherComment, setTeacherComment] = useState('')
     const [selectedOption, setSelectedOption] = useState('pdfOnly')
-    const [sendingInProgress, setSendingInProgress] = useState(false)
+
     const [onSend, setOnSend] = useState<OnRequestProps>({
+        inProgress: false,
         display: false,
         message: '',
         color: 'info',
@@ -94,11 +95,17 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
 
             const doc = selectedOption === 'emailOnly' ? null : generatePDF()
 
-            setSendingInProgress(true)
+            setOnSend({
+                inProgress: true,
+                display: true,
+                message: 'Sending result to student...',
+                color: 'info',
+            })
 
             await sendAssessmentResult(assessment!.testTaker.email, emailContent, doc)
 
             setOnSend({
+                inProgress: false,
                 message: 'Result sent successfully.',
                 color: 'success',
                 display: true,
@@ -106,12 +113,11 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
             onClose()
         } catch {
             setOnSend({
+                inProgress: false,
                 message: 'Failed to send the result. Please try again.',
                 color: 'error',
                 display: true,
             })
-        } finally {
-            setSendingInProgress(false)
         }
     }
 
@@ -229,7 +235,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                     <Button
                         variant="contained"
                         onClick={onSendAssessmentResult}
-                        disabled={sendingInProgress}
+                        disabled={onSend.inProgress}
                         sx={{ marginRight: 1 }}
                     >
                         Send
@@ -238,7 +244,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                         color="secondary"
                         variant="contained"
                         onClick={() => generatePDF(true)}
-                        disabled={sendingInProgress}
+                        disabled={onSend.inProgress}
                         sx={{ marginRight: 1 }}
                     >
                         Preview PDF
@@ -247,7 +253,7 @@ Submission Time: ${format(new Date(assessment.assessmentSubmissionTime), 'PPpp')
                         variant="contained"
                         color="warning"
                         onClick={onClose}
-                        disabled={sendingInProgress}
+                        disabled={onSend.inProgress}
                     >
                         Cancel
                     </Button>
