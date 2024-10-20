@@ -127,7 +127,7 @@ const Profile = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={loadData} // Retry fetching data
+                            onClick={loadData}
                             sx={{ mt: 2 }}
                         >
                             Retry
@@ -292,7 +292,7 @@ const Profile = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={loadData} // Retry fetching data
+                            onClick={loadData}
                             sx={{ mt: 2 }}
                         >
                             Retry

@@ -1,10 +1,11 @@
-import { Box, Button, Card, CardHeader, CircularProgress, Typography } from '@mui/material'
+import { Box, Card, CardHeader, CircularProgress, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../main'
 import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
 import { logError } from '../../utils/logger'
 import { OnRequestProps } from '../reusables/CustomSnackbar'
+import Retry from '../reusables/Retry'
 import AssessmentListGrid from './AssessmentListGrid'
 
 const TeacherAssessmentList = () => {
@@ -39,16 +40,7 @@ const TeacherAssessmentList = () => {
     }
 
     if (!onLoading.inProgress && onLoading.message) {
-        return (
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography variant="body1" color="error">
-                    {onLoading.message}
-                </Typography>
-                <Button variant="contained" onClick={loadData}>
-                    Retry
-                </Button>
-            </Box>
-        )
+        return <Retry message={onLoading.message} onClick={loadData} />
     }
 
     return (

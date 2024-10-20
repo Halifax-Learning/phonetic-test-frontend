@@ -10,6 +10,7 @@ import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledClickableCard } from '../../theme/theme'
 import { logError } from '../../utils/logger'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
+import Retry from '../reusables/Retry'
 
 const AssessmentList = () => {
     const dispatch = useDispatch<any>()
@@ -93,16 +94,7 @@ const AssessmentList = () => {
     }
 
     if (onLoading.message) {
-        return (
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography variant="body1" color="error">
-                    {onLoading.message}
-                </Typography>
-                <Button variant="contained" onClick={fetchData}>
-                    Retry
-                </Button>
-            </Box>
-        )
+        return <Retry message={onLoading.message} onClick={fetchData} />
     }
 
     return (
