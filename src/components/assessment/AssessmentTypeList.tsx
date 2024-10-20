@@ -8,32 +8,42 @@ import { fetchAssessmentTypes } from '../../reducers/assessmentTypeReducer'
 import { setGradingAssessmentList } from '../../reducers/gradingAssessmentListReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledClickableCard } from '../../theme/theme'
+import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 
 const AssessmentList = () => {
     const dispatch = useDispatch<any>()
     const assessmentTypes = useSelector((state: RootState) => state.assessmentTypes)
     const assessment = useSelector((state: RootState) => state.assessment.assessment)
-    const isInProgress = useSelector((state: RootState) => state.assessment.isInProgress)
+    const isAssessmentInProgress = useSelector((state: RootState) => state.assessment.isInProgress)
     const user = useSelector((state: RootState) => state.user)
-    const [loading, setLoading] = useState(true)
-    const [creatingAssessment, setCreatingAssessment] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+
+    const [onLoading, setOnLoading] = useState<OnRequestProps>({
+        inProgress: false,
+        message: '',
+    })
+
+    const [onCreatingAssessment, setOnCreatingAssessment] = useState<OnRequestProps>({
+        inProgress: false,
+        display: false,
+        message: '',
+        color: 'info',
+    })
 
     const fetchData = async () => {
-        setLoading(true) // Set loading to true before fetching
-        setError(null) // Reset error state
         try {
+            setOnLoading({ inProgress: true })
+
             if (!assessmentTypes.length) {
                 await dispatch(fetchAssessmentTypes())
             }
-            if (isInProgress === null) {
+            if (isAssessmentInProgress === null) {
                 await dispatch(fetchInProgressAssessment())
             }
         } catch (err) {
+            setOnLoading({ inProgress: false, message: 'Failed to load. Please try again later.' })
             console.error('Failed to fetch assessment types:', err)
-            setError('Failed to load assessment types. Please try again later.')
         } finally {
-            setLoading(false)
+            setOnLoading({ inProgress: false })
         }
     }
 
@@ -42,20 +52,32 @@ const AssessmentList = () => {
     }, [])
 
     const startAssessment = async (assessmentTypeId: number) => {
-        setCreatingAssessment(true) // Start loading for assessment creation
         try {
+            setOnCreatingAssessment({
+                inProgress: true,
+                display: true,
+                message: 'Starting Assessment...',
+                color: 'info',
+            })
+
             await dispatch(createAssessment(assessmentTypeId))
+
             dispatch(setScreenToDisplay('AssessmentWelcome'))
             dispatch(setGradingAssessmentList(null))
         } catch (err) {
+            setOnCreatingAssessment({
+                inProgress: false,
+                display: true,
+                message: 'Failed to start assessment. Please try again later.',
+                color: 'error',
+            })
             console.error('Failed to create assessment:', err)
-            // Handle error here (optional)
         } finally {
-            setCreatingAssessment(false) // Stop loading
+            setOnCreatingAssessment({ inProgress: false })
         }
     }
 
-    if (loading) {
+    if (onLoading.inProgress) {
         return (
             <Box
                 sx={{
@@ -70,11 +92,11 @@ const AssessmentList = () => {
         )
     }
 
-    if (error) {
+    if (onLoading.message) {
         return (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Typography variant="body1" color="error">
-                    {error}
+                    {onLoading.message}
                 </Typography>
                 <Button variant="contained" onClick={fetchData}>
                     Retry
@@ -131,7 +153,9 @@ const AssessmentList = () => {
                                         <Typography variant="h1" color="secondary.dark">
                                             {assessmentType.assessmentTypeName}
                                         </Typography>
-                                        {creatingAssessment && <CircularProgress size={24} />}
+                                        {onCreatingAssessment.inProgress && (
+                                            <CircularProgress size={24} />
+                                        )}
                                     </CardContent>
                                 </StyledClickableCard>
                             </Grid2>
@@ -139,6 +163,11 @@ const AssessmentList = () => {
                     </Grid2>
                 </>
             )}
+
+            <CustomSnackbar
+                onRequest={onCreatingAssessment}
+                setOnRequest={setOnCreatingAssessment}
+            />
         </Box>
     )
 }

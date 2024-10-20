@@ -2,9 +2,10 @@ import { Alert, Snackbar } from '@mui/material'
 import { Dispatch, SetStateAction, useState } from 'react'
 
 export interface OnRequestProps {
-    display: boolean
-    message: string
-    color: 'success' | 'error' | 'info' | 'warning'
+    inProgress?: boolean
+    display?: boolean // Whether to display the message
+    message?: string
+    color?: 'success' | 'error' | 'info' | 'warning'
 }
 
 interface CustomSnackbarProps {
