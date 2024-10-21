@@ -94,10 +94,11 @@ const GradingScreen = () => {
         // Handle when user refreshes the page
         const reloadAssessment = async () => {
             if (assessment === null) {
-                const assessmentId = await dispatch(retrieveGradingAssessmentFromLocalStorage())
-
-                if (!assessmentId) {
+                try {
+                    await dispatch(retrieveGradingAssessmentFromLocalStorage())
+                } catch (err) {
                     navigate('/assessments-for-grading')
+                    logError('Failed to retrieve assessment from local storage:', err)
                 }
             }
         }

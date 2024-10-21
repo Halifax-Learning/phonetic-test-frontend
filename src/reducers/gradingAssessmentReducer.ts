@@ -164,10 +164,15 @@ export const retrieveGradingAssessmentFromLocalStorage = () => {
     return async (dispatch: any) => {
         const assessmentId = localStorage.getItem(CURRENT_GRADING_ASSESSMENT_ID)
         if (assessmentId) {
-            await dispatch(fetchGradingAssessment(assessmentId))
-            return assessmentId
+            try {
+                await dispatch(fetchGradingAssessment(assessmentId))
+            } catch (error) {
+                localStorage.removeItem(CURRENT_GRADING_ASSESSMENT_ID)
+                throw error
+            }
+        } else {
+            throw Error('No assessment id found in local storage.')
         }
-        return null
     }
 }
 
