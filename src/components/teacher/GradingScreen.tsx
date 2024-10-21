@@ -369,6 +369,7 @@ const GradingScreen = () => {
             headerName: 'Auto Evaluation Confidence',
             headerAlign: 'center',
             width: 220,
+            disableExport: true,
             renderCell: (params) => (
                 <Box
                     sx={{
