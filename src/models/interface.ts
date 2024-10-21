@@ -36,6 +36,7 @@ export interface TestQuestion {
     latestTeacherEvaluation: boolean | null
     originalTeacherEvaluation: boolean | null // to keep track if the teacher evaluation has been changed
     latestTeacherComment: string
+    originalTeacherComment: string
     testQuestionSubmissionTime: Date
     autoGradingHistory: AutoGradingHistory[]
     teacherGradingHistory: TeacherGradingHistory[]

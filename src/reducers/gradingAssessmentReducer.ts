@@ -55,11 +55,13 @@ const gradingAssessmentReducer = createSlice({
             }
         },
         resetOriginalTeacherEvaluation(state) {
+            // set the original teacher evaluation and comment to the latest values in database
             if (state.assessment) {
                 for (const test of state.assessment.tests) {
                     for (const testQuestion of test.testQuestions) {
                         testQuestion.originalTeacherEvaluation =
                             testQuestion.latestTeacherEvaluation
+                        testQuestion.originalTeacherComment = testQuestion.latestTeacherComment
                     }
                 }
             }
@@ -173,13 +175,16 @@ export const submitTeacherEvaluation = () => {
     return async (dispatch: any, getState: any) => {
         const state = getState()
 
-        // get list of test questions that have evaluation changes
+        // get list of test questions that have evaluation changes or comment changes
         const testQuestions: TestQuestion[] = state.gradingAssessment.assessment?.tests.flatMap(
             (test: Test) =>
                 test.testQuestions.filter(
                     (testQuestion) =>
                         testQuestion.latestTeacherEvaluation !==
-                        testQuestion.originalTeacherEvaluation
+                            testQuestion.originalTeacherEvaluation ||
+                        (testQuestion.latestTeacherComment !==
+                            testQuestion.originalTeacherComment &&
+                            testQuestion.latestTeacherEvaluation !== null)
                 )
         )
 
