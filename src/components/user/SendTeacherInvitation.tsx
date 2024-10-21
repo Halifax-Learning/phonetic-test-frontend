@@ -4,12 +4,14 @@ import { useDispatch } from 'react-redux'
 
 import { sendTeacherInvitation } from '../../reducers/userReducer'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
+import { logError } from '../../utils/logger'
 
 const SendTeacherInvitation = () => {
     const dispatch = useDispatch<any>()
     const [email, setEmail] = useState('')
-    const [sendingInProgress, setSendingInProgress] = useState(false)
+
     const [onSend, setOnSend] = useState<OnRequestProps>({
+        inProgress: false,
         display: false,
         message: '',
         color: 'info',
@@ -27,12 +29,12 @@ const SendTeacherInvitation = () => {
         }
 
         try {
-            setSendingInProgress(true)
-            setOnSend({ display: true, message: 'Sending...', color: 'info' })
+            setOnSend({ inProgress: true, display: true, message: 'Sending...', color: 'info' })
 
             await dispatch(sendTeacherInvitation(email))
 
             setOnSend({
+                inProgress: false,
                 display: true,
                 message: 'Invitation has been sent successfully!',
                 color: 'success',
@@ -43,8 +45,7 @@ const SendTeacherInvitation = () => {
                 message: error.response.data.error || 'Failed to send invitation!',
                 color: 'error',
             })
-        } finally {
-            setSendingInProgress(false)
+            logError('Failed to send invitation:', error)
         }
     }
 
@@ -64,7 +65,7 @@ const SendTeacherInvitation = () => {
                 variant="contained"
                 sx={{ marginTop: 2 }}
                 onClick={onClickSend}
-                disabled={sendingInProgress}
+                disabled={onSend.inProgress}
             >
                 Send
             </Button>

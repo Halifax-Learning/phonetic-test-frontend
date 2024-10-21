@@ -8,7 +8,7 @@ interface ProgressBarProps {
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({ currentQuestionIndex, numQuestions }) => {
-    const progressValue = ((currentQuestionIndex + 1) / numQuestions) * 100
+    const progressValue = (currentQuestionIndex / numQuestions) * 100
 
     return (
         <Box

@@ -24,6 +24,7 @@ import { RootState } from '../../main'
 import { fetchAssessments } from '../../reducers/assessementListReducer'
 import { fetchGradingAssessments } from '../../reducers/gradingAssessmentListReducer'
 import { ButtonBox } from '../../theme/theme'
+import { logError } from '../../utils/logger'
 
 const Profile = () => {
     const navigate = useNavigate()
@@ -59,8 +60,8 @@ const Profile = () => {
                 }
                 setError(false) // Reset error state if fetch is successful
             } catch (err) {
-                console.error(err)
                 setError(true) // Set error state if fetching fails
+                logError('Failed to fetch assessments:', err)
             } finally {
                 setLoading(false)
             }
@@ -126,7 +127,7 @@ const Profile = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={loadData} // Retry fetching data
+                            onClick={loadData}
                             sx={{ mt: 2 }}
                         >
                             Retry
@@ -217,8 +218,8 @@ const Profile = () => {
                  * with the fetched data, and in those split seconds, the data is still null and
                  * so the filter function throws an error.
                  */
-                console.error(err)
                 setError(true) // Set error state if fetching fails
+                logError('Failed to fetch assessments:', err)
             } finally {
                 setLoading(false)
             }
@@ -291,7 +292,7 @@ const Profile = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={loadData} // Retry fetching data
+                            onClick={loadData}
                             sx={{ mt: 2 }}
                         >
                             Retry

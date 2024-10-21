@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 
 import { verifyEmail } from '../../reducers/userReducer'
+import { logError } from '../../utils/logger'
 
 const EmailVerification = () => {
     const location = useLocation()
@@ -30,8 +31,8 @@ const EmailVerification = () => {
                 await dispatch(verifyEmail(verificationCode))
                 setMessage(SUCCESS)
             } catch (error: any) {
-                console.error(error)
                 setMessage(error.response.data.error || FAIL)
+                logError('Email verification failed:', error)
             }
         }
 

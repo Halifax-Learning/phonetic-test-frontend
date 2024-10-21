@@ -28,6 +28,7 @@ import {
 } from '../../reducers/assessmentReducer'
 import { setScreenToDisplay } from '../../reducers/screenToDisplayReducer'
 import { StyledSoundCard } from '../../theme/theme'
+import { logError } from '../../utils/logger'
 import CustomSnackbar, { OnRequestProps } from '../reusables/CustomSnackbar'
 import ConfirmationModal from './ConfirmationModal'
 import ProgressBar from './ProgressBar'
@@ -43,20 +44,25 @@ const TestQuestion = () => {
     )
 
     const [isQuestionWithoutAnswer, setIsQuestionWithoutAnswer] = useState(true)
+    const [microphoneAllowed, setMicrophoneAllowed] = useState(false)
     const [isRecording, setIsRecording] = useState(false)
     const [recordingTime, setRecordingTime] = useState(0)
-    const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
-    const [modalOpen, setModalOpen] = useState<boolean>(false)
 
-    const [onMaxRecordingTime, setOnMaxRecordingTime] = useState<OnRequestProps>({
+    const [onFailToFetchAudio, setOnFailToFetchAudio] = useState<OnRequestProps>({
         display: false,
-        message: 'Maximum Recording Time is 5 seconds',
+        message: '',
+        color: 'info',
+    })
+
+    const [onRecordWarning, setOnRecordWarning] = useState<OnRequestProps>({
+        display: false,
+        message: '',
         color: 'warning',
     })
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-    const [submittingInProgress, setSubmittingInProgress] = useState(false)
     const [onSubmit, setOnSubmit] = useState<OnRequestProps>({
+        inProgress: false,
         display: false,
         message: '',
         color: 'info',
@@ -71,7 +77,6 @@ const TestQuestion = () => {
 
     const test = assessment?.tests[currentTestIndex!]
 
-    const instructionAudioBlobUrl = test?.testType.questionType.instructionAudioBlobUrl
     const questionAudioBlobUrl =
         test?.testQuestions[currentTestQuestionIndex!].question.questionAudioBlobUrl
 
@@ -94,7 +99,42 @@ const TestQuestion = () => {
         setCurrentSticker(stickers[randomIndex])
     }
 
+    const checkMicrophonePermission = async () => {
+        try {
+            const permissionStatus = await navigator.permissions.query({
+                name: 'microphone' as PermissionName,
+            })
+            if (permissionStatus.state === 'granted') {
+                setMicrophoneAllowed(true)
+            } else {
+                try {
+                    await navigator.mediaDevices.getUserMedia({ audio: true })
+                    setMicrophoneAllowed(true)
+                } catch (error) {
+                    setMicrophoneAllowed(false)
+                    logError('Microphone permission denied:', error)
+                }
+            }
+
+            permissionStatus.onchange = () => {
+                setMicrophoneAllowed(permissionStatus.state === 'granted')
+            }
+        } catch (error) {
+            logError('Error checking microphone permission:', error)
+        }
+    }
+
     useEffect(() => {
+        if (test?.testType.hasQuestionAudio && !questionAudioBlobUrl) {
+            setOnFailToFetchAudio({
+                display: true,
+                message: 'Failed to fetch audio. Please try again.',
+                color: 'error',
+            })
+        }
+
+        checkMicrophonePermission()
+
         pickRandomSticker()
     }, [])
 
@@ -124,13 +164,51 @@ const TestQuestion = () => {
         }
     }, [mediaBlobUrl])
 
+    const showMicrophonePermissionWarning = (): boolean => {
+        if (!microphoneAllowed) {
+            setOnRecordWarning({
+                display: true,
+                message: 'Please allow microphone access to record your answer.',
+                color: 'error',
+            })
+            return true
+        }
+        return false
+    }
+
+    const showAudioFetchError = () => {
+        if (test?.testType.hasQuestionAudio && !questionAudioBlobUrl) {
+            setOnFailToFetchAudio({
+                display: true,
+                message: 'Failed to fetch audio. Please try again.',
+                color: 'error',
+            })
+            return true
+        }
+        return false
+    }
+
+    // Prevent the user from proceeding to the next question if the microphone permission
+    // is not granted or if there is an error fetching the audio
+    const blockContinueTest = () => {
+        return showMicrophonePermissionWarning() || showAudioFetchError()
+    }
+
     const onStartRecording = () => {
+        if (blockContinueTest()) {
+            return
+        }
+
         startRecording()
         setIsRecording(true)
         // Stop recording after 5 seconds
         timeoutRef.current = setTimeout(() => {
             onStopRecording()
-            setOnMaxRecordingTime({ ...onMaxRecordingTime, display: true })
+            setOnRecordWarning({
+                display: true,
+                message: 'Maximum Recording Time is 5 seconds',
+                color: 'warning',
+            })
         }, 6000)
     }
 
@@ -147,12 +225,17 @@ const TestQuestion = () => {
 
     const submitAnswer = async () => {
         try {
-            setOnSubmit({ display: false, message: 'Saving your answer...', color: 'info' })
-            setSubmittingInProgress(true)
+            setOnSubmit({
+                inProgress: true,
+                display: false,
+                message: 'Saving your answer...',
+                color: 'info',
+            })
 
             await dispatch(submitTestQuestion())
 
             setOnSubmit({
+                inProgress: false,
                 display: true,
                 message: 'Your answer has been saved successfully!',
                 color: 'success',
@@ -167,414 +250,368 @@ const TestQuestion = () => {
                 dispatch(nextQuestion())
             }
         } catch (error: any) {
-            setOnSubmit({ display: true, message: error.message, color: 'error' })
-        } finally {
-            setSubmittingInProgress(false)
+            setOnSubmit({
+                inProgress: false,
+                display: true,
+                message: error.message,
+                color: 'error',
+            })
+            logError('Failed to submit test question:', error)
         }
     }
 
-    const onClickNextQuestion = async () => {
-        if (isQuestionWithoutAnswer) {
-            setModalOpen(true)
-        } else {
-            await submitAnswer()
-        }
+    if (!test || currentTestQuestionIndex === null) {
+        return <></>
     }
 
-    const onFinishTest = async () => {
+    return (
+        <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
+            <CustomSnackbar onRequest={onFailToFetchAudio} setOnRequest={setOnFailToFetchAudio} />
+            <CustomSnackbar onRequest={onRecordWarning} setOnRequest={setOnRecordWarning} />
+            <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
+            <ProgressBar
+                currentQuestionIndex={currentTestQuestionIndex}
+                numQuestions={test?.testType.numQuestions}
+            />
+            <Card variant="outlined" sx={{ padding: 2, position: 'relative', overflow: 'hidden' }}>
+                <Box
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        backgroundImage: `url(${background})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        filter: 'blur(1px)',
+                        opacity: 0.3, // 20% opacity
+                        zIndex: 1, // Behind the card content
+                    }}
+                />
+                <CardContent sx={{ position: 'relative', zIndex: 3 }}>
+                    <Grid2 container spacing={2}>
+                        {/* Top-left: Icon */}
+                        <Grid2 size={1} display="flex" alignItems="center" justifyContent="center">
+                            <HeaderIcon sx={{ fontSize: 35, color: 'secondary.dark' }} />
+                        </Grid2>
+                        {/* Top-right: Instructions Title */}
+                        <Grid2 size={11} display="flex" alignItems="center" justifyContent="left">
+                            <Typography variant="h1" color="secondary.dark">
+                                {test.testType.testTypeName} Section - Question{' '}
+                                {currentTestQuestionIndex + 1} / {test.testType.numQuestions}
+                            </Typography>
+                        </Grid2>
+                        {/* Bottom-left: Blank */}
+                        <Grid2
+                            size={1}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                        />
+                        {/* Bottom-right: Content and Button */}
+                        <Grid2 size={11}>
+                            <Box>
+                                <Grid2 container spacing={0}>
+                                    {/* Left side: Question and Answer Audio */}
+                                    <Grid2 size={{ xs: 12, sm: 8 }}>
+                                        <QuestionAudio
+                                            test={test}
+                                            currentTestQuestionIndex={currentTestQuestionIndex}
+                                        />
+                                        <AnswerAudio
+                                            {...{
+                                                isRecording,
+                                                recordingTime,
+                                                mediaBlobUrl,
+                                                isQuestionWithoutAnswer,
+                                            }}
+                                        />
+                                    </Grid2>
+                                    {/* Right side: Sticker */}
+                                    <Grid2 size={{ xs: 0, sm: 4 }}>
+                                        <Sticker currentSticker={currentSticker} />
+                                    </Grid2>
+                                </Grid2>
+                                <Box sx={{ mt: 2 }}>
+                                    <Grid2 container alignItems="flex-start" spacing={1}>
+                                        {/* Left-aligned instruction button */}
+                                        <Grid2 alignItems="flex-start" size={{ sm: 6, md: 'auto' }}>
+                                            <IntructionButton test={test} />
+                                        </Grid2>
+
+                                        {/* Right-aligned record and next/finish buttons */}
+                                        <Grid2
+                                            alignItems="flex-end"
+                                            size={{ xs: 12, sm: 6, md: 5 }}
+                                        >
+                                            <RecordButton
+                                                {...{
+                                                    isQuestionWithoutAnswer,
+                                                    isRecording,
+                                                    onStartRecording,
+                                                    onStopRecording,
+                                                    onSubmit,
+                                                }}
+                                            />
+                                        </Grid2>
+                                        <Grid2
+                                            alignItems="flex-end"
+                                            size={{ xs: 12, sm: 12, md: 'auto' }}
+                                        >
+                                            <NextButton
+                                                {...{
+                                                    blockContinueTest,
+                                                    isQuestionWithoutAnswer,
+                                                    isLastQuestionInTest:
+                                                        currentTestQuestionIndex ===
+                                                        test.testQuestions.length - 1,
+                                                    isRecording,
+                                                    submitAnswer,
+                                                    onSubmit,
+                                                }}
+                                            />
+                                        </Grid2>
+                                    </Grid2>
+                                </Box>
+                            </Box>
+                        </Grid2>
+                    </Grid2>
+                </CardContent>
+            </Card>
+        </Box>
+    )
+}
+
+const QuestionAudio = ({ test, currentTestQuestionIndex }: any) => {
+    const questionAudioBlobUrl =
+        test?.testQuestions[currentTestQuestionIndex!].question.questionAudioBlobUrl
+
+    return (
+        <Box display="flex">
+            {test?.testType.hasQuestionAudio ? (
+                <audio controls src={questionAudioBlobUrl} style={{ width: '70%', maxWidth: 'sm' }}>
+                    Your browser does not support the audio element.
+                </audio>
+            ) : (
+                <StyledSoundCard>
+                    <CardContent>
+                        <Typography
+                            variant="h1"
+                            sx={{
+                                fontFamily: 'Inter, sans-serif',
+                                fontSize: '2rem',
+                                fontWeight: 700,
+                                color: 'secondary.main',
+                            }}
+                        >
+                            {test!.testQuestions[currentTestQuestionIndex!].question.questionText}
+                        </Typography>
+                    </CardContent>
+                </StyledSoundCard>
+            )}
+        </Box>
+    )
+}
+
+const AnswerAudio = ({
+    isRecording,
+    recordingTime,
+    mediaBlobUrl,
+    isQuestionWithoutAnswer,
+}: any) => (
+    <Box sx={{ mt: 2, mb: 2 }}>
+        {isRecording && (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                    sx={{
+                        width: '10px',
+                        height: '10px',
+                        backgroundColor: 'red',
+                        borderRadius: '50%',
+                        animation: 'pulsate 1s infinite',
+                        margin: '0px 15px',
+                        '@keyframes pulsate': {
+                            '0%': { transform: 'scale(1)', opacity: 1 },
+                            '50%': { transform: 'scale(1.5)', opacity: 0.7 },
+                            '100%': { transform: 'scale(1)', opacity: 1 },
+                        },
+                    }}
+                />
+                Recording Time: {recordingTime}s
+            </div>
+        )}
+        {!isRecording && mediaBlobUrl && !isQuestionWithoutAnswer && (
+            <>
+                <Typography variant="h6" color="secondary.dark" sx={{ marginBottom: 1 }}>
+                    Your answer:
+                </Typography>
+                <audio controls src={mediaBlobUrl} style={{ width: '70%', maxWidth: 'sm' }} />
+            </>
+        )}
+    </Box>
+)
+
+const Sticker = ({ currentSticker }: any) => (
+    <Box
+        sx={{
+            display: 'flex',
+            justifyContent: 'center', // Optional, to center the image horizontally
+            alignItems: 'flex-end', // Aligns the image at the bottom of the box
+            height: '100%',
+            width: '100%',
+        }}
+    >
+        <img
+            src={currentSticker}
+            alt="Animal Sticker"
+            style={{
+                width: '100%', // Set width to 100% of the parent container
+                height: '100%', // Set height to 100% of the parent container
+                objectFit: 'contain', // Maintain aspect ratio while fitting within the container
+                maxWidth: '90%', // Optional: Limit the maximum width to 80% of its original size
+                maxHeight: '90%', // Optional: Limit the maximum height to 80% of its original size
+            }}
+        />
+    </Box>
+)
+
+const IntructionButton = ({ test }: any) => {
+    const [openInstructionDialog, setOpenInstructionDialog] = useState(false)
+
+    return (
+        <>
+            <Button
+                onClick={() => setOpenInstructionDialog(true)}
+                variant="outlined"
+                startIcon={<HelpIcon />}
+                sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                    minWidth: 'auto',
+                    fontSize: '1rem',
+                }}
+            >
+                Instruction
+            </Button>
+
+            <TestInstructionDialog
+                open={openInstructionDialog}
+                onClose={() => setOpenInstructionDialog(false)}
+                showAudioVersion={test!.testType.hasQuestionAudio}
+                instructionAudioBlobUrl={test!.testType.questionType.instructionAudioBlobUrl}
+                customPoint1Text={test!.testType.questionType.questionInstructionText}
+            />
+        </>
+    )
+}
+
+const RecordButton = ({
+    isQuestionWithoutAnswer,
+    isRecording,
+    onStartRecording,
+    onStopRecording,
+    onSubmit,
+}: any) => (
+    <Box display="flex" flexDirection="column" alignItems="flex-end">
+        {!isRecording && isQuestionWithoutAnswer && (
+            <Button
+                variant="contained"
+                color="primary"
+                startIcon={<MicIcon />}
+                sx={{ ml: 2, fontSize: '1rem' }}
+                onClick={onStartRecording}
+                disabled={isRecording || onSubmit.inProgress}
+            >
+                Record Now
+            </Button>
+        )}
+        {!isRecording && !isQuestionWithoutAnswer && (
+            <Box display="flex" flexDirection="column" alignItems="end">
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<MicIcon />}
+                    sx={{ fontSize: '1rem' }}
+                    onClick={onStartRecording}
+                >
+                    Record Again
+                </Button>
+                <Typography
+                    variant="body2"
+                    color="warning"
+                    sx={{ mt: 1, maxWidth: '200px', textAlign: 'end' }}
+                >
+                    Note: If you record a new answer, your current answer will be lost.
+                </Typography>
+            </Box>
+        )}
+        {isRecording && (
+            <Button
+                variant="contained"
+                color="primary"
+                startIcon={<MicNoneIcon />}
+                sx={{ fontSize: '1rem' }}
+                onClick={onStopRecording}
+            >
+                Stop Recording
+            </Button>
+        )}
+    </Box>
+)
+
+const NextButton = ({
+    blockContinueTest,
+    isQuestionWithoutAnswer,
+    isLastQuestionInTest,
+    isRecording,
+    submitAnswer,
+    onSubmit,
+}: any) => {
+    const [openModalNoAnswerWarning, setOpenNoAnswerWarningModal] = useState(false)
+
+    const onClickNext = async () => {
+        if (blockContinueTest()) {
+            return
+        }
         if (isQuestionWithoutAnswer) {
-            setModalOpen(true)
+            setOpenNoAnswerWarningModal(true)
         } else {
             await submitAnswer()
         }
     }
 
     const handleConfirmSkipQuestion = async () => {
-        setModalOpen(false)
+        setOpenNoAnswerWarningModal(false)
         await submitAnswer()
     }
 
     return (
-        <>
-            {test && currentTestQuestionIndex !== null && (
-                <Box sx={{ maxWidth: 'md', mx: 'auto', p: 2 }}>
-                    <CustomSnackbar
-                        onRequest={onMaxRecordingTime}
-                        setOnRequest={setOnMaxRecordingTime}
-                    />
-                    <CustomSnackbar onRequest={onSubmit} setOnRequest={setOnSubmit} />
-                    <ProgressBar
-                        currentQuestionIndex={currentTestQuestionIndex}
-                        numQuestions={test?.testType.numQuestions}
-                    />
-                    <Card
-                        variant="outlined"
-                        sx={{
-                            padding: 2,
-                            position: 'relative',
-                            overflow: 'hidden',
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                width: '100%',
-                                height: '100%',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                backgroundImage: `url(${background})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                filter: 'blur(1px)',
-                                opacity: 0.3, // 20% opacity
-                                zIndex: 1, // Behind the card content
-                            }}
-                        />
-                        <CardContent sx={{ position: 'relative', zIndex: 3 }}>
-                            <Grid2 container spacing={2}>
-                                {/* Top-left: Icon */}
-                                <Grid2
-                                    size={1}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                >
-                                    <HeaderIcon sx={{ fontSize: 35, color: 'secondary.dark' }} />
-                                </Grid2>
-                                {/* Top-right: Instructions Title */}
-                                <Grid2
-                                    size={11}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="left"
-                                >
-                                    <Typography variant="h1" color="secondary.dark">
-                                        {test.testType.testTypeName} Section - Question{' '}
-                                        {currentTestQuestionIndex + 1} /{' '}
-                                        {test.testType.numQuestions}
-                                    </Typography>
-                                </Grid2>
-                                {/* Bottom-left: Blank */}
-                                <Grid2
-                                    size={1}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                />
-                                {/* Bottom-right: Content and Button */}
-                                <Grid2 size={11}>
-                                    <Box>
-                                        <Grid2 container spacing={0}>
-                                            <Grid2 size={{ xs: 12, sm: 8 }}>
-                                                {/* Left side: Grouped content (first two boxes) */}
-                                                <Box>
-                                                    {/* First Box: Question Audio or Text */}
-                                                    {questionAudioBlobUrl ? (
-                                                        <Box>
-                                                            <audio
-                                                                controls
-                                                                src={questionAudioBlobUrl}
-                                                                style={{
-                                                                    width: '100%',
-                                                                    maxWidth: 'sm',
-                                                                }}
-                                                            >
-                                                                Your browser does not support the
-                                                                audio element.
-                                                            </audio>
-                                                        </Box>
-                                                    ) : (
-                                                        <Box display="flex">
-                                                            <StyledSoundCard>
-                                                                <CardContent>
-                                                                    <Typography
-                                                                        variant="h1"
-                                                                        sx={{
-                                                                            fontFamily:
-                                                                                'Inter, sans-serif',
-                                                                            fontSize: '2rem',
-                                                                            fontWeight: 700,
-                                                                            color: 'secondary.main',
-                                                                        }}
-                                                                    >
-                                                                        {
-                                                                            test.testQuestions[
-                                                                                currentTestQuestionIndex
-                                                                            ].question.questionText
-                                                                        }
-                                                                    </Typography>
-                                                                </CardContent>
-                                                            </StyledSoundCard>
-                                                        </Box>
-                                                    )}
+        <Box display="flex" flexDirection="column" alignItems="flex-end">
+            <Button
+                variant="contained"
+                color="primary"
+                startIcon={isLastQuestionInTest ? <EndSessionIcon /> : <NavigateNextIcon />}
+                sx={{ ml: 2, fontSize: '1rem' }}
+                onClick={onClickNext}
+                disabled={isRecording || onSubmit.inProgress}
+            >
+                {isLastQuestionInTest ? 'Finish Section' : 'Next Question'}
+            </Button>
 
-                                                    {/* Second Box: Recording Section */}
-                                                    <Box sx={{ mt: 2, mb: 2 }}>
-                                                        {isRecording && (
-                                                            <div
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                }}
-                                                            >
-                                                                <Box
-                                                                    sx={{
-                                                                        width: '10px',
-                                                                        height: '10px',
-                                                                        backgroundColor: 'red',
-                                                                        borderRadius: '50%',
-                                                                        animation:
-                                                                            'pulsate 1s infinite',
-                                                                        margin: '0px 15px',
-                                                                        '@keyframes pulsate': {
-                                                                            '0%': {
-                                                                                transform:
-                                                                                    'scale(1)',
-                                                                                opacity: 1,
-                                                                            },
-                                                                            '50%': {
-                                                                                transform:
-                                                                                    'scale(1.5)',
-                                                                                opacity: 0.7,
-                                                                            },
-                                                                            '100%': {
-                                                                                transform:
-                                                                                    'scale(1)',
-                                                                                opacity: 1,
-                                                                            },
-                                                                        },
-                                                                    }}
-                                                                />
-                                                                Recording Time: {recordingTime}s
-                                                            </div>
-                                                        )}
-                                                        {!isRecording &&
-                                                            mediaBlobUrl &&
-                                                            !isQuestionWithoutAnswer && (
-                                                                <>
-                                                                    <div>Your answer:</div>
-                                                                    <audio
-                                                                        controls
-                                                                        src={mediaBlobUrl}
-                                                                        style={{
-                                                                            width: '100%',
-                                                                            maxWidth: 'sm',
-                                                                        }}
-                                                                    />
-                                                                </>
-                                                            )}
-                                                    </Box>
-                                                </Box>
-                                            </Grid2>
-                                            {/* Right side: Sticker (third box) */}
-                                            <Grid2 size={{ xs: 0, sm: 4 }}>
-                                                <Box
-                                                    sx={{
-                                                        display: 'flex',
-                                                        justifyContent: 'center', // Optional, to center the image horizontally
-                                                        alignItems: 'flex-end', // Aligns the image at the bottom of the box
-                                                        height: '100%',
-                                                        width: '100%',
-                                                    }}
-                                                >
-                                                    <img
-                                                        src={currentSticker}
-                                                        alt="Animal Sticker"
-                                                        style={{
-                                                            width: '100%', // Set width to 100% of the parent container
-                                                            height: '100%', // Set height to 100% of the parent container
-                                                            objectFit: 'contain', // Maintain aspect ratio while fitting within the container
-                                                            maxWidth: '90%', // Optional: Limit the maximum width to 80% of its original size
-                                                            maxHeight: '90%', // Optional: Limit the maximum height to 80% of its original size
-                                                        }}
-                                                    />
-                                                </Box>
-                                            </Grid2>
-                                        </Grid2>
-                                        <Box sx={{ mt: 2 }}>
-                                            <Grid2 container alignItems="flex-start" spacing={1}>
-                                                <Grid2
-                                                    alignItems="flex-start"
-                                                    size={{ sm: 6, md: 'auto' }}
-                                                >
-                                                    {/* Left-aligned instruction button */}
-                                                    <Button
-                                                        onClick={() =>
-                                                            setOpenInstructionDialog(true)
-                                                        }
-                                                        variant="outlined"
-                                                        startIcon={<HelpIcon />}
-                                                        sx={{
-                                                            backgroundColor:
-                                                                'rgba(255, 255, 255, 0.6)',
-                                                            minWidth: 'auto',
-                                                            fontSize: '1rem',
-                                                        }}
-                                                    >
-                                                        Instruction
-                                                    </Button>
-                                                    {/* Test Instruction Dialog */}
-                                                    <TestInstructionDialog
-                                                        open={openInstructionDialog}
-                                                        onClose={() =>
-                                                            setOpenInstructionDialog(false)
-                                                        }
-                                                        showAudioVersion={
-                                                            test.testType.hasQuestionAudio
-                                                        }
-                                                        instructionAudioBlobUrl={
-                                                            instructionAudioBlobUrl
-                                                        }
-                                                        customPoint1Text={
-                                                            test.testType.questionType
-                                                                .questionInstructionText
-                                                        }
-                                                    />
-                                                </Grid2>
-
-                                                {/* Right-aligned next/finish buttons */}
-                                                <Grid2
-                                                    alignItems="flex-end"
-                                                    size={{ xs: 12, sm: 6, md: 5 }}
-                                                >
-                                                    {/* Ensure the Record button takes the full width on xs */}
-                                                    <Box
-                                                        display="flex"
-                                                        flexDirection="column"
-                                                        alignItems="flex-end"
-                                                    >
-                                                        {!isRecording &&
-                                                            isQuestionWithoutAnswer && (
-                                                                <Button
-                                                                    variant="contained"
-                                                                    color="primary"
-                                                                    startIcon={<MicIcon />}
-                                                                    sx={{ ml: 2, fontSize: '1rem' }}
-                                                                    onClick={onStartRecording}
-                                                                    disabled={
-                                                                        isRecording ||
-                                                                        submittingInProgress
-                                                                    }
-                                                                >
-                                                                    Record Now
-                                                                </Button>
-                                                            )}
-                                                        {!isRecording &&
-                                                            !isQuestionWithoutAnswer && (
-                                                                <Box
-                                                                    display="flex"
-                                                                    flexDirection="column"
-                                                                    alignItems="end"
-                                                                >
-                                                                    <Button
-                                                                        variant="contained"
-                                                                        color="primary"
-                                                                        startIcon={<MicIcon />}
-                                                                        sx={{
-                                                                            fontSize: '1rem',
-                                                                        }}
-                                                                        onClick={onStartRecording}
-                                                                    >
-                                                                        Record Again
-                                                                    </Button>
-                                                                    <Typography
-                                                                        variant="body2"
-                                                                        color="warning"
-                                                                        sx={{
-                                                                            mt: 1,
-                                                                            maxWidth: '200px',
-                                                                            textAlign: 'end',
-                                                                        }}
-                                                                    >
-                                                                        Note: If you record a new
-                                                                        answer, your current answer
-                                                                        will be lost.
-                                                                    </Typography>
-                                                                </Box>
-                                                            )}
-                                                        {isRecording && (
-                                                            <Button
-                                                                variant="contained"
-                                                                color="primary"
-                                                                startIcon={<MicNoneIcon />}
-                                                                sx={{ fontSize: '1rem' }}
-                                                                onClick={onStopRecording}
-                                                            >
-                                                                Stop Recording
-                                                            </Button>
-                                                        )}
-                                                    </Box>
-                                                </Grid2>
-                                                <Grid2
-                                                    alignItems="flex-end"
-                                                    size={{ xs: 12, sm: 12, md: 'auto' }}
-                                                >
-                                                    <Box
-                                                        display="flex"
-                                                        flexDirection="column"
-                                                        alignItems="flex-end"
-                                                    >
-                                                        {currentTestQuestionIndex <
-                                                        test.testType.numQuestions - 1 ? (
-                                                            <Button
-                                                                variant="contained"
-                                                                color="primary"
-                                                                startIcon={<NavigateNextIcon />}
-                                                                sx={{ ml: 2, fontSize: '1rem' }}
-                                                                onClick={onClickNextQuestion}
-                                                                disabled={
-                                                                    isRecording ||
-                                                                    submittingInProgress
-                                                                }
-                                                            >
-                                                                Next Question
-                                                            </Button>
-                                                        ) : (
-                                                            <Button
-                                                                variant="contained"
-                                                                color="primary"
-                                                                startIcon={<EndSessionIcon />}
-                                                                sx={{ ml: 2, fontSize: '1rem' }}
-                                                                onClick={onFinishTest}
-                                                                disabled={
-                                                                    isRecording ||
-                                                                    submittingInProgress
-                                                                }
-                                                            >
-                                                                Finish Section
-                                                            </Button>
-                                                        )}
-                                                        {submittingInProgress && (
-                                                            <Box display="flex" alignItems="center">
-                                                                <CircularProgress
-                                                                    size={24}
-                                                                    style={{ marginRight: 8 }}
-                                                                />
-                                                                <Typography
-                                                                    variant="body2"
-                                                                    color={onSubmit.color}
-                                                                >
-                                                                    {onSubmit.message}
-                                                                </Typography>
-                                                            </Box>
-                                                        )}
-                                                        <ConfirmationModal
-                                                            open={modalOpen}
-                                                            onClose={() => setModalOpen(false)}
-                                                            onConfirm={handleConfirmSkipQuestion}
-                                                        />
-                                                    </Box>
-                                                </Grid2>
-                                            </Grid2>
-                                        </Box>
-                                    </Box>
-                                </Grid2>
-                            </Grid2>
-                        </CardContent>
-                    </Card>
+            {onSubmit.inProgress && (
+                <Box display="flex" alignItems="center">
+                    <CircularProgress size={24} style={{ marginRight: 8 }} />
+                    <Typography variant="body2" color={onSubmit.color}>
+                        {onSubmit.message}
+                    </Typography>
                 </Box>
             )}
-        </>
+            <ConfirmationModal
+                open={openModalNoAnswerWarning}
+                onClose={() => setOpenNoAnswerWarningModal(false)}
+                onConfirm={handleConfirmSkipQuestion}
+            />
+        </Box>
     )
 }
 

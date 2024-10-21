@@ -328,7 +328,7 @@ const Header: React.FC = () => {
                                             horizontal: 'right',
                                         }}
                                     >
-                                        <MenuItem
+                                        {/* <MenuItem
                                             component={Link}
                                             to="/profile"
                                             onClick={() => {
@@ -342,7 +342,7 @@ const Header: React.FC = () => {
                                             }}
                                         >
                                             Profile
-                                        </MenuItem>
+                                        </MenuItem> */}
                                         {['admin', 'teacher'].includes(user.accountRole) && (
                                             <MenuItem
                                                 component={Link}

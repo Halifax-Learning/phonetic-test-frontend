@@ -171,7 +171,7 @@ export const StyledUserIconButton = styled(IconButton)(({ theme }) => ({
     },
 }))
 
-export const StyledClickableCard = styled(Card)(({ theme }) => ({
+export const StyledClickableCard = styled(Card)<{ disabled?: boolean }>(({ theme, disabled }) => ({
     width: '100%',
     height: '100%',
     borderRadius: theme.shape.borderRadius,
@@ -179,14 +179,16 @@ export const StyledClickableCard = styled(Card)(({ theme }) => ({
     border: '1px solid',
     borderColor: theme.palette.text.secondary,
     padding: theme.spacing(2),
-    cursor: 'pointer',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.6 : 1,
+    pointerEvents: disabled ? 'none' : 'auto',
     boxShadow: 'none',
     transition: theme.transitions.create(['border-color', 'box-shadow', 'transform'], {
         duration: theme.transitions.duration.standard,
     }),
     '&:hover': {
-        boxShadow: `${alpha(theme.palette.primary.main, 0.25)} 0 0 8px 2px`, // Shadow effect on hover
-        borderColor: theme.palette.primary.main, // Border color change on hover
+        boxShadow: disabled ? null : `${alpha(theme.palette.primary.main, 0.25)} 0 0 8px 2px`, // Shadow effect on hover
+        borderColor: disabled ? null : theme.palette.primary.main, // Border color change on hover
     },
 }))
 
