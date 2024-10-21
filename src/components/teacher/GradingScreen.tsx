@@ -58,7 +58,6 @@ const GradingScreen = () => {
         useSelector((state: RootState) => state.gradingAssessment.currentTestIndex) || 0
 
     const [selectedTest, setSelectedTest] = useState(assessment?.tests[currentTestIndex!])
-    const [selectedValues, setSelectedValues] = useState<string[]>([])
 
     const [teacherGradingDialogOpen, setTeacherGradingDialog] = useState(false)
     const [emailDialogOpen, setEmailDialogOpen] = useState(false)
@@ -137,19 +136,6 @@ const GradingScreen = () => {
     }, [selectedTest])
 
     useEffect(() => {
-        // Update selected values when selectedTest changes
-        const updatedSelectedValues =
-            selectedTest?.testQuestions.map((testQuestion) => {
-                if (testQuestion.latestTeacherEvaluation === true) {
-                    return 'Correct'
-                } else if (testQuestion.latestTeacherEvaluation === false) {
-                    return 'Incorrect'
-                } else {
-                    return ''
-                }
-            }) || []
-        setSelectedValues(updatedSelectedValues)
-
         // Update rows when selectedTest changes
         const newRows =
             selectedTest?.testQuestions.map((testQuestion, index) => ({
@@ -165,7 +151,12 @@ const GradingScreen = () => {
                 ),
                 teacherEvaluation: displayTeacherEvaluation(testQuestion.originalTeacherEvaluation),
                 index,
-                grade: selectedValues[index],
+                grade:
+                    testQuestion.latestTeacherEvaluation === null
+                        ? null
+                        : testQuestion.latestTeacherEvaluation
+                          ? 'Correct'
+                          : 'Incorrect',
                 feedback: testQuestion.latestTeacherComment || '',
             })) || []
 
@@ -210,31 +201,17 @@ const GradingScreen = () => {
         dispatch(setGradingTest(index))
     }
 
-    const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const value = event.target.value
-
-        setSelectedValues((prev) => {
-            const newValues = [...prev]
-            newValues[index] = value
-            return newValues
-        })
-
-        dispatch(
-            setTeacherEvaluation({
-                evaluation: value === 'Correct',
-                comment: selectedTest?.testQuestions[index].latestTeacherComment || '',
-                testIndex: currentTestIndex!,
-                testQuestionIndex: index,
-            })
-        )
+    const handleRadioChange = (event: React.ChangeEvent<HTMLInputElement>, row: GridRowModel) => {
+        const newGrade = event.target.value
+        const updatedRow = { ...row, grade: newGrade }
+        processRowUpdate(updatedRow, row)
     }
 
     const processRowUpdate = (newRow: GridRowModel, oldRow: GridRowModel) => {
-        if (newRow.feedback !== oldRow.feedback) {
+        if (newRow.grade !== oldRow.grade || newRow.feedback !== oldRow.feedback) {
             dispatch(
                 setTeacherEvaluation({
-                    evaluation:
-                        selectedTest?.testQuestions[newRow.index].latestTeacherEvaluation || null,
+                    evaluation: newRow.grade === null ? null : newRow.grade === 'Correct',
                     comment: newRow.feedback,
                     testIndex: currentTestIndex!,
                     testQuestionIndex: newRow.index,
@@ -430,17 +407,11 @@ const GradingScreen = () => {
             cellClassName: 'centered-cell',
             disableExport: true,
             renderCell: (params) => (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center', // Align vertically
-                        height: '100%', // Make sure it takes the full row height
-                    }}
-                >
+                <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                     <FormControl>
                         <RadioGroup
-                            value={selectedValues[params.row.index] || ''}
-                            onChange={(event) => handleRadioChange(event, params.row.index)}
+                            value={params.value}
+                            onChange={(event) => handleRadioChange(event, params.row)}
                             row
                         >
                             <FormControlLabel
@@ -613,7 +584,7 @@ const GradingScreen = () => {
                                 <CardHeader
                                     title={
                                         <Typography variant="h1" sx={{ color: 'secondary.dark' }}>
-                                            Grade Assessments
+                                            Grade Assessment
                                         </Typography>
                                     }
                                 />
